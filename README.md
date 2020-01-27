@@ -8,7 +8,9 @@ The textbook can be purchased from **[Artech House](https://us.artechhouse.com/E
 
 ## Installation
 
-Simply open the folder in MATLAB or add the root folder containing this repository to the MATLAB search path.
+Simply open the folder in MATLAB or add the root folder containing this repository to the MATLAB search path.  Clone this repository, or download the latest release from the Mathworks File Exchange.
+
+[![View Emitter Detection and Geolocation for Electronic Warfare on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/74044-emitter-detection-and-geolocation-for-electronic-warfare)
 
 ## Figures
 
