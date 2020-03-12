@@ -80,8 +80,8 @@ else
 end
 
 %% Compute loss componenets
-L_g = gamma_g * Dg/1e3;
-L_r = gamma_r * Dr/1e3;
-L_c = gamma_c * Dc/1e3;
+L_g = gamma_g .* Dg/1e3;
+L_r = gamma_r .* Dr/1e3;
+L_c = gamma_c .* Dc/1e3;
 
 L = L_g + L_r + L_c;

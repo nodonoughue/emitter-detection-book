@@ -119,14 +119,12 @@ f_ghz = f/1e9; % recompute f_ghz to include spectral lines
 
 alts = (0:5:20)*1e3;
 
+l = atm.calcZenithLoss(f(:),alts,0);
+
 figure;
-for idx_alt = 1:numel(alts)
-    l = atm.calcZenithLoss(f(:),alts(idx_alt),0);
-    loglog(f_ghz,l,'DisplayName',sprintf('%d km',alts(idx_alt)/1e3));
-    hold on;
-end
+loglog(f_ghz,l,'-');%'DisplayName',sprintf('%d km',alts(idx_alt)/1e3));
 xlabel('Frequency (GHz)');
 ylabel('Zenith Attenuation (dB)');
 grid on;
-legend('Location','NorthWest');
+legend(arrayfun(@(x) sprintf('%d km',x/1e3),alts,'UniformOutput',false));
 title('Replication of ITU-R P.676-12, Figure 12');

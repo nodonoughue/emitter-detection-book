@@ -26,92 +26,35 @@ if all(f(:)==0 | isnan(f(:)))
     return;
 end
 
-% Account for vector inputs
-if numel(f) > 1 || numel(p) > 1 || numel(e) > 1 || numel(T) > 1
-    % At least one input is non-scalar, find the dimensions
-    dimsF = size(f);
-    dimsP = size(p);
-    dimsE = size(e);
-    dimsT = size(T);
-    
-    % Check for edge case, all inputs either scalar or equal dim
-    maxDim = max([dimsF;dimsP;dimsE;dimsT],[],1); % Find max dimension
-    if (all(dimsF==maxDim) || numel(f)==1) && ...
-       (all(dimsP==maxDim) || numel(p)==1) && ...
-       (all(dimsE==maxDim) || numel(e)==1) && ...
-       (all(dimsT==maxDim) || numel(T)==1)
-   
-        % Reshape all inputs to a row vector, since spectroscopic data
-        % will be a column vector
-        f = f(:).';
-        p = p(:).';
-        e = e(:).';
-        T = T(:).';
-    else
-        % Some inputs are differently sized, expand all non-zero along
-        % dims
-        if numel(f) > 1
-            % Check that all non-matching dims are scalar
-            nonMatchDim = dimsF~=maxDim;
-            assert(all(dimsF(nonMatchDim)==1),'Error: All non-singleton dimensions of inputs must match.');
-            
-            % Find expansion
-            repDim = ones(size(dimsF));
-            repDim(nonMatchDim) = maxDim(nonMatchDim);
-            f = repmat(f,repDim);
-            f = f(:).';
-        end
-        
-        if numel(p) > 1
-            % Check that all non-matching dims are scalar
-            nonMatchDim = dimsP~=maxDim;
-            assert(all(dimsP(nonMatchDim)==1),'Error: All non-singleton dimensions of inputs must match.');
-            
-            % Find expansion
-            repDim = ones(size(dimsP));
-            repDim(nonMatchDim) = maxDim(nonMatchDim);
-            p = repmat(p,repDim);
-            p = p(:).';
-        end
-        
-        if numel(e) > 1
-            % Check that all non-matching dims are scalar
-            nonMatchDim = dimsE~=maxDim;
-            assert(all(dimsE(nonMatchDim)==1),'Error: All non-singleton dimensions of inputs must match.');
-            
-            % Find expansion
-            repDim = ones(size(dimsE));
-            repDim(nonMatchDim) = maxDim(nonMatchDim);
-            e = repmat(e,repDim);
-            e = e(:).';
-        end
-        
-        if numel(T) > 1
-            % Check that all non-matching dims are scalar
-            nonMatchDim = dimsT~=maxDim;
-            assert(all(dimsT(nonMatchDim)==1),'Error: All non-singleton dimensions of inputs must match.');
-            
-            % Find expansion
-            repDim = ones(size(dimsT));
-            repDim(nonMatchDim) = maxDim(nonMatchDim);
-            T = repmat(T,repDim);
-            T = T(:).';
-        end
-    end
-    outputDims = maxDim;
-else
-    outputDims = [1 1];
-end
-% At this point, all of the inputs are either scalar, or 1xM
+% Determine largest dimension in use
+n_dims_in_use = max([numel(size(f)),numel(size(p)),numel(size(e)),numel(size(T))]);
+spec_dim = n_dims_in_use + 1;
 
 % Read in the spectroscopic tables (Tables 1 and 2 of Annex 1)
 % All table data will be Nx1 for the N spectroscopic lines of
 % each table.
 [fox,a1,a2,a3,a4,a5,a6] = atm.makeSpectroscopicTableOxygen();
-% [fox,a1,a2,a3,a4,a5,a6]=textread('+atm/spectroscopicTableOxygen.dat','%f,%f,%f,%f,%f,%f,%f','headerlines',1);
 [fw,b1,b2,b3,b4,b5,b6] = atm.makeSpectroscopicTableWater();
-% [fw,b1,b2,b3,b4,b5,b6]=textread('+atm/spectroscopicTableWater.dat','%f,%f,%f,%f,%f,%f,%f','headerlines',1);
 
+% Shift spectroscopic data to use the first non-singleton dimension across
+% all inputs
+reshape_dims = [ones(1,n_dims_in_use),numel(fox)];
+fox = reshape(fox,reshape_dims);
+a1 = reshape(a1,reshape_dims);
+a2 = reshape(a2,reshape_dims);
+a3 = reshape(a3,reshape_dims);
+a4 = reshape(a4,reshape_dims);
+a5 = reshape(a5,reshape_dims);
+a6 = reshape(a6,reshape_dims);
+
+reshape_dims = [ones(1,n_dims_in_use),numel(fw)];
+fw = reshape(fw,reshape_dims);
+b1 = reshape(b1,reshape_dims);
+b2 = reshape(b2,reshape_dims);
+b3 = reshape(b3,reshape_dims);
+b4 = reshape(b4,reshape_dims);
+b5 = reshape(b5,reshape_dims);
+b6 = reshape(b6,reshape_dims);
 
 %% Compute the dry continuum due to pressure-induced Nitrogen absorption and the Debye spectrum (eq 8)
 f0 = f/1e9; % Convert freq from Hz to GHz
@@ -147,11 +90,11 @@ Fox = f0./fox.*( ((dfox-dox.*delta_fox)./(delta_fox.^2+dfox.^2)) + ((dfox-dox.*s
 Fw = f0./fw.*( ((dfw-dw.*delta_fw)./(delta_fw.^2+dfw.^2)) + ((dfw-dw.*sum_fw)./(sum_fw.^2+dfw.^2)));
 
 %% Compute complex refractivities
-Nox = sum(Sox.*Fox,1)+ND;
-Nw = sum(Sw.*Fw,1);
+Nox = sum(Sox.*Fox,spec_dim)+ND;
+Nw = sum(Sw.*Fw,spec_dim);
 
-gammaOx = reshape(.1820*f0.*Nox,outputDims);
-gammaW = reshape(.1820*f0.*Nw,outputDims);
+gammaOx = .1820*f0.*Nox;
+gammaW = .1820*f0.*Nw;
 
 %% Handle all freqs < 1 GHz
 lowFreq = f0 < 1;

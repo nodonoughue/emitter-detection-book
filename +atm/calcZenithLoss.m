@@ -30,12 +30,20 @@ end
 if nargin < 3 || isempty(zenith_angle)
     zenith_angle = 0;
 end
-    
+
+%% Determine which dimension altitude layers should be created in
+%  This is done to smoothly handle N-dimensional inputs that may or may
+%  not be the same size (e.g. frequency varied on one dimension, altitude
+%  on another).
+n_dims_in_use = max([numel(size(freq)),numel(size(alt_start)),numel(size(zenith_angle))]);
+layer_dim = n_dims_in_use+1;
+
 %% Make Altitude Layers
 % From ITU-R P.676-11(12/2017), layers should be set at exponential
 % intervals
 numLayers = 922; % Used for ceiling of 100 km
 layerDelta = .0001*exp(((1:numLayers)-1)/100); % Layer thicknesses [km], eq 21
+layerDelta = reshape(layerDelta,[ones(1,n_dims_in_use),numel(layerDelta)]);
 layerTop = cumsum(layerDelta); % [km]
 layerBottom = layerTop - layerDelta; % [km]
 layerMid = (layerTop+layerBottom)/2;
@@ -48,35 +56,23 @@ layerBottom = layerBottom(layerMask);
 layerMid = layerMid(layerMask);
 layerTop = layerTop(layerMask);
 
-if layerBottom(1) < alt_start_km
-    layerBottom(1) = alt_start_km;
-    layerMid(1) = (layerTop(1) + alt_start_km)/2;
-    layerDelta(1) = layerTop(1)-layerBottom(1);
-end
-
 % Lookup standard atmosphere for each band
 atmStruct = atm.standardAtmosphere(layerMid*1e3);
 
 % Compute loss coefficient for each band
 [ao,aw] = atm.gasLossCoeff(freq(:),atmStruct.P,atmStruct.e,atmStruct.T);
 
-% Account for off-nadir paths
-if zenith_angle == 0
-    layerDeltaEff = layerDelta;
-else
-    % Compute the slant range to the top of the atmosphere
-    zenith_angle_deg = (180/pi)*zenith_angle;
-    el_angle_deg = 90-zenith_angle_deg;
-    layerDeltaEff = utils.computeSlantRange(layerBottom,layerTop,el_angle_deg,true);
-    
-end
+% Account for off-nadir paths and partial layers
+el_angle_deg = 90 - zenith_angle;
+layerDeltaEff = utils.computeSlantRange(max(layerBottom,alt_start_km), layerTop, el_angle_deg, true);
+layerDeltaEff(layerTop <= alt_start_km) = 0; % Set all layers below alt_start_km to zero
 
 % Zenith Loss by Layer (loss to pass through each layer)
 zenith_loss_by_layer_oxygen = ao.*layerDeltaEff;
 zenith_loss_by_layer_water = aw.*layerDeltaEff;
 
 % Cumulative Zenith Loss
-zenith_loss_o = sum(zenith_loss_by_layer_oxygen,2); % Loss from ground to the bottom of each layer
-zenith_loss_w = sum(zenith_loss_by_layer_water,2); % Loss from ground to the bottom of each layer
+zenith_loss_o = sum(zenith_loss_by_layer_oxygen,layer_dim); % Loss from ground to the bottom of each layer
+zenith_loss_w = sum(zenith_loss_by_layer_water,layer_dim); % Loss from ground to the bottom of each layer
 zenith_loss = zenith_loss_o + zenith_loss_w;
 
