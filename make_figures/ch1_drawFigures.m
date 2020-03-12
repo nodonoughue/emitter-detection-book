@@ -178,3 +178,8 @@ ylim([-.5 1.5]);
 xlim([-1 2]);
 
 utils.exportPlot(fig3,[prefix '3']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

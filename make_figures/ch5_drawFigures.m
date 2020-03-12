@@ -44,3 +44,8 @@ utils.exportPlot(fig6,[prefix '6']);
 %% Figure 7 - Pulsed Radar
 fig7 = ex5_3;
 utils.exportPlot(fig7,[prefix '7']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

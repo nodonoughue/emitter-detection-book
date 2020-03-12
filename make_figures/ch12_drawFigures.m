@@ -523,3 +523,8 @@ utils.exportPlot(fig6d,[prefix '6d']);
 utils.exportPlot(fig7a,[prefix '7a']);
 utils.exportPlot(fig7b,[prefix '7b']);
 utils.exportPlot(fig8,[prefix '8']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

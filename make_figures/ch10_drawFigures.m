@@ -287,3 +287,7 @@ utils.exportPlot(fig6,[prefix '6']);
 fig7 = ex10_3;
 utils.exportPlot(fig7,[prefix '7']);
 
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

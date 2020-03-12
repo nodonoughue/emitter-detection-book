@@ -405,3 +405,8 @@ utils.exportPlot(fig7,[prefix '7']);
 %% Figure 8 - SNR as a function of range
 fig8 = ex4_2;
 utils.exportPlot(fig8,[prefix '8']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

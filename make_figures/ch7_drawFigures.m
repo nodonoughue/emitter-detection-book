@@ -569,3 +569,8 @@ grid on;
 
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig16,[prefix '16']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

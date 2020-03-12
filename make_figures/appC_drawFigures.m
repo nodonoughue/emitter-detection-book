@@ -63,12 +63,7 @@ el_ang = 0*pi/180;
 pol_ang = [0 pi/2];
 pol_set = {'Horizontal','Vertical'};
 
-gamma = zeros(numel(pol_ang),numel(rainRateSet),numel(freq_ghz));
-for ii=1:numel(pol_ang)
-    for jj=1:numel(rainRateSet)
-        gamma(ii,jj,:) = atm.rainLossCoeff(freq_ghz*1e9,pol_ang(ii),el_ang,rainRateSet(jj));
-    end
-end
+gamma = atm.rainLossCoeff(reshape(freq_ghz,1,1,[])*1e9,pol_ang(:),el_ang,rainRateSet(:)');
 
 fig3=figure;
 hold on;
@@ -110,11 +105,7 @@ fogNames = {'600 m Visibility','120 m Visibility','30 m Visibility'};
 
 freq_ghz = 1:.5:100;
 
-gamma = zeros(numel(fogSet),numel(freq_ghz));
-
-for ii=1:numel(fogSet)
-    gamma(ii,:) = atm.fogLossCoeff(freq_ghz*1e9,fogSet(ii));
-end
+gamma = atm.fogLossCoeff(freq_ghz*1e9,fogSet(:));
 
 fig4=figure;
 hold on;
@@ -152,22 +143,20 @@ num_alt = numel(alt_lower_vec);
 [fo,fw] = atm.getSpectralLines();
 f = sort([fo,fw,fo+100e6,fw+100e6,fo-100e6,fw-100e6,1e9:1e9:350e9],'ascend');
 
-
-loss = atm.calcZenithLoss(f);
+nadir_deg_set = [0,10,30,60];
+legend_entries = arrayfun(@(x) sprintf('%d%s from Zenith',x,char(176)), nadir_deg_set,'UniformOutput',false);
+legend_entries{1} = 'Zenith';
+loss = atm.calcZenithLoss(f(:),0,nadir_deg_set);
 
 fig5=figure;
-loglog(f/1e9,loss,'DisplayName','Zenith');
-hold on;
 set(gca,'LineStyleOrder','-|--|-.|:');
 set(gca,'ColorOrder',[0 0 0]);
-nadir_deg_set = [10,30,60];
-for idx_deg = 1:numel(nadir_deg_set)
-    set(gca,'ColorOrderIndex',1);
-    set(gca,'LineStyleOrderIndex',idx_deg+1);
-    loss = atm.calcZenithLoss(f,[],(pi/180)*nadir_deg_set(idx_deg));
+set(gca,'yscale','log');
+set(gca,'xscale','log');
+hold on;
+loglog(f/1e9,loss,'DisplayName','Zenith');
+legend(legend_entries);
 
-    loglog(f/1e9,loss,'DisplayName',sprintf('%d%s from Zenith',nadir_deg_set(idx_deg),char(176)));
-end
 xlabel('Frequency [GHz]');
 legend('Location','NorthWest');
 ylabel('Zenith Attenuation [dB]');
@@ -176,3 +165,8 @@ xlim([1 350])
 
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig5,[prefix '5']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

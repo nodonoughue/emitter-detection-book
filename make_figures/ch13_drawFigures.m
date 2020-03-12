@@ -543,3 +543,8 @@ xlabel('Cross-range [km]');ylabel('Down-range [km]');
 utils.setPlotStyle(gca,{'equal','tight'});
 
 utils.exportPlot(fig9,[prefix '9']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

@@ -217,3 +217,8 @@ utils.exportPlot(fig9,[prefix '9']);
 %% Figure 10, Monte Carlo Results
 fig10= ex3_2;
 utils.exportPlot(fig10,[prefix '10']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

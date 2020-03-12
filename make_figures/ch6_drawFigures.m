@@ -148,3 +148,7 @@ ylim([-.2 1.8]);
 utils.setPlotStyle(gca,{'clean','widescreen','tight'});
 utils.exportPlot(fig4,[prefix '4']);
 
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

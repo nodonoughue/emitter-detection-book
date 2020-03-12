@@ -199,3 +199,8 @@ utils.setPlotStyle(gca,{'box only','notick','widescreen','tight'});
 
 % Output the files
 utils.exportPlot(fig5,[prefix '5']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

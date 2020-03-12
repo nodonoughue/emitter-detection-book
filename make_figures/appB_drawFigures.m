@@ -84,3 +84,7 @@ ylabel('Loss');
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig4,[prefix '4']);
 
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

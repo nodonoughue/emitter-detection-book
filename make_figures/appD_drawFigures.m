@@ -138,3 +138,8 @@ annotation(fig4,'arrow',[0.91 0.91],...
 text(-8,270,'Impact of Ground Noise','FontSize',9);
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig4,[prefix '4']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;

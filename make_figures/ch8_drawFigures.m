@@ -418,3 +418,8 @@ utils.exportPlot(figcrlb,[prefix '12']);
 %% Figure 13 - Example 8.2
 fig13=ex8_2;
 utils.exportPlot(gcf,[prefix '13']);
+
+%% Cleanup
+
+% Restore plot settings
+utils.restorePlotSettings;
