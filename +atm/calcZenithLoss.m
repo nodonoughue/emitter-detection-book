@@ -51,7 +51,6 @@ layerMid = (layerTop+layerBottom)/2;
 % Drop layers below alt_start
 alt_start_km = alt_start/1e3;
 layerMask = layerTop >= min(alt_start_km);
-layerDelta = layerDelta(layerMask);
 layerBottom = layerBottom(layerMask);
 layerMid = layerMid(layerMask);
 layerTop = layerTop(layerMask);
@@ -60,7 +59,7 @@ layerTop = layerTop(layerMask);
 atmStruct = atm.standardAtmosphere(layerMid*1e3);
 
 % Compute loss coefficient for each band
-[ao,aw] = atm.gasLossCoeff(freq(:),atmStruct.P,atmStruct.e,atmStruct.T);
+[ao,aw] = atm.gasLossCoeff(freq,atmStruct.P,atmStruct.e,atmStruct.T);
 
 % Account for off-nadir paths and partial layers
 el_angle_deg = 90 - zenith_angle;
