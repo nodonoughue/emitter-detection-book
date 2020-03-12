@@ -30,6 +30,10 @@ end
 if nargin < 3 || isempty(zenith_angle)
     zenith_angle = 0;
 end
+
+if numel(alt_start) > 1 || numel(zenith_angle) > 1
+    % There are multiple start altitudes; repeat for each one.
+    % This is dumb and slow, but works.
     
 %% Make Altitude Layers
 % From ITU-R P.676-11(12/2017), layers should be set at exponential
@@ -42,7 +46,7 @@ layerMid = (layerTop+layerBottom)/2;
 
 % Drop layers below alt_start
 alt_start_km = alt_start/1e3;
-layerMask = layerTop >= min(alt_start_km);
+layerMask = layerTop >= alt_start_km;
 layerDelta = layerDelta(layerMask);
 layerBottom = layerBottom(layerMask);
 layerMid = layerMid(layerMask);
