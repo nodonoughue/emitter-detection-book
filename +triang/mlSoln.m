@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSoln(x_aoa,psi,C,x_ctr,search_size,epsilon)
-% [x_est,A,x_grid] = mlSoln(x_aoa,psi,C,x_ctr,search_size,epsilon)
+function [x_est,A,x_grid] = mlSoln(x_sensor,psi,C,x_ctr,search_size,epsilon)
+% [x_est,A,x_grid] = mlSoln(x_sensor,psi,C,x_ctr,search_size,epsilon)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -7,7 +7,7 @@ function [x_est,A,x_grid] = mlSoln(x_aoa,psi,C,x_ctr,search_size,epsilon)
 % coordinates, as well.
 %
 % INPUTS:
-%   x_aoa       Sensor positions [m]
+%   x_sensor    Sensor positions [m]
 %   psi         Measurement vector [radians]
 %   C           Measurement error covariance matrix
 %   x_ctr       Center of search grid [m]
@@ -26,7 +26,7 @@ function [x_est,A,x_grid] = mlSoln(x_aoa,psi,C,x_ctr,search_size,epsilon)
 % 1 July 2019
 
 % Set up function handle
-ell = @(x) triang.loglikelihood(x_aoa, psi,C,x);
+ell = @(x) triang.loglikelihood(x_sensor, psi,C,x);
 
 % Call the util function
 [x_est,A,x_grid] = utils.mlSoln(ell,x_ctr,search_size,epsilon);
