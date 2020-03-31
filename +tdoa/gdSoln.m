@@ -1,12 +1,12 @@
-function [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,...
+function [x,x_full] = gdSoln(x_sensor,rho,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = gdSoln(x_sensor,rho,C,x_init,alpha,beta,epsilon,...
 %               max_num_iterations,force_full_calc,plot_progress,ref_idx)
 %
 % Computes the gradient descent solution for TDOA processing.
 %
 % Inputs:
 %   
-%   x_tdoa              TDOA sensor positions [m]
+%   x_sensor            TDOA sensor positions [m]
 %   rho                 Measurement vector
 %   C                   Combined error covariance matrix
 %   x_init              Initial estimate of source position [m]
@@ -61,8 +61,8 @@ if nargin < 5 || ~exist('alpha','var')
 end
 
 % Set up measurement error and Jacobian functions
-y = @(x) rho- tdoa.measurement(x_tdoa, x, ref_idx);
-J = @(x) tdoa.jacobian(x_tdoa, x, ref_idx);
+y = @(x) rho- tdoa.measurement(x_sensor, x, ref_idx);
+J = @(x) tdoa.jacobian(x_sensor, x, ref_idx);
 
 % Call generic Gradient Descent solver
 [x,x_full] = utils.gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

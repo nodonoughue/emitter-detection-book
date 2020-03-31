@@ -1,12 +1,12 @@
-function ell = loglikelihood(x_tdoa,rho,C,x_source,ref_idx)
-% ell = loglikelihood(x_tdoa,rho,C,x_source,ref_idx)
+function ell = loglikelihood(x_sensor,rho,C,x_source,ref_idx)
+% ell = loglikelihood(x_sensor,rho,C,x_source,ref_idx)
 %
-% Computes the Log Likelihood for Hybrid sensor measurement (AOA, TDOA, and
-% FDOA), given the received measurement vector zeta, covariance matrix C, 
+% Computes the Log Likelihood for TDOA sensor measurement, given the 
+% received measurement vector rho, covariance matrix C, 
 % and set of candidate source positions x_source.
 %
 % INPUTS:
-%   x_tdoa      TDOA sensor positions 
+%   x_sensor    TDOA sensor positions 
 %   rho         Measurement vector
 %   C           measurement error covariance matrix
 %   x_source    Candidate source position
@@ -32,7 +32,7 @@ C_d = decomposition(C);
 
 for idx_source = 1:n_source_pos
     % Generate the ideal measurement matrix for this position
-    r = tdoa.measurement(x_tdoa, x_source(:,idx_source), ref_idx);
+    r = tdoa.measurement(x_sensor, x_source(:,idx_source), ref_idx);
     
     % Compute the log-likelihood
     err = (rho - r);

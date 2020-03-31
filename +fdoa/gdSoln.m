@@ -2,7 +2,7 @@ function [x,x_full] = gdSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,beta,epsilon,m
 % [x,x_full] = gradDescentSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,...
 %           beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
-% Computes the gradient descent solution for TDOA processing.
+% Computes the gradient descent solution for FDOA processing.
 %
 % Inputs:
 %   

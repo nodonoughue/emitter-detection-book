@@ -140,14 +140,14 @@ utils.exportPlot(fig2b,[prefix '2b']);
 %% Figure 3 -- FDOA Error
 
 x_source = [0 0;-1 1;1 0]';
-xs_dot =[1 0;0 1;0 1]';
+v_source =[1 0;0 1;0 1]';
 x_sensor = [1 3]';
-f0 = 1e9;
+% f0 = 1e9;
 
-[eps1,x_vec,y_vec] = fdoa.fdoaErr(x_source(:,[1 2]),xs_dot(:,[1 2]),eye(2),x_sensor,4,1001,f0);
-[eps2,x_vec2,y_vec2] = fdoa.fdoaErr(x_source(:,[1 3]),xs_dot(:,[1 3]),eye(2),x_sensor,4,1001,f0);
-[eps3,x_vec3,y_vec3] = fdoa.fdoaErr(x_source(:,[2 3]),xs_dot(:,[2 3]),eye(2),x_sensor,4,1001,f0);
-[eps4,x_vec4,y_vec4] = fdoa.fdoaErr(x_source,xs_dot,eye(3),x_sensor,4,1001,f0);
+[eps1,x_vec,y_vec] = fdoa.fdoaErr(x_source(:,[1 2]),v_source(:,[1 2]),eye(2),x_sensor,4,1001);
+[eps2,x_vec2,y_vec2] = fdoa.fdoaErr(x_source(:,[1 3]),v_source(:,[1 3]),eye(2),x_sensor,4,1001);
+[eps3,x_vec3,y_vec3] = fdoa.fdoaErr(x_source(:,[2 3]),v_source(:,[2 3]),eye(2),x_sensor,4,1001);
+[eps4,x_vec4,y_vec4] = fdoa.fdoaErr(x_source,v_source,eye(3),x_sensor,4,1001);
 
 fig3a=figure;
 imagesc(x_vec,y_vec,10*log10(eps1'));
@@ -160,8 +160,8 @@ set(gca,'ydir','normal');
 grid off;
 
 % Draw Velocity Arrows
-utils.drawArrow(x_source(1,1)+[0 xs_dot(1,1)]/2,x_source(2,1)+[0 xs_dot(2,1)]/2);
-utils.drawArrow(x_source(1,2)+[0 xs_dot(1,2)]/2,x_source(2,2)+[0 xs_dot(2,2)]/2);
+utils.drawArrow(x_source(1,1)+[0 v_source(1,1)]/2,x_source(2,1)+[0 v_source(2,1)]/2);
+utils.drawArrow(x_source(1,2)+[0 v_source(1,2)]/2,x_source(2,2)+[0 v_source(2,2)]/2);
 
 % Annotation Text
 text(x_source(1,1)-.6,x_source(2,1),'$S_1$','FontSize',10);
@@ -182,8 +182,8 @@ set(gca,'ydir','normal');
 grid off;
 
 % Draw Velocity Arrows
-utils.drawArrow(x_source(1,1)+[0 xs_dot(1,1)]/2,x_source(2,1)+[0 xs_dot(2,1)]/2);
-utils.drawArrow(x_source(1,3)+[0 xs_dot(1,3)]/2,x_source(2,3)+[0 xs_dot(2,3)]/2);
+utils.drawArrow(x_source(1,1)+[0 v_source(1,1)]/2,x_source(2,1)+[0 v_source(2,1)]/2);
+utils.drawArrow(x_source(1,3)+[0 v_source(1,3)]/2,x_source(2,3)+[0 v_source(2,3)]/2);
 
 % Annotation Text
 text(x_source(1,1)-.6,x_source(2,1),'$S_1$','FontSize',10);
@@ -204,8 +204,8 @@ set(gca,'ydir','normal');
 grid off;
 
 % Draw Velocity Arrows
-utils.drawArrow(x_source(1,2)+[0 xs_dot(1,2)]/2,x_source(2,2)+[0 xs_dot(2,2)]/2);
-utils.drawArrow(x_source(1,3)+[0 xs_dot(1,3)]/2,x_source(2,3)+[0 xs_dot(2,3)]/2);
+utils.drawArrow(x_source(1,2)+[0 v_source(1,2)]/2,x_source(2,2)+[0 v_source(2,2)]/2);
+utils.drawArrow(x_source(1,3)+[0 v_source(1,3)]/2,x_source(2,3)+[0 v_source(2,3)]/2);
 
 % Annotation Text
 text(x_source(1,2)-.5,x_source(2,2)+.25,'$S_2$','FontSize',10);
@@ -230,9 +230,9 @@ set(gca,'ydir','normal');
 grid off;
 
 % Draw Velocity Arrows
-utils.drawArrow(x_source(1,1)+[0 xs_dot(1,1)]/2,x_source(2,1)+[0 xs_dot(2,1)]/2);
-utils.drawArrow(x_source(1,2)+[0 xs_dot(1,2)]/2,x_source(2,2)+[0 xs_dot(2,2)]/2);
-utils.drawArrow(x_source(1,3)+[0 xs_dot(1,3)]/2,x_source(2,3)+[0 xs_dot(2,3)]/2);
+utils.drawArrow(x_source(1,1)+[0 v_source(1,1)]/2,x_source(2,1)+[0 v_source(2,1)]/2);
+utils.drawArrow(x_source(1,2)+[0 v_source(1,2)]/2,x_source(2,2)+[0 v_source(2,2)]/2);
+utils.drawArrow(x_source(1,3)+[0 v_source(1,3)]/2,x_source(2,3)+[0 v_source(2,3)]/2);
 
 % Annotation Text
 text(x_source(1,1)-.6,x_source(2,1),'$S_1$','FontSize',10);

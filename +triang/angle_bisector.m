@@ -46,8 +46,6 @@ for idx_set = 1:N_sets
     v2 = utils.find_intersect(thisX(:,2),thisPsi(2),thisX(:,3),thisPsi(3));
     v3 = utils.find_intersect(thisX(:,3),thisPsi(3),thisX(:,1),thisPsi(1));
 
-%     plot(v1(1),v1(2),'kv');plot(v2(1),v2(2),'kv');plot(v3(1),v3(2),'kv');
-
     % Find angle bisectors
     VV = [v1;v2;v3];
     th_fwd = atan2(circshift(VV(:,2),-1,1)-VV(:,2),...

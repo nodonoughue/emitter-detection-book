@@ -1,15 +1,14 @@
 function psi = measurement(x_sensor, x_source)
 % psi = measurement(x_sensor, x_source)
 %
-% Computes angle of arrival measurements, using the
-% final sensor as a common reference for all FDOA measurements.
+% Computes angle of arrival measurements.
 %
 % INPUTS:
 %   x_sensor    nDim x nSensor array of sensor positions
 %   x_source    nDim x nSource array of source positions
 %
 % OUTPUTS:
-%   psi         nSensor x nSource array of RRDOA measurements
+%   psi         nSensor x nSource array of AOA measurements
 %
 % Nicholas O'Donoughue
 % 1 July 2019

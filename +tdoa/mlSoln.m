@@ -2,10 +2,8 @@ function [x_est,A,x_grid] = mlSoln(x_tdoa,rho,C,x_ctr,search_size,epsilon,ref_id
 % function [x_est,A,x_grid] = mlSoln(x_tdoa,rho,C,x_ctr,search_size,...
 %                                                       epsilon,ref_idx)
 %
-% Construct the ML Estimate by systematically evaluating the log
-% likelihood function at a series of coordinates, and returning the index
-% of the maximum.  Optionally returns the full set of evaluated
-% coordinates, as well.
+% Computes the Maximum Likelihood estimate for source position from a set
+% of TDOA measurements.
 %
 % INPUTS:
 %   x_tdoa      Sensor positions [m]

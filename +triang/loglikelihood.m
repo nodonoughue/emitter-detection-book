@@ -1,12 +1,12 @@
-function ell = loglikelihood(x_aoa, psi,C,x_source)
-% function ell = loglikelihood(x_aoa,psi,C,x_source)
+function ell = loglikelihood(x_sensor, psi,C,x_source)
+% function ell = loglikelihood(x_sensor,psi,C,x_source)
 %
 % Computes the Log Likelihood for AOA sensor measurement, given the 
 % received measurement vector psi, covariance matrix C, 
 % and set of candidate source positions x_source.
 %
 % INPUTS:
-%   x_aoa       nDim x nAOA vector of AOA sensor positions
+%   x_sensor    nDim x nAOA vector of AOA sensor positions
 %   psi         Measurement vector
 %   C           Measurement error covariance matrix
 %   x_source    Candidate source positions
@@ -26,7 +26,7 @@ C_d = decomposition(C);
 
 for idx_source = 1:n_source_pos
     % Generate the ideal measurement matrix for this position
-    p = triang.measurement(x_aoa, x_source(:,idx_source));
+    p = triang.measurement(x_sensor, x_source(:,idx_source));
     
     % Compute the log-likelihood
     err = (psi - p);

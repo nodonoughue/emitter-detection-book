@@ -2,7 +2,8 @@ function [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,bet
 % [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,...
 %            beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
-% Computes the gradient descent solution for TDOA processing.
+% Computes the gradient descent solution for hybrid AOA, TDOA, and
+% FDOA processing.
 %
 % Inputs:   
 %   x_aoa               AOA sensor positions

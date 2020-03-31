@@ -11,7 +11,7 @@ function rdoa = measurement(x_sensor, x_source, ref_idx)
 %               or a 2 x nPairing matrix of sensor pairing indices
 %
 % OUTPUTS:
-%   rdoa        nSensor -1 x nSource array of RRDOA measurements
+%   rdoa        nSensor -1 x nSource array of RDOA measurements
 %
 % Nicholas O'Donoughue
 % 1 July 2019
