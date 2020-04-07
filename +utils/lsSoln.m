@@ -58,10 +58,16 @@ x_prev = x_init;
 x_full(:,1) = x_prev;
     
 % Pre-compute covariance matrix inverses
-%[U,Lambda] = eig(C);
-%lam = diag(Lambda);
-%C_inv = U*diag(1./lam)*U';
-C_d = decomposition(C,'chol');
+do_decomp = ~verLessThan('MATLAB','9.3');
+if do_decomp
+    % Starging in R2017b, MATLAB released the DECOMPOSITION function,
+    % which can decompose matrices for faster computation of left- and
+    % right-division in for loops.
+    C_d = decomposition(C,'chol');
+else
+    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
+    C_inv = pinv(C);
+end
 
 % Initialize Plotting
 if plot_progress
@@ -87,7 +93,11 @@ while iter < max_num_iterations && (force_full_calc || error >= epsilon)
     J_i = J(x_prev);
             
     % Compute delta_x^(i), according to 13.18
-    delta_x = (J_i/C_d*J_i')\(J_i/C_d)*y_i;
+    if do_decomp
+        delta_x = (J_i/C_d*J_i')\(J_i/C_d)*y_i;
+    else
+        delta_x = (J_i*C_inv*J_i')\(J_i*C_inv)*y_i;
+    end
     
     % Update predicted location
     x_full(:,iter) = x_prev + delta_x;

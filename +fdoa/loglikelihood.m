@@ -28,15 +28,31 @@ end
 n_source_pos = size(x_source,2);
 ell = zeros(n_source_pos,1);
 
-% Preprocess covariance matrix
-C_d = decomposition(C);
+% Pre-compute covariance matrix inverses
+do_decomp = ~verLessThan('MATLAB','9.3');
+if do_decomp
+    % Starging in R2017b, MATLAB released the DECOMPOSITION function,
+    % which can decompose matrices for faster computation of left- and
+    % right-division in for loops.
+    C_d = decomposition(C,'chol');
+else
+    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
+    C_inv = pinv(C);
+end
 
 for idx_source = 1:n_source_pos
-    % Generate the ideal measurement matrix for this position
-    r_dot = fdoa.measurement(x_fdoa,v_fdoa, x_source(:,idx_source), ref_idx);
+    x_i = x_source(:,idx_source);
     
-    % Compute the log-likelihood
+    % Generate the ideal measurement matrix for this position
+    r_dot = fdoa.measurement(x_fdoa,v_fdoa, x_i, ref_idx);
+    
+    % Evaluate the measurement error
     err = (rho_dot - r_dot);
     
-    ell(idx_source) = -err'/C_d*err;
+    % Compute the scaled log likelihood
+    if do_decomp
+        ell(idx_source) = -err'/C_d*err;
+    else
+        ell(idx_source) = -err*C_inv*err;
+    end
 end

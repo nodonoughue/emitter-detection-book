@@ -29,7 +29,17 @@ rr = fdoa.measurement(x_sensor,v_sensor,x_source);
 
 % Preprocess covariance matrix inverses
 C_out = C(1:end-1,1:end-1) + C(end,end);
-C_d = decomposition(C_out);
+% Pre-compute covariance matrix inverses
+do_decomp = ~verLessThan('MATLAB','9.3');
+if do_decomp
+    % Starging in R2017b, MATLAB released the DECOMPOSITION function,
+    % which can decompose matrices for faster computation of left- and
+    % right-division in for loops.
+    C_d = decomposition(C_out,'chol');
+else
+    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
+    C_inv = pinv(C_out);
+end
     
 %% Set up test points
 xx_vec = x_max(:).*repmat(linspace(-1,1,numPts),2,1);
@@ -41,7 +51,17 @@ x_plot = [XX(:),YY(:)]'; % 2 x numPts^2
 epsilon = zeros(size(XX));
 for idx_pt = 1:numel(XX)
     x_i = x_plot(:,idx_pt);
+    
+    % Evaluate the measurement at x_i
     rr_i = fdoa.measurement(x_sensor,v_sensor,x_i);
+    
+    % Compute the measurement error
     err = rr-rr_i;
-    epsilon(idx_pt) = (err'/C_d*err);
+    
+    % Evaluate the scaled log likelihood
+    if do_decomp
+        epsilon(idx_pt) = err'/C_d*err;
+    else
+        epsilon(idx_pt) = err'*C_inv*err;
+    end
 end

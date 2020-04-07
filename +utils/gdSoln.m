@@ -70,14 +70,23 @@ x_prev = x_init;
 x_full(:,1) = x_prev;
 
 % Pre-compute covariance matrix inverses
-% [U,Lambda] = eig(C);
-% lam = diag(Lambda);
-% C_inv = U*diag(1./lam)*U';
-% C_sq_inv = U*diag(1./sqrt(lam))*U';
-C_d = decomposition(C);
+do_decomp = ~verLessThan('MATLAB','9.3');
+if do_decomp
+    % Starging in R2017b, MATLAB released the DECOMPOSITION function,
+    % which can decompose matrices for faster computation of left- and
+    % right-division in for loops.
+    C_d = decomposition(C,'chol');
+else
+    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
+    C_inv = pinv(C);
+end
 
 % Cost Function for Gradient Descent
-f = @(x) y(x)'/C_d*y(x);
+if do_decomp
+    f = @(x) y(x)'/C_d*y(x);
+else
+    f = @(x) y(x)'*C_inv*y(x);
+end
 
 % Initialize Plotting
 if plot_progress
@@ -107,7 +116,11 @@ while iter < max_num_iterations && (force_full_calc || error >= epsilon)
     J_i = J(x_prev);
     
     % Compute Gradient and Cost function
-    grad = -2*J_i/C_d*y_i;
+    if do_decomp
+        grad = -2*J_i/C_d*y_i;
+    else
+        grad = -2*J_i*C_inv*y_i;
+    end
     
     % Descent direction is the negative of the gradient
     del_x = -grad/norm(grad);

@@ -51,6 +51,7 @@ C = C/M;
 % Perform Eigendecomposition of C
 [U,Lam] = eig(C);
 lam = diag(Lam);
+
 % Sort the eigenvalues
 [~,idx_sort] = sort(abs(lam),'descend');
 U_sort = U(:,idx_sort);

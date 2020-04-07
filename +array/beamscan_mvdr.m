@@ -39,11 +39,27 @@ for idx_m = 1:M
     C = C + x(:,idx_m)*x(:,idx_m)';
 end
 C = C/M;
-C_d = decomposition(C,'qr');
+
+% Pre-compute covariance matrix inverses
+do_decomp = ~verLessThan('MATLAB','9.3');
+if do_decomp
+    % Starging in R2017b, MATLAB released the DECOMPOSITION function,
+    % which can decompose matrices for faster computation of left- and
+    % right-division in for loops.
+    C_d = decomposition(C);
+else
+    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
+    C_inv = pinv(C);
+end
 
 % Steer each of the M data samples
 P = zeros(1,N_pts);
 for idx_psi = 1:N_pts
     vv = v(psi_vec(idx_psi))/sqrt(N); % N x 1
-    P(idx_psi) = 1./abs(vv'*(C_d\vv));
+    
+    if do_decomp
+        P(idx_psi) = 1./abs(vv'*(C_d\vv));
+    else
+        P(idx_psi) = 1./abs(vv'*C_inv*vv);
+    end
 end
