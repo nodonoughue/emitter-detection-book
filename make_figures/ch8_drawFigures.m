@@ -327,7 +327,8 @@ fig10=ex8_1;
 utils.exportPlot(fig10,[prefix '10']);
 
 %% Figure 12 - CRLB Plot
-
+if force_recalc
+    
 xi_dB = -20:.5:0;
 xi_lin = 10.^(xi_dB/10);
 psi = 5*pi/180;
@@ -414,12 +415,17 @@ grid on;
 
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(figcrlb,[prefix '12']);
+end
 
 %% Figure 13 - Example 8.2
+if force_recalc
+
 fig13=ex8_2;
 utils.exportPlot(gcf,[prefix '13']);
+
+end
 
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;

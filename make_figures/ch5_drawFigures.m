@@ -48,4 +48,4 @@ utils.exportPlot(fig7,[prefix '7']);
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;

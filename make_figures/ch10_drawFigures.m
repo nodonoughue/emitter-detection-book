@@ -273,11 +273,14 @@ utils.setPlotStyle(gca,{'clean','widescreen','tight'});
 utils.exportPlot(fig4,[prefix '4']);
 
 %% Figure 5 - Example Solution
+if force_recalc
+    
 [fig5a,fig5b]=ex10_1();
 
 utils.exportPlot(fig5a,[prefix,'5a']);
 utils.exportPlot(fig5b,[prefix,'5b']);
 
+end
 
 %% Figure 6 - 2 Sensor Configuration
 fig6 = ex10_2;
@@ -290,4 +293,4 @@ utils.exportPlot(fig7,[prefix '7']);
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;

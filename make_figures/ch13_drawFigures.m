@@ -293,15 +293,22 @@ utils.exportPlot(fig2d,[prefix '2d']);
 
 
 %% Figures 3,4 - Homogeneous (3-Mode) Sensors
+if force_recalc
+    
 [fig3,fig4] = ex13_1;
 
 utils.exportPlot(fig3,[prefix '3']);
 utils.exportPlot(fig4,[prefix '4']);
+end
 
 %% Figures 5,6 - Heterogeneous Sensors
+if force_recalc
+    
 [fig5,fig6] = ex13_2;
 utils.exportPlot(fig5,[prefix '5']);
 utils.exportPlot(fig6,[prefix '6']);
+
+end
 
 %% Figure 7 -- CRLB
 % Define Sensor Positions
@@ -547,4 +554,4 @@ utils.exportPlot(fig9,[prefix '9']);
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;

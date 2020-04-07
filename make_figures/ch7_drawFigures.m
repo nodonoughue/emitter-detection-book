@@ -274,6 +274,7 @@ text(0,2.1,'Vertical Adcock','FontSize',10);
 utils.exportPlot(fig6b,[prefix,'6b']);
 
 %% Figure 7 -- Watson Watt Performance
+if force_recalc
     
 % Generate the Signals
 th_true = 45;
@@ -361,6 +362,7 @@ text(10,2.5,'M=100','FontSize',10);
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig7,[prefix '7']);
 
+end
 
 %% Figure 8b -- Doppler
 M=128;
@@ -573,4 +575,4 @@ utils.exportPlot(fig16,[prefix '16']);
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;

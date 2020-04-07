@@ -519,12 +519,15 @@ utils.exportPlot(fig6d,[prefix '6d']);
 %% Figures 7-8, Example FDOA Calculation
 %  Figure 7 is geometry
 %  Figure 8 is estimate error per iteration
+if force_recalc
+    
 [fig7a,fig7b,fig8] = ex12_1;
 utils.exportPlot(fig7a,[prefix '7a']);
 utils.exportPlot(fig7b,[prefix '7b']);
 utils.exportPlot(fig8,[prefix '8']);
 
+end
 %% Cleanup
 
 % Restore plot settings
-utils.restorePlotSettings;
+utils.resetPlotSettings;
