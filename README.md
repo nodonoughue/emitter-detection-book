@@ -1,4 +1,4 @@
-# MATLAB Companion to Emitter Detectio and Geolocation for Electronic Warfare
+# MATLAB Companion to Emitter Detection and Geolocation for Electronic Warfare
 
 ![Textbook cover](https://us.artechhouse.com/Assets/ProductImages/5645_t.jpg "Emitter Detection and Geolocation for Electronic Warfare")
 
