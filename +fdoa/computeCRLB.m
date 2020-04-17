@@ -11,8 +11,8 @@ function crlb = computeCRLB(x_fdoa,v_fdoa,xs,C,ref_idx)
 %   v_fdoa      (Ndim x N) array of FDOA sensor velocities
 %   xs          (Ndim x M) array of source positions over which to 
 %               calculate CRLB
-%   C           Covariance matrix for frequency estimates at the N
-%               FDOA sensors [Hz^2]
+%   C           Covariance matrix for range rate estimates at the N
+%               FDOA sensors [(m/s)^2]
 %   ref_idx     Scalar index of reference sensor, or nDim x nPair
 %               matrix of sensor pairings
 %   
