@@ -158,7 +158,7 @@ xlabel('[km]');
 ylabel('[km]');
 
 % Compute CRLB and Error Ellipse
-err_crlb = triang.crlb(x_sensor,x_source,C_psi);
+err_crlb = triang.computeCRLB(x_sensor,x_source,C_psi);
 crlb_cep50 = utils.computeCEP50(err_crlb); % [km]
 crlb_ellipse = utils.drawErrorEllipse(x_source,err_crlb,100,90);
 h=plot(crlb_ellipse(1,:),crlb_ellipse(2,:),'LineWidth',.5,'DisplayName','90% Error Ellipse');

@@ -25,7 +25,7 @@ sigma_psi = 2.5*pi/180;
 C_psi = sigma_psi^2*eye(size(x_sensor,2)); % N x N identity matrix
 
 % Compute CRLB
-CRLB = triang.crlb(x_sensor*1e3,x0*1e3,C_psi);
+CRLB = triang.computeCRLB(x_sensor*1e3,x0*1e3,C_psi);
 cep50 = reshape(utils.computeCEP50(CRLB),size(X)); % m
 
 good_point = cep50 <= 25e3;

@@ -21,7 +21,7 @@ C_psi = sigma_psi^2*eye(size(x_sensor,2)); % N x N identity matrix
 
 % Find maximum cross-range position at 100 km downrange
 x_source = [-100:100;100*ones(1,201)];
-CRLB = triang.crlb(x_sensor*1e3,x_source*1e3,C_psi);
+CRLB = triang.computeCRLB(x_sensor*1e3,x_source*1e3,C_psi);
 cep50 = utils.computeCEP50(CRLB);
 
 good_points = cep50 <= 25e3;
@@ -35,7 +35,7 @@ x0 = [X(:) Y(:)]';
 
 
 % Compute CRLB
-CRLB = triang.crlb(x_sensor*1e3,x0*1e3,C_psi);
+CRLB = triang.computeCRLB(x_sensor*1e3,x0*1e3,C_psi);
 cep50 = reshape(utils.computeCEP50(CRLB),size(X)); % m
 
 % Blank out y=0
