@@ -18,7 +18,7 @@ f0 = 16e9;
 ht = 6096;
 Lt = 3;
 Bs = 200e6;
-Tp = 20e-3;
+Tp = 20e-6;
 Gt = [30,10,0];
 
 % Receive Side
@@ -34,6 +34,9 @@ Tcorr = 1e-4;
 N0 = utils.constants.boltzmann*utils.constants.T0*10^(NF/10);
 N = 10*log10(N0*Bn);
 xi0 = Pt+Gt + Gr - Lt - Lr - N;
+
+% Adjust xi0 to account for partial pulse
+xi0 = xi0 + 10*log10(min(1,Tp/Tcorr));
 
 % Compute Prop Loss
 Rvec = 10e3:10e3:1000e3;
