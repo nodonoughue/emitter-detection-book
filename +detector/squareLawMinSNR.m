@@ -20,8 +20,18 @@ function xi = squareLawMinSNR(PFA,PD,M)
 % Nicholas O'Donoughue
 % 1 July 2019
 
+% Check for existence of Statistics & Machine Learning Toolbox
+use_stat_toolbox = license('test','Statistics_Toolbox');
+   % If TRUE, then built-in functions will be used.
+   % If FALSE, then custom-builts replacements in the utils namespace will
+   % be used.
+   
 % Find the threshold
-eta = chi2inv(1-PFA,2*M);
+if use_stat_toolbox
+    eta = chi2inv(1-PFA,2*M);
+else
+    eta = utils.chi2inv(1-PFA,2*M);
+end
 
 xi = zeros(size(eta));
 for ii=1:numel(eta)
@@ -39,7 +49,11 @@ for ii=1:numel(eta)
     end
     
     % Set up function for probability of detection
-    pd_fun = @(x) 1-ncx2cdf(thisEta,2*thisM,2*thisM*10.^(x/10)); % Xi is in dB
+    if use_stat_toolbox
+        pd_fun = @(x) 1-ncx2cdf(thisEta,2*thisM,2*thisM*10.^(x/10)); % Xi is in dB
+    else
+        pd_fun = @(x) 1-utils.ncx2cdf(thisEta,2*thisM,2*thisM*10.^(x/10));
+    end
     err_fun = @(x) pd_fun(x) - thisPD;
     
     % Initial Search Value

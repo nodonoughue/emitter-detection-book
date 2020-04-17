@@ -17,6 +17,12 @@ function fig=ex3_2()
 %  at each power level to compute PD and compare
 %  to the desired threshold.
 
+% Check for existence of Statistics & Machine Learning Toolbox
+use_stat_toolbox = license('test','Statistics_Toolbox');
+   % If TRUE, then built-in functions will be used.
+   % If FALSE, then custom-builts replacements in the utils namespace will
+   % be used.
+   
 % Tranmsit Parameters
 f0 = 35e9;
 Pt = 10*log10(.035); % 35 mW / -14.56 dBW
@@ -75,9 +81,15 @@ xi_sl = Pr_sl-N;
 xi_sl_lin = 10.^(xi_sl/10);
 
 % Theoretical Result
-eta = chi2inv(1-Pfa,2*M);
-probD_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_lin);
-probD_sl_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_sl_lin);
+if use_stat_toolbox
+    eta = chi2inv(1-Pfa,2*M);
+    probD_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_lin);
+    probD_sl_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_sl_lin);
+else
+    eta = utils.chi2inv(1-Pfa,2*M);
+    probD_theo = 1-utils.ncx2cdf(eta,2*M,2*M.*xi_lin);
+    probD_sl_theo = 1-utils.ncx2cdf(eta,2*M,2*M.*xi_sl_lin);
+end
 
 % Generate noise and signal vectors
 n = sqrt(Nlin/2) * (randn(M,nMC) + 1i*randn(M,nMC)); % Complex Gaussian with variance of N
@@ -94,8 +106,6 @@ for rngidx = 1:numel(Pr_coarse)
     thisS_sl = sqrt(Pr_sl_lin(rngidx))*s;
     
     % Run Energy Detector
-%     faResult = detector.squareLawDetector(n,Nlin/2,Pfa);
-    
     detResult = detector.squareLaw(n+thisS,Nlin/2,Pfa);
     detResult_sl = detector.squareLaw(n+thisS_sl,Nlin/2,Pfa);
     

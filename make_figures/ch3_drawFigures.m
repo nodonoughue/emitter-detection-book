@@ -28,6 +28,12 @@ rng('default') ;
 % Add path to folder for examples from the textbook
 addpath('examples');
 
+% Check for existence of Statistics & Machine Learning Toolbox
+use_stat_toolbox = license('test','Statistics_Toolbox');
+   % If TRUE, then built-in functions will be used.
+   % If FALSE, then custom-builts replacements in the utils namespace will
+   % be used.
+   
 %% Figure 1, Spectral Content
 
 % Frequency of Signal
@@ -89,7 +95,12 @@ eta_lin = 10.^(eta_db/10);
 [MM,ETA] = ndgrid(M,eta_lin);
 
 % Compute PFA for each eta,N pair
-Pfa = 1-chi2cdf(ETA,2*MM);
+if use_stat_toolbox
+    Pfa = chi2cdf(ETA,2*MM,'upper');
+else
+    Pfa = utils.chi2cdf(ETA,2*MM,'upper');
+end
+
 
 % Plot
 fig3=figure;
@@ -115,11 +126,19 @@ xi_lin = 10.^(xi_db/10);
 [MM,XI] = ndgrid(M,xi_lin);
 
 % Compute threshold
-eta = chi2inv(1-PFA,2*MM);
+if use_stat_toolbox
+    eta = chi2inv(1-PFA,2*MM);
+else
+    eta = utils.chi2inv(1-PFA,2*MM);
+end
 
 % Compute Probability of Detection
 lambda = 2.*XI;
-PD = 1 - ncx2cdf(eta,2*MM,MM.*lambda);
+if use_stat_toolbox
+    PD = 1 - ncx2cdf(eta,2*MM,MM.*lambda);
+else
+    PD = 1 - utils.ncx2cdf(eta,2*MM,MM.*lambda);
+end
 
 % Plot
 fig4 = figure;

@@ -19,7 +19,11 @@ function detResult = squareLaw(z,noise_var,prob_fa)
 T = sum(abs(z).^2,1)/noise_var;
 
 % Compute the threshold
-eta = chi2inv(1-prob_fa,2*size(z,1));
+if license('test','Statistics_Toolbox')
+    eta = chi2inv(1-prob_fa,2*size(z,1));
+else
+    eta = utils.chi2inv(1-prob_fa,2*size(z,1));
+end
 
 % Compare T to eta
 detResult = T > eta;

@@ -22,7 +22,11 @@ sigma_0 = sqrt(M.*noise_var^2/2);
 T = abs(sum(conj(y1).*y2,1)).^2./sigma_0.^2;
 
 % Compute the threshold
-eta = chi2inv(1-prob_fa,2);
+if license('test','Statistics_Toolbox')
+    eta = chi2inv(1-prob_fa,2);
+else
+    eta = utils.chi2inv(1-prob_fa,2);
+end
 
 % Compare T to eta
 detResult = T > eta;

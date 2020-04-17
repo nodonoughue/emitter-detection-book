@@ -34,6 +34,12 @@ rng('default') ;
 % examples
 addpath('examples');
 
+% Check for existence of Statistics & Machine Learning Toolbox
+use_stat_toolbox = license('test','Statistics_Toolbox');
+   % If TRUE, then built-in functions will be used.
+   % If FALSE, then custom-builts replacements in the utils namespace will
+   % be used.
+   
 %% Figure 1a - Alternating Sine Waves
 
 % Sine wave
@@ -300,8 +306,15 @@ XI_out = xi_out_lin;
 
 % Energy Detector Performance
 PFA = 1e-6;
-eta = chi2inv(1-PFA,2*MM);
-PD = 1-ncx2cdf(eta,2*MM,2*MM.*XI);
+
+if use_stat_toolbox
+    eta = chi2inv(1-PFA,2*MM);
+    PD = 1-ncx2cdf(eta,2*MM,2*MM.*XI);
+else
+    eta = utils.chi2inv(1-PFA,2*MM);
+    PD = 1-utils.ncx2cdf(eta,2*MM,2*MM.*XI);
+end
+
 % legendCell = arrayfun(@(x) sprintf('ED, TB=%d dB',x),TBWP_db,'UniformOutput',false);
 
 fig6=figure;hold on;
@@ -312,8 +325,13 @@ fig6=figure;hold on;
 utils.excludeFromLegend(h(2:end));
 
 % Cross-Correlator Performance
-eta = chi2inv(1-PFA,2);
-PD2 = 1-ncx2cdf(eta./(1+2*XI),2,2*XI_out);
+if use_stat_toolbox
+    eta = chi2inv(1-PFA,2);
+    PD2 = 1-ncx2cdf(eta./(1+2*XI),2,2*XI_out);
+else
+    eta = utils.chi2inv(1-PFA,2);
+    PD2 = 1-utils.ncx2cdf(eta./(1+2*XI),2,2*XI_out);
+end
 
 hold on;
 set(gca,'ColorOrderIndex',1);

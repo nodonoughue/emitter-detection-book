@@ -38,6 +38,10 @@ xi = 10*log10(xi_in_lin);
 
 
 % Method 2
-% eta = chi2inv(1-PFA,2); % 2 DOF
-% 
-% pd_check = 1-ncx2cdf(eta/(1+2*xi_in_lin),2,xi_out_lin);
+% if license('test','Statistics_Toolbox')
+%     eta = chi2inv(1-PFA,2); % 2 DOF
+%      pd_check = 1-ncx2cdf(eta/(1+2*xi_in_lin),2,xi_out_lin);
+% else
+%     eta = utils.chi2inv(1-PFA,2);
+%      pd_check = 1-utils.ncx2cdf(eta/(1+2*xi_in_lin),2,xi_out_lin);
+% end

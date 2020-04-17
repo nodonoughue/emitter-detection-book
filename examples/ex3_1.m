@@ -12,6 +12,12 @@ function fig=ex3_1()
 % Nicholas O'Donoughue
 % 1 July 2019
 
+% Check for existence of Statistics & Machine Learning Toolbox
+use_stat_toolbox = license('test','Statistics_Toolbox');
+   % If TRUE, then built-in functions will be used.
+   % If FALSE, then custom-builts replacements in the utils namespace will
+   % be used.
+   
 %  At each range, compute the received
 %  power level.  Conduct a monte carlo trial
 %  at each power level to compute PD and compare
@@ -61,8 +67,13 @@ xi = Pr-N;
 xi_lin = 10.^(xi/10);
 
 % Theoretical Result
-eta = chi2inv(1-Pfa,2*M);
-probD_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_lin);
+if use_stat_toolbox
+    eta = chi2inv(1-Pfa,2*M);
+    probD_theo = 1-ncx2cdf(eta,2*M,2*M.*xi_lin);
+else
+    eta = utils.chi2inv(1-Pfa,2*M);
+    probD_theo = 1-utils.ncx2cdf(eta,2*M,2*M.*xi_lin);
+end
 
 % Generate noise and signal vectors
 n = sqrt(Nlin/2) * (randn(M,nMC) + 1i*randn(M,nMC)); % Complex Gaussian with variance of N
@@ -77,8 +88,6 @@ for rngidx = 1:numel(Pr_coarse)
     thisS = sqrt(Pr_lin(rngidx))*s;
 
     % Run Energy Detector
-%     faResult = detector.squareLawDetector(n,Nlin/2,Pfa);
-    
     detResult = detector.squareLaw(n+thisS,Nlin/2,Pfa);
     
     % Count detections
