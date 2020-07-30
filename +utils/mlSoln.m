@@ -35,44 +35,23 @@ if nDim > 1
     yy = x_ctr(2) + (-search_size(2):epsilon:search_size(2));
     if nDim > 2
         zz = x_ctr(3) + (-search_size(3):epsilon:search_size(3));
+        [XX,YY,ZZ] = ndgrid(xx,yy,zz);
+        x_set = [XX(:),YY(:),ZZ(:)]';
+        x_grid = {xx,yy,zz};
     else
-        zz = 0;
+        [XX,YY] = ndgrid(xx,yy);
+        x_set = [XX(:),YY(:)]';
+        x_grid = {xx,yy};
     end
 else
-    yy = 0;
-    zz = 0;
+    x_set = xx(:)';
+    x_grid = xx;
 end
 
 % Evaluate the likelihood function at each coordinate in the search space
-A = zeros(numel(xx),numel(yy),numel(zz));
-for idx_x = 1:numel(xx)
-    for idx_y = 1:numel(yy)
-        for idx_z = 1:numel(zz)
-            switch nDim
-                case 1
-                    this_x = xx(idx_x);
-                case 2
-                    this_x = [xx(idx_x);yy(idx_y)];
-                case 3
-                    this_x = [xx(idx_x);yy(idx_y);zz(idx_z)];
-            end
-            A(idx_x,idx_y,idx_z) = ell(this_x);
-        end
-    end
-end
+A = ell(x_set);
 
 % Find the peak
 [~,idx_pk] = max(A(:));
-[idx_pk_x,idx_pk_y,idx_pk_z] = ind2sub(size(A),idx_pk);
-switch nDim
-    case 1
-        x_est = xx(idx_pk_x);
-        x_grid = xx;
-    case 2
-        x_est = [xx(idx_pk_x);yy(idx_pk_y)];
-        x_grid = {xx,yy};
-    case 3
-        x_est = [xx(idx_pk_x);yy(idx_pk_y);zz(idx_pk_z)];
-        x_grid = {xx,yy,zz};
-end
+x_est = x_set(:,idx_pk);
             
