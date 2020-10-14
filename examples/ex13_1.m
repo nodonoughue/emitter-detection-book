@@ -50,12 +50,14 @@ num_iters = 1000;
 plot_progress = false;
 alpha = .3;
 beta = .8;
-
+epsilon = 100;
 % Perform Monte Carlo Loop
 cov_ls = zeros(2,2,num_iters);
 cov_grad = zeros(2,2,num_iters);
+cov_bf = zeros(2,2);
 n_div_ls = 0;
 n_div_grad = 0;
+n_div_bf = 0;
 
 fprintf('Performing Monte Carlo simulation...\n');
 
@@ -91,6 +93,17 @@ for idx_mc = 1:n_MC
         err = x_full - x_source;
         cov_grad = cov_grad + reshape(err,2,1,num_iters).*conj(reshape(err,1,2,num_iters))/n_MC;
     end
+    
+    x_full = hybrid.bfSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_init,2*max(x_source(:)),epsilon);
+    if idx_mc==1
+        x_bf = x_full;
+    end
+    if any(isnan(x_full(:)))
+        n_div_bf = n_div_bf + 1;
+    else
+        err = x_full - x_source;
+        cov_bf = cov_bf + err*err'/n_MC;
+    end
 end
 warning('on','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
 fprintf('done.\n');
@@ -98,6 +111,7 @@ fprintf('done.\n');
 % Adjust for divergent trials
 cov_ls = cov_ls * n_MC/(n_MC-n_div_ls);
 cov_grad = cov_grad * n_MC/(n_MC-n_div_grad);
+cov_bf = cov_bf * n_MC/(n_MC-n_div_bf);
 
 % Subsample iterative solutions for plotting
 plotIndex = [1:10,20:20:100,200:200:num_iters];
@@ -113,7 +127,7 @@ for ii=1:num_iters
     cep50_ls(ii) = utils.computeCEP50(cov_ls(:,:,ii))/1e3; % [km]
     cep50_grad(ii) = utils.computeCEP50(cov_grad(:,:,ii))/1e3; % [km]
 end
-
+cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
 err_crlb = hybrid.computeCRLB(x_sensor,x_sensor,x_sensor,v_sensor,x_source,C_full);
@@ -130,6 +144,7 @@ hold on;
 plot(x_source(1,:)/1e3,x_source(2,:)/1e3,'k^','DisplayName','Emitter','LineWidth',1);
 plot(x_ls_plot(1,1:floor(numIterToPlot/2),1)/1e3,x_ls_plot(2,floor(1:numIterToPlot/2),1)/1e3,':x','DisplayName',sprintf('Least Squares (%d iterations)',plotIndex(floor(numIterToPlot/2))),'LineWidth',1,'MarkerSize',4);
 plot(x_grad_plot(1,1:numIterToPlot,1)/1e3,x_grad_plot(2,1:numIterToPlot,1)/1e3,'-.+','DisplayName',sprintf('Grad Descent (%d iterations)',plotIndex(numIterToPlot)),'LineWidth',1,'MarkerSize',4);
+plot(x_bf(1,1)/1e3,x_bf(2,1)/1e3,'o','DisplayName','BestFix');
 set(gca,'ColorOrderIndex',3);
 plot(crlb_ellipse(1,:)/1e3,crlb_ellipse(2,:)/1e3,'LineWidth',.5,'DisplayName','90% Error Ellipse');
 
@@ -164,6 +179,7 @@ fig_err=figure;
 plot(1:num_iters,cep50_ls,'DisplayName','Least Squares');
 hold on;
 plot(1:num_iters,cep50_grad,'--','DisplayName','Gradient Descent');
+plot(1:num_iters,cep50_bf*ones(1,num_iters),'-.','DisplayName','BestFix');
 plot(1:num_iters,crlb_cep50*ones(1,num_iters),':','DisplayName','CRLB CEP_{50}');
 xlabel('Iteration Number');
 ylabel('Position Error [km]');

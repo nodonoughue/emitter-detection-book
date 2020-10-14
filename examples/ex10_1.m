@@ -53,13 +53,13 @@ xaoap2 = x_sensor(:,3) + [0 cos(psi(3)+epsang(3));0 sin(psi(3)+epsang(3))]*5*r2;
 xaoam2 = x_sensor(:,3) + [0 cos(psi(3)-epsang(3));0 sin(psi(3)-epsang(3))]*5*r2;
 lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 
-% Geometric Solutions
-x_centroid = triang.centroid(x_sensor,psi);
-x_angleBisector = triang.angle_bisector(x_sensor,psi);
+% % Geometric Solutions
+% x_centroid = triang.centroid(x_sensor,psi);
+% x_incenter = triang.angle_bisector(x_sensor,psi);
 
 % Iterative Methods
 epsilon = .01;
-nMC = 1e4;
+nMC = 1e3;
 numIters=100;
 alpha=.3;
 beta=.6;
@@ -70,6 +70,8 @@ psi = cat(2,psi,psi_act + sqrt(C_psi)*randn(N,nMC-1)); % preserve prior estimate
                                                        % solutions use same
                                                        % inputs for plot
 
+x_ml = zeros(2,nMC);          
+x_bf = zeros(2,nMC);
 x_centroid = zeros(2,nMC);
 x_incenter = zeros(2,nMC);
 x_ls_full = zeros(2,numIters,nMC);
@@ -79,11 +81,15 @@ for idx = 1:nMC
     if mod(idx,floor(nMC/80))==0
         fprintf('.');
     end
+    x_ml(:,idx) = triang.mlSoln(x_sensor,psi(:,idx),C_psi,[5;5],[50;50],.1);
+    x_bf(:,idx) = triang.bfSoln(x_sensor,psi(:,idx),C_psi,[5;5],[50;50],.1);
     x_centroid(:,idx) = triang.centroid(x_sensor,psi(:,idx));
-    x_angleBisector(:,idx) = triang.angle_bisector(x_sensor,psi(:,idx));
+    x_incenter(:,idx) = triang.angle_bisector(x_sensor,psi(:,idx));
     [~,x_ls_full(:,:,idx)] = triang.lsSoln(x_sensor,psi(:,idx),C_psi,[5;5],[],numIters,true,[]);
     [~,x_grad_full(:,:,idx)] = triang.gdSoln(x_sensor,psi(:,idx),C_psi,[5;5],[],[],[],numIters,true,[]);
 end
+err_ml = x_source - x_ml;
+err_bf = x_source - x_bf;
 err_cnt = x_source - x_centroid;
 err_inc = x_source - x_incenter;
 err_ls = x_source - x_ls_full;
@@ -91,10 +97,16 @@ err_grad = x_source - x_grad_full;
 
 fprintf('done.\n');
 
+bias_ml = mean(err_ml,2);
+bias_bf = mean(err_bf,2);
 bias_cnt = mean(err_cnt,2);
 bias_inc = mean(err_inc,2);
+cov_ml = cov(err_ml')+bias_ml*bias_ml';
+cov_bf = cov(err_bf')+bias_bf*bias_bf';
 cov_cnt = cov(err_cnt')+bias_cnt*bias_cnt';
 cov_inc = cov(err_inc')+bias_inc*bias_inc';
+cep50_ml = utils.computeCEP50(cov_ml);
+cep50_bf = utils.computeCEP50(cov_bf);
 cep50_cnt = utils.computeCEP50(cov_cnt);
 cep50_inc = utils.computeCEP50(cov_inc);
 
@@ -144,7 +156,9 @@ plot(x_source(1),x_source(2),'k^','DisplayName','Transmitter');
 
 % Geometric Solutions
 plot(x_centroid(1),x_centroid(2),'k*','DisplayName','Centroid');
-plot(x_angleBisector(1),x_angleBisector(2),'k+','DisplayName','Incenter');
+plot(x_incenter(1),x_incenter(2),'k+','DisplayName','Incenter');
+plot(x_ml(1,1),x_ml(2,1),'kv','DisplayName','Maximum Likelihood');
+plot(x_bf(1,1),x_bf(2,1),'ko','DisplayName','BestFix');
 
 % Iterative Solutions
 plot(5,5,'kx','DisplayName','Initial Estimate');
@@ -186,6 +200,8 @@ loglog(1:numIters,cep50_ls,':','DisplayName','Least-Squares');hold on;
 text(1.2,4,'Least-Squares','FontSize',10);
 plot(1:numIters,cep50_grad,'--','DisplayName','Gradient Descent');
 text(2.5,15,'Gradient Descent','FontSize',10);
+plot(1:numIters,cep50_ml*ones(1,numIters),'DisplayName','Max Likelihood');
+plot(1:numIters,cep50_bf*ones(1,numIters),'DisplayName','BestFix');
 plot(1:numIters,cep50_cnt*ones(1,numIters),'DisplayName','Centroid');
 text(15,2.6,'Centroid','FontSize',10);
 plot(1:numIters,cep50_inc*ones(1,numIters),'DisplayName','Incenter');
