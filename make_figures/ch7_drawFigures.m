@@ -85,7 +85,7 @@ x = g((psi-psi_true)); % Actual gain values
 % Set up the parameter sweep
 M_vec = [1,10,100]; % Number of temporal samples at each antenna test point
 snr_db_vec = -20:2:20; % signal to noise ratio
-num_mc = 10000; % number of monte carlo trials at each parameter setting
+num_mc = 1000; % number of monte carlo trials at each parameter setting
 
 % Set up output scripts
 rmse_psi = zeros(numel(M_vec),numel(snr_db_vec));
@@ -95,12 +95,14 @@ crlb_psi = zeros(numel(M_vec),numel(snr_db_vec));
 fprintf('Executing Adcock Monte Carlo sweep...\r\n');
 for idx_M = 1:numel(M_vec)
     M = M_vec(idx_M);
-    this_num_mc = num_mc / M;
+    this_num_mc = num_mc;
     fprintf('\t M=%d',M);
 
     % Generate Monte Carlo Noise with unit power
-%     noise_base = (1/sqrt(2))*(randn(N,M,num_mc)+1i*randn(N,M,num_mc));
-    noise_base = randn(N,M,this_num_mc);
+    % -- for simplicity, we only generate the real component, since this
+    %    receiver is only working on the real portion of the received
+    %    signal
+    noise_base = (1/sqrt(2))*randn(N,M,this_num_mc);
     for idx_snr = 1:numel(snr_db_vec)
         fprintf('.');
         
@@ -143,9 +145,9 @@ ylabel('RMSE [deg]');
 title('Adcock DF Performance');
 legend('Location','SouthWest');
 
-text(5,17,'M=1','FontSize',10);
-text(5,4,'M=10','FontSize',10);
-text(5,1.4,'M=100','FontSize',10);
+text(2,17,'M=1','FontSize',10);
+text(2,4,'M=10','FontSize',10);
+text(2,1.4,'M=100','FontSize',10);
 
 utils.setPlotStyle(gca,{'widescreen','tight'});
 utils.exportPlot(fig3,[prefix '3']);
@@ -407,7 +409,7 @@ psi_res = .0001; % desired doppler resolution
 % Set up the parameter sweep
 M_vec = [10,100,1000]; % Number of temporal samples at each antenna test point
 snr_db_vec = -10:2:30; % signal to noise ratio
-num_mc = 1e6; % number of monte carlo trials at each parameter setting
+num_mc = 100000; % number of monte carlo trials at each parameter setting
 
 % Set up output scripts
 rmse_psi = zeros(numel(M_vec),numel(snr_db_vec));
@@ -417,7 +419,7 @@ crlb_psi = zeros(numel(M_vec),numel(snr_db_vec));
 fprintf('Executing Doppler Monte Carlo sweep...\r\n');
 for idx_M = 1:numel(M_vec)
     M = M_vec(idx_M);
-    this_num_mc = num_mc / M;
+    this_num_mc = num_mc;
     fprintf('\t M=%d',M);
     
     % Reference signal
@@ -429,8 +431,8 @@ for idx_M = 1:numel(M_vec)
     x0 = A*exp(1i*phi0)*exp(1i*2*pi*f*t_vec).*exp(1i*2*pi*f*R/c*cos(2*pi*fr*t_vec-psi_true));
     
     % Generate noise signal
-    noise_base_r = sqrt(sum(abs(r0).^2)/(M*2))*(randn(M,this_num_mc)+1i*randn(1,this_num_mc));
-    noise_base_x = sqrt(sum(abs(r0).^2)/(M*2))*(randn(M,this_num_mc)+1i*randn(1,this_num_mc));
+    noise_base_r = sqrt(A/2)*(randn(M,this_num_mc)+1i*randn(M,this_num_mc));
+    noise_base_x = sqrt(A/2)*(randn(M,this_num_mc)+1i*randn(M,this_num_mc));
 
     for idx_snr = 1:numel(snr_db_vec)
 %         if mod(idx_snr,10)==0

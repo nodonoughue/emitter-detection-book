@@ -60,12 +60,14 @@ x_init = baseline * x_source./abs(x_source);
 numIters = 1000;
 alpha=.3;
 beta=.8;
+epsilon=100;
 x_ls = zeros(2,numIters);
 thisX_ls = zeros(2,numIters);
 x_grad = zeros(2,numIters);
 
 cov_ls = zeros(2,2,numIters);
 cov_grad = zeros(2,2,numIters);
+cov_bf = zeros(2,2);
 
 fprintf('Performing Monte Carlo simulation...\n');
 
@@ -89,19 +91,24 @@ for idx = 1:nMC
     
     [~,thisX_grad] = fdoa.gdSoln(x_sensor,v_sensor,rho_dot(:,idx),Crrdoa,x_init,alpha,beta,[],numIters,true,[]);
     
+    thisX_bf = fdoa.bfSoln(x_sensor,v_sensor,rho_dot(:,idx),Crrdoa,x_init,5*baseline,epsilon);
+    
     % Preserve first iteration for plotting
     if idx==1
         x_ls = thisX_ls;
         x_grad = thisX_grad;
+        x_bf = thisX_bf;
     end
     
     % Compute Error
     thisErr_ls = x_source-thisX_ls; % [m]
     thisErr_grad = x_source-thisX_grad; % [m]
+    thisErr_bf = x_source-thisX_bf; % [m]
     
     % Compute CEP50
     cov_ls = cov_ls + reshape(thisErr_ls,2,1,numIters).*reshape(thisErr_ls,1,2,numIters)/nMC;
     cov_grad = cov_grad + reshape(thisErr_grad,2,1,numIters).*reshape(thisErr_grad,1,2,numIters)/nMC;
+    cov_bf = cov_bf + thisErr_bf * thisErr_bf'/nMC;
 end
 warning('on','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
 fprintf('done.\n');
@@ -119,7 +126,7 @@ for ii=1:numIters
     cep50_ls(ii) = utils.computeCEP50(cov_ls(:,:,ii))/1e3; % [km]
     cep50_grad(ii) = utils.computeCEP50(cov_grad(:,:,ii))/1e3; % [km]
 end
-% cep50_chanHo = utils.computeCEP50(cov_chanHo)/1e3; % [km]
+cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
 err_crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crrdoa);
@@ -168,6 +175,7 @@ plot(x_source(1,:)/1e3,x_source(2,:)/1e3,'k^','DisplayName','Transmitter');
 hold on;
 plot(x_ls_plot(1,1:floor(numIterToPlot/2),1)/1e3,x_ls_plot(2,1:floor(numIterToPlot/2),1)/1e3,':x','DisplayName','LS');
 plot(x_grad_plot(1,1:numIterToPlot,1)/1e3,x_grad_plot(2,1:numIterToPlot,1)/1e3,'-.+','DisplayName','Grad Descent');
+plot(x_bf(1,1)/1e3,x_bf(2,1)/1e3,'o','DisplayName','BestFix');
 plot(crlb_ellipse(1,:)/1e3,crlb_ellipse(2,:)/1e3,'k','LineWidth',.5,'DisplayName','90% Error Ellipse');
 
 wd = 8*max(abs(crlb_ellipse(1,:)-x_source(1)));
@@ -184,6 +192,7 @@ fig_err=figure;
 plot(1:numIters,cep50_ls,'DisplayName','LS');
 hold on;
 plot(1:numIters,cep50_grad,'--','DisplayName','Gradient Descent');
+plot(1:numIters,cep50_bf*ones(1,numIters),'-.','DisplayName','BestFix');
 plot(1:numIters,crlb_cep50*ones(1,numIters),':','DisplayName','CRLB CEP_{50}');
 xlabel('Iteration Number');
 ylabel('Position Error [km]');

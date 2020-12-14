@@ -70,6 +70,7 @@ xiso3 = tdoa.drawIsochrone(x_sensor(:,end),x_sensor(:,3),dR(3),1000,5*baseline);
 numIters = 1000;
 alpha=.3;
 beta=.8;
+epsilon = 100; % desired search resolution size
 x_ls = zeros(2,numIters);
 thisX_ls = zeros(2,numIters);
 x_grad = zeros(2,numIters);
@@ -78,6 +79,7 @@ x_chanHo = zeros(2,1);
 cov_ls = zeros(2,2,numIters);
 cov_grad = zeros(2,2,numIters);
 cov_chanHo = zeros(2,2);
+cov_bf = zeros(2,2);
 
 fprintf('Performing Monte Carlo simulation...\n');
 for idx = 1:nMC
@@ -100,27 +102,31 @@ for idx = 1:nMC
     [~,thisX_grad] = tdoa.gdSoln(x_sensor,rho(:,idx),Crdoa,x_init,alpha,beta,[],numIters,true,[]);
      
     thisX_chanHo = tdoa.chanHoSoln(x_sensor,rho(:,idx),Crdoa);
-%     x_chanHo(:,idx) = tdoa.chanHo_soln(circshift(x0,1,2),rho(:,idx),Ctdoa);
     
-%     x_chanHo(:,idx) = xs;
+    thisX_bf = tdoa.bfSoln(x_sensor,rho(:,idx),Crdoa,x_init,5*baseline,epsilon);
+    
     % Preserve first iteration for plotting
     if idx==1
         x_ls = thisX_ls;
         x_grad = thisX_grad;
         x_chanHo = thisX_chanHo;
+        x_bf = thisX_bf;
     end
     
     % Compute Error
     thisErr_ls = x_source-thisX_ls; % [m]
     thisErr_grad = x_source-thisX_grad; % [m]
     thisErr_chanHo = x_source-thisX_chanHo;  % [m]
+    thisErr_bf = x_source - thisX_bf; % [m]
     
     % Compute CEP50
     cov_ls = cov_ls + reshape(thisErr_ls,2,1,numIters).*reshape(thisErr_ls,1,2,numIters)/nMC;
     cov_grad = cov_grad + reshape(thisErr_grad,2,1,numIters).*reshape(thisErr_grad,1,2,numIters)/nMC;
     cov_chanHo = cov_chanHo + thisErr_chanHo*thisErr_chanHo'/nMC;
+    cov_bf = cov_bf + thisErr_bf * thisErr_bf'/nMC;
 end
 fprintf('done.\n');
+
 % Subsample iterative solutions for plotting
 plotIndex = [1:10,20:20:100,200:200:numIters];
 x_ls_plot = x_ls(:,plotIndex,1);
@@ -137,6 +143,7 @@ for ii=1:numIters
     cep50_grad(ii) = utils.computeCEP50(cov_grad(:,:,ii))/1e3; % [km]
 end
 cep50_chanHo = utils.computeCEP50(cov_chanHo)/1e3; % [km]
+cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
 err_crlb = tdoa.computeCRLB(x_sensor,x_source,Ctdoa);
@@ -178,6 +185,8 @@ hold on;
 plot(x_ls_plot(1,1:floor(numIterToPlot/2),1)/1e3,x_ls_plot(2,1:floor(numIterToPlot/2),1)/1e3,'--x','DisplayName','LS');
 plot(x_grad_plot(1,1:numIterToPlot,1)/1e3,x_grad_plot(2,1:numIterToPlot,1)/1e3,'-.+','DisplayName','Grad Descent');
 plot(x_chanHo(1,1)/1e3,x_chanHo(2,1)/1e3,'*','DisplayName','Chan-Ho');
+plot(x_bf(1,1)/1e3,x_bf(2,1)/1e3,'o','DisplayName','BestFix');
+
 plot(crlb_ellipse(1,:)/1e3,crlb_ellipse(2,:)/1e3,'k','LineWidth',.5,'DisplayName','90% Error Ellipse');
 
 wd = 1.4*max(abs(crlb_ellipse(1,:)-x_source(1)));
@@ -196,6 +205,7 @@ plot(1:numIters,cep50_ls,'DisplayName','LS');
 hold on;
 plot(1:numIters,cep50_grad,'--','DisplayName','Gradient Descent');
 plot(1:numIters,cep50_chanHo*ones(1,numIters),'-.','DisplayName','Chan-Ho');
+plot(1:numIters,cep50_bf*ones(1,numIters),'-+','DisplayName','BestFix');
 plot(1:numIters,crlb_cep50*ones(1,numIters),':','DisplayName','CRLB CEP_{50}');
 xlabel('Iteration Number');
 ylabel('Position Error [km]');

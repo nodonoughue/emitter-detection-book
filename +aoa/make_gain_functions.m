@@ -34,7 +34,7 @@ switch lower(type)
         g_dot = @(psi) 0;
     case 'adcock'
         g = @(psi) 2*sin(pi*d_lam.*cos(psi-psi_0));
-        g_dot = @(psi) -2*pi*d_lam.*sin(psi-psi_0).*cos(pi*d_lam.*cosd(psi-psi_0));
+        g_dot = @(psi) -2*pi*d_lam.*sin(psi-psi_0).*cos(pi*d_lam.*cos(psi-psi_0));
     case 'rectangular'
         g = @(psi) abs(sinc((psi-psi_0).*d_lam/pi)); % sinc includes implicit pi
         g_dot = @(psi) utils.sinc_deriv((psi-psi_0).*d_lam)*d_lam;
