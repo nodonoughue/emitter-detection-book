@@ -9,6 +9,10 @@
 % Nicholas O'Donoughue
 % 1 July 2019
 
+do_grayscale = false;  % Set to true for grayscale images that match the
+                       % the textbook.  Default is false, for better
+                       % images on a color monitor.
+                       
 % Serif font family
 set(groot,'DefaultAxesFontName','Times New Roman');
 set(groot,'DefaultAxesFontSize',10);
@@ -23,8 +27,10 @@ set(groot,'DefaultAxesTitleFontWeight','bold');
 set(groot,'DefaultAxesLabelFontSizeMultiplier',1.2);
 
 % Line Width, Color, and Style
-colorSet = (0:.2:.6)'*ones(1,3);
-set(groot,'DefaultAxesColorOrder',colorSet);
+if do_grayscale
+    colorSet = (0:.2:.6)'*ones(1,3);
+    set(groot,'DefaultAxesColorOrder',colorSet);
+end
 set(groot,'DefaultAxesLineStyleOrder','-|--|:'); % Iterate over line styles after colors exhausted
 set(groot,'DefaultLineLineWidth',1);
 
