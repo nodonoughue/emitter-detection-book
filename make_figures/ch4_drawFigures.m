@@ -400,13 +400,13 @@ annotation(fig6,'ellipse',...
     [0.66679861111111 0.473765432098765 0.14570138888889 0.0524691358024691],...
     'Color',cmap(1,:));
 
-text(-15,.6,'$\xi=30 dB$','FontSize',10,'Color',cmap(3,:));
+text(-15,.6,'TB=1000','FontSize',10,'Color',cmap(3,:));
 hh=line([-11.8 -10.3],[.6 .58],'LineWidth',.5,'Color',cmap(3,:));
 utils.excludeFromLegend(hh);
-text(-15,.5,'$\xi=20 dB$','FontSize',10,'Color',cmap(2,:));
+text(-15,.5,'TB=100','FontSize',10,'Color',cmap(2,:));
 hh=line([-11.8 -5.4],[.5 .5],'LineWidth',.5,'Color',cmap(2,:));
 utils.excludeFromLegend(hh);
-text(-15,.4,'$\xi=10 dB$','FontSize',10,'Color',cmap(1,:));
+text(-15,.4,'TB=10','FontSize',10,'Color',cmap(1,:));
 hh=line([-11.8 -1],[.4 .44],'LineWidth',.5,'Color',cmap(1,:));
 utils.excludeFromLegend(hh);
 xlabel('$\xi_i$ [dB]');ylabel('$P_{\mathrm{D}}$');
