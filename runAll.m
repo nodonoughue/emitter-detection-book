@@ -10,6 +10,7 @@
 % 25 July 2019
 % Nicholas O'Donoughue
 
+%% Emitter Detection and Geolocation Textbook
 addpath('make_figures');
 
 % Set this to true to run all of the Monte Carlo
@@ -32,3 +33,12 @@ ch13_drawFigures;
 appB_drawFigures;
 appC_drawFigures;
 appD_drawFigures;
+
+%% Practical Geolocation Textbook
+
+% Set this to true to run all of the Monte Carlo
+% examples, although this may take several days to run.
+force_recalc=false;
+
+book2_ch1_drawFigures;
+book2_ch2_drawFigures;
