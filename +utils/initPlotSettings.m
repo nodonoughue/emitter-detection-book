@@ -9,10 +9,12 @@
 % Nicholas O'Donoughue
 % 1 July 2019
 
-do_grayscale = false;  % Set to true for grayscale images that match the
-                       % the textbook.  Default is false, for better
-                       % images on a color monitor.
-                       
+if ~exist('doFullColor','var')
+    % By default, generate grayscale images.  But, if doFullColor is
+    % defined, and set to true, we'll generate full color images.
+    doFullColor=false;
+end
+
 % Serif font family
 set(groot,'DefaultAxesFontName','Times New Roman');
 set(groot,'DefaultAxesFontSize',10);
@@ -27,7 +29,7 @@ set(groot,'DefaultAxesTitleFontWeight','bold');
 set(groot,'DefaultAxesLabelFontSizeMultiplier',1.2);
 
 % Line Width, Color, and Style
-if do_grayscale
+if ~doFullColor
     colorSet = (0:.2:.6)'*ones(1,3);
     set(groot,'DefaultAxesColorOrder',colorSet);
 end
@@ -35,7 +37,11 @@ set(groot,'DefaultAxesLineStyleOrder','-|--|:'); % Iterate over line styles afte
 set(groot,'DefaultLineLineWidth',1);
 
 % Background Color
-bgColor = .93*ones(1,3);
+if doFullColor
+    bgColor = .85*ones(1,3);
+else
+    bgColor = .93*ones(1,3);
+end
 set(groot,'DefaultAxesColor',bgColor);
 
 % Grid
