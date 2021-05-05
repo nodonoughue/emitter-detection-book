@@ -56,14 +56,14 @@ utils.drawArrow(x_sensor(1,3)+[0 v_sensor(1,3)]/4,x_sensor(2,3)+[0 v_sensor(2,3)
 
 % Draw isodoppler line S12
 vdiff12 = utils.dopDiff(x_source,[0 0]',x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),3e8);
-[x_isodop12,y_isodop12] = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff12,1000,5);
-plot(x_isodop12,y_isodop12,'k-.','DisplayName','Line of Constant FDOA');
+xy_isodop12 = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff12,1000,5);
+plot(xy_isodop12(1,:),xy_isodop12(2,:),'k-.','DisplayName','Line of Constant FDOA');
 text(-1,2.7,'$S_{12}$ Solution','FontSize',10);
 
 % Draw isodoppler line S23
 vdiff23 = utils.dopDiff(x_source,[0 0]',x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),3e8);
-[x_isodop23,y_isodop23] = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),vdiff23,1000,5);
-hh=plot(x_isodop23,y_isodop23,'k-.');
+xy_isodop23 = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),vdiff23,1000,5);
+hh=plot(xy_isodop23(1,:),xy_isodop23(2,:),'k-.');
 utils.excludeFromLegend(hh);
 text(1.5,.85,'$S_{23}$ Solution','FontSize',10);
 xlim([-2 3]);
@@ -294,30 +294,30 @@ hh.Color = colorSet(2,:);
 
 % Draw isodoppler line at time 0
 vdiff = utils.dopDiff(x_source,[0 0]',x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),3e8);
-[x_isodop,y_isodop] = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff,1000,20);
+xy_isodop = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff,1000,20);
 set(gca,'ColorOrderIndex',4);
-hh=plot(x_isodop,y_isodop,'-.');
+hh=plot(xy_isodop(1,:),xy_isodop(2,:),'-.');
 utils.excludeFromLegend(hh);
 
 % Draw isodoppler line at time 1
 vdiff = utils.dopDiff(x_source,[0 0]',x1(:,1),v1(:,1),x1(:,2),v1(:,2),3e8);
-[x_isodop,y_isodop] = fdoa.drawIsodop(x1(:,1),v1(:,1),x1(:,2),v1(:,2),vdiff,1000,20);
+xy_isodop = fdoa.drawIsodop(x1(:,1),v1(:,1),x1(:,2),v1(:,2),vdiff,1000,20);
 set(gca,'ColorOrderIndex',3);
-hh=plot(x_isodop,y_isodop,'-.');
+hh=plot(xy_isodop(1,:),xy_isodop(2,:),'-.');
 utils.excludeFromLegend(hh);
 
 % Draw isodoppler line at time 2
 vdiff = utils.dopDiff(x_source,[0 0]',x2(:,1),v2(:,1),x2(:,2),v2(:,2),3e8);
-[x_isodop,y_isodop] = fdoa.drawIsodop(x2(:,1),v2(:,1),x2(:,2),v2(:,2),vdiff,1000,20);
+xy_isodop = fdoa.drawIsodop(x2(:,1),v2(:,1),x2(:,2),v2(:,2),vdiff,1000,20);
 set(gca,'ColorOrderIndex',2);
-hh=plot(x_isodop,y_isodop,'-.');
+hh=plot(xy_isodop(1,:),xy_isodop(2,:),'-.');
 utils.excludeFromLegend(hh);
 
 % % Draw isodoppler line at time 3
 % vdiff = utils.dopDiff(xs,[0 0]',x3(:,1),v3(:,1),x3(:,2),v3(:,2),3e8);
-% [x_isodop,y_isodop] = fdoa.drawIsodop(x3(:,1),v3(:,1),x3(:,2),v3(:,2),vdiff,1000,20);
+% xy_isodop = fdoa.drawIsodop(x3(:,1),v3(:,1),x3(:,2),v3(:,2),vdiff,1000,20);
 % set(gca,'ColorOrderIndex',1);
-% hh=plot(x_isodop,y_isodop,'-.');
+% hh=plot(xy_isodop(1,:),xy_isodop(2,:),'-.');
 % utils.excludeFromLegend(hh);
 
 plot(x_source(1),x_source(2),'k^');
