@@ -24,9 +24,8 @@ function crlb = computeCRLB(x_tdoa,xs,C,ref_idx)
 if nargin < 4 || ~exist('ref_idx','var')
     ref_idx = [];
 end
-n_dim = size(x_tdoa,1);
+[n_dim, n_sensor] = size(x_tdoa);
 n_source = size(xs,2);
-
 
 % Construct Jacobian function handle
 J = @(x) tdoa.jacobian(x_tdoa,x,ref_idx);
@@ -34,16 +33,23 @@ J = @(x) tdoa.jacobian(x_tdoa,x,ref_idx);
 % Preprocess covariance matrix
 C_out = C*utils.constants.c^2;
 
+% Parse sensor pairs
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C_out, test_idx_vec, ref_idx_vec);
+
+% Ensure the covariance matrix is invertible
+C_tilde = utils.ensureInvertible(C_tilde);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
     % Starging in R2017b, MATLAB released the DECOMPOSITION function,
     % which can decompose matrices for faster computation of left- and
     % right-division in for loops.
-    C_d = decomposition(C_out,'chol');
+    C_d = decomposition(C_tilde,'chol');
 else
     % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
-    C_inv = pinv(C_out);
+    C_inv = pinv(C_tilde);
 end
 
 % Initialize output variable
@@ -58,7 +64,7 @@ for idx =1:n_source
     
     % Compute Fisher Information Matrix
     if do_decomp
-        F = J_i*(C_d\J_i'); % Ndim x Ndim
+        F = J_i/C_d*J_i'; % Ndim x Ndim
     else
         F = J_i*C_inv*J_i';
     end

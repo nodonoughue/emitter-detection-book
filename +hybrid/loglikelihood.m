@@ -37,16 +37,33 @@ end
 n_source_pos = size(x_source,2);
 ell = zeros(n_source_pos,1);
 
+% Resample the covariance matrix
+n_aoa = size(x_aoa,2);
+n_tdoa = size(x_tdoa,2);
+n_fdoa = size(x_fdoa,2);
+
+% Parse the TDOA and FDOA reference indices together
+[tdoa_test_idx_vec, tdoa_ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
+[fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
+test_idx_vec = cat(2,1:n_aoa, n_aoa + tdoa_test_idx_vec, n_aoa + n_tdoa + fdoa_test_idx_vec);
+ref_idx_vec = cat(2,nan(1,n_aoa), n_aoa + tdoa_ref_idx_vec, n_aoa + n_tdoa + fdoa_ref_idx_vec);
+
+% For now, we assume the AOA is independent of TDOA/FDOA
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
+
+% Ensure the covariance matrix is invertible
+C_tilde = utils.ensureInvertible(C_tilde);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
     % Starging in R2017b, MATLAB released the DECOMPOSITION function,
     % which can decompose matrices for faster computation of left- and
     % right-division in for loops.
-    C_d = decomposition(C,'chol');
+    C_d = decomposition(C_tilde,'chol');
 else
     % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
-    C_inv = pinv(C);
+    C_inv = pinv(C_tilde);
 end
 
 for idx_source = 1:n_source_pos

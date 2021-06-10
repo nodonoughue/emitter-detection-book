@@ -20,6 +20,13 @@ function x = chanHoSoln(x0,rho,C)
 % Nicholas O'Donoughue
 % 1 July 2019
 
+%% Stage 0: Parse Covariance Matrix
+% The Chan-Ho solution implicitly uses the final sensor as a common
+% reference
+ref_idx = size(x0, 2);
+test_idx = 1:ref_idx-1;
+C = utils.resampleCovMtx(C, test_idx, ref_idx);
+
 %% Stage 1: Initial Position Estimate
 
 % Compute system matrix overline(A) according to 13.23

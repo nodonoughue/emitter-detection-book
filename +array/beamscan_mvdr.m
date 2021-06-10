@@ -40,6 +40,9 @@ for idx_m = 1:M
 end
 C = C/M;
 
+% Make sure the covariance matrix is invertible
+C = utils.ensureInvertible(C);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp

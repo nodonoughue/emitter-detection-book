@@ -23,17 +23,11 @@ if nDim1~=nDim2
     error('First dimension of all inputs must match');
 end
 
-if nargin < 3 || ~exist('ref_idx','var') || isempty(ref_idx)
+if nargin < 3 || ~exist('ref_idx','var')
     ref_idx = nSensor;
 end
 
-if isscalar(ref_idx)
-    test_idx_vec = setdiff(1:nSensor,ref_idx);
-    ref_idx_vec = ref_idx;
-else
-    test_idx_vec = ref_idx(1,:);
-    ref_idx_vec = ref_idx(2,:);
-end
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, nSensor);
 
 % Compute range from each source to each sensor
 dx = reshape(x_source,nDim1,1,nSource) - reshape(x_sensor,nDim1,nSensor);

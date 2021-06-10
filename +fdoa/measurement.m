@@ -33,13 +33,9 @@ if nargin < 3 || ~exist('ref_idx','var') || isempty(ref_idx)
     ref_idx = nSensor1;
 end
 
-if isscalar(ref_idx)
-    test_idx_vec = setdiff(1:nSensor1,ref_idx);
-    ref_idx_vec = ref_idx;
-else
-    test_idx_vec = ref_idx(1,:);
-    ref_idx_vec = ref_idx(2,:);
-end
+% Parse Reference Sensor
+n_sensor = size(x_sensor, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 
 % Compute distance from each source position to each sensor
 dx = reshape(x_source,nDim1,1,nSource) - reshape(x_sensor,nDim1,nSensor1);

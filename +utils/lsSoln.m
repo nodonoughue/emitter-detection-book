@@ -57,6 +57,9 @@ x_full = zeros(n_dims,max_num_iterations);
 x_prev = x_init;
 x_full(:,1) = x_prev;
     
+% For now, we assume the AOA is independent of TDOA/FDOA
+C = utils.ensureInvertible(C);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp

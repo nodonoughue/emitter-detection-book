@@ -64,5 +64,10 @@ end
 y = @(x) rho- tdoa.measurement(x_sensor, x, ref_idx);
 J = @(x) tdoa.jacobian(x_sensor, x, ref_idx);
 
+% Resample covariance matrix
+n_sensor = size(x_sensor, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
+
 % Call generic Gradient Descent solver
-[x,x_full] = utils.gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
+[x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

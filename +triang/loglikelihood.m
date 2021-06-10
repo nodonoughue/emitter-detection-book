@@ -35,6 +35,9 @@ if numel(psi) ~= size(C, 1) || numel(psi) ~= size(C, 2)
     error('Covariance matrix and measurement vector sizes do not match.');
 end
 
+% Ensure the covariance matrix is invertible
+C = utils.ensureInvertible(C);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
