@@ -64,8 +64,8 @@ lamMax = lamSort(1);
 %vMax = V(:,iSort(1)); 
 
 % Secondary eigenvalue
-lamMin = lamSort(end);
-%vMin = V(:,iSort(end));
+lamMin = lamSort(2);
+%vMin = V(:,iSort(2));
 
 % Ratio of dominant to secondary eigenvalues
 ratio = sqrt(lamMin/lamMax);
