@@ -38,10 +38,9 @@ cov_z_full = utils.resampleCovMtx(cov_r, test_tdoa, ref_tdoa);
 cov_z_full = utils.ensureInvertible(cov_z_full);
 
 % Generate Random Noise
-L = chol(cov_z,'lower'); % Cholesky decomposition of the covariance matrix
-L_full = chol(cov_z_full,'lower');
-noise = L*randn(size(L,2), num_mc);
-noise_full = L_full*randn(size(L_full,2), num_mc);
+noise_sensor = chol(cov_r,'lower')*randn(n_tdoa, num_mc);
+noise = utils.resampleNoise(noise_sensor, 1, []);
+noise_full = utils.resampleNoise(noise_sensor, 'full', []);
 
 % Noisy Measurements
 zeta = z_cmn + noise;
