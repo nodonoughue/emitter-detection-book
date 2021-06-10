@@ -378,10 +378,11 @@ freqError = 10; % 1 Hz resolution
 c = 3e8;
 f0 = 1e9;
 rngRateStdDev = freqError*c/f0;
-C = eye(nSensors-1)+1; % covariance matrix structure
-% Cfoa = freqError^2*ones(nSensors,1);
+%C = eye(nSensors-1)+1; % covariance matrix structure
+%Cfoa = freqError^2*ones(nSensors,1);
 % Cfdoa = freqError^2*C;
-Crrdoa = rngRateStdDev^2*C;
+Crroa = rngRateStdDev^2*eye(nSensors);
+%Crrdoa = rngRateStdDev^2*C;
 
 % Define source positions
 M = 501;
@@ -392,7 +393,7 @@ x_source = [xx(:) yy(:)]';
 
 % Compute CRLB
 warning('off','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
-crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crrdoa); % Ndim x Ndim x M^2
+crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crroa); % Ndim x Ndim x M^2
 cep50 = reshape(utils.computeCEP50(crlb),[M,M]);
 warning('on','MATLAB:nearlySingularMatrix'); % Reactivate the singular matrix warning
 
@@ -420,11 +421,11 @@ utils.exportPlot(fig6a,[prefix '6a']);
 v_sensor = 100 * [ones(1,nSensors);zeros(1,nSensors)];
 
 warning('off','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
-crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crrdoa); % Ndim x Ndim x M^2
+crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crroa); % Ndim x Ndim x M^2
 cep50 = reshape(utils.computeCEP50(crlb),[M,M]);
 warning('on','MATLAB:nearlySingularMatrix'); % Reactivate the singular matrix warning
 
-% Draw Figure
+% Draw Figure 6b
 fig6b = figure();hold on;
 
 %ax=subplot(2,1,1)
@@ -454,10 +455,11 @@ freqError = 10; % 1 Hz resolution
 c = 3e8;
 f0 = 1e9;
 rngRateStdDev = freqError*c/f0;
-C = eye(nSensors-1)+1; % covariance matrix structure
-Cfoa = freqError^2*ones(nSensors,1);
-Cfdoa = freqError^2*C;
-Crrdoa = rngRateStdDev^2*C;
+%C = eye(nSensors-1)+1; % covariance matrix structure
+Cfoa = freqError^2*eye(nSensors,1);
+%Cfdoa = freqError^2*C;
+%Crrdoa = rngRateStdDev^2*C;
+Crroa = rngRateStdDev^2*eye(nSensors);
 
 % Define source positions
 M = 501;
@@ -468,7 +470,7 @@ x_source = [xx(:) yy(:)]';
 
 % Compute CRLB
 warning('off','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
-crlb = fdoa.computeCRLB(x1,v1,x_source,Crrdoa); % Ndim x Ndim x M^2
+crlb = fdoa.computeCRLB(x1,v1,x_source,Crroa); % Ndim x Ndim x M^2
 cep50 = reshape(utils.computeCEP50(crlb),[M,M]);
 warning('on','MATLAB:nearlySingularMatrix'); % Reactivate the singular matrix warning
 
@@ -496,7 +498,7 @@ utils.exportPlot(fig6c,[prefix '6c']);
 v1 = 100 * [ones(1,nSensors);zeros(1,nSensors)];
 
 warning('off','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
-crlb = fdoa.computeCRLB(x1,v1,x_source,Crrdoa); % Ndim x Ndim x M^2
+crlb = fdoa.computeCRLB(x1,v1,x_source,Crroa); % Ndim x Ndim x M^2
 cep50 = reshape(utils.computeCEP50(crlb),[M,M]);
 warning('on','MATLAB:nearlySingularMatrix'); % Reactivate the singular matrix warning
 

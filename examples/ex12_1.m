@@ -24,8 +24,8 @@ rng(0824637);
 % Define Sensor Positions
 baseline = 10e3;    % km
 std_velocity = 100; % m/s
-nSensors = 3;
-thSensors = linspace(0,2*pi,nSensors+1) +pi/2; % add an extra sample, will be ignored
+nSensors = 4;
+thSensors = linspace(0,2*pi,nSensors) +pi/2; % add an extra sample, will be ignored
 x_sensor = baseline * [ cos(thSensors(1:end-1));sin(thSensors(1:end-1))];
 v_sensor = std_velocity * [ cos(thSensors(1:end-1));sin(thSensors(1:end-1))];
 
@@ -38,8 +38,9 @@ freqError = 3; % 1 Hz resolution
 c = 3e8;
 f0 = 1e9;
 rngRateStdDev = freqError*c/f0;
-C = eye(nSensors)+1; % covariance matrix structure
-Crrdoa = rngRateStdDev^2*C;
+%C = eye(nSensors)+1; % covariance matrix structure
+%Crrdoa = rngRateStdDev^2*C;
+Crroa = rngRateStdDev^2*eye(nSensors);
 
 % Initialize Transmitter Position
 th = rand(1)*2*pi;
@@ -50,7 +51,7 @@ r_dot_true = fdoa.measurement(x_sensor,v_sensor,x_source);
 
 % Generate noisy measurements
 nMC = 1e3;
-nr = rngRateStdDev*randn(nSensors+1,nMC); % [m]
+nr = rngRateStdDev*randn(nSensors,nMC); % [m]
 ndr = nr(1:end-1,:) - nr(end,:); % Generate differential range msmnt noise
 rho_dot = r_dot_true + ndr; % Noisy sample vector
 
@@ -78,7 +79,7 @@ for idx = 1:nMC
     end
     
     % Compute solutions
-    [~,x_ls_local] = fdoa.lsSoln(x_sensor,v_sensor,rho_dot(:,idx),Crrdoa,x_init,[],numIters,true,[]);
+    [~,x_ls_local] = fdoa.lsSoln(x_sensor,v_sensor,rho_dot(:,idx),Crroa,x_init,[],numIters,true,[]);
     num_iter_ls = size(x_ls_local,2);
     if num_iter_ls > numIters
         x_ls_local = x_ls_local(:,1:numIters);
@@ -89,9 +90,9 @@ for idx = 1:nMC
         thisX_ls(:,num_iter_ls+1:numIters) = x_ls_local(:,end);
     end
     
-    [~,thisX_grad] = fdoa.gdSoln(x_sensor,v_sensor,rho_dot(:,idx),Crrdoa,x_init,alpha,beta,[],numIters,true,[]);
+    [~,thisX_grad] = fdoa.gdSoln(x_sensor,v_sensor,rho_dot(:,idx),Crroa,x_init,alpha,beta,[],numIters,true,[]);
     
-    thisX_bf = fdoa.bfSoln(x_sensor,v_sensor,rho_dot(:,idx),Crrdoa,x_init,5*baseline,epsilon);
+    thisX_bf = fdoa.bfSoln(x_sensor,v_sensor,rho_dot(:,idx),Crroa,x_init,5*baseline,epsilon);
     
     % Preserve first iteration for plotting
     if idx==1
@@ -129,7 +130,7 @@ end
 cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
-err_crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crrdoa);
+err_crlb = fdoa.computeCRLB(x_sensor,v_sensor,x_source,Crroa);
 crlb_cep50 = utils.computeCEP50(err_crlb)/1e3; % [km]
 crlb_ellipse = utils.drawErrorEllipse(x_source,err_crlb,100,90);
 
