@@ -40,7 +40,7 @@ cov_z = diag([cov_psi, cov_r, cov_rr]);
 
 % Generate Random Noise
 num_mc = 1000;
-R = chol(cov_z); % Cholesky decomposition of the covariance matrix
+L = chol(cov_z,'lower'); % Cholesky decomposition of the covariance matrix
 noise = R*randn(size(R,2), num_mc);
 
 % Noisy Measurements
