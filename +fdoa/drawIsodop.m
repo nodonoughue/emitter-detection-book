@@ -1,5 +1,5 @@
-function [x_iso,y_iso] = drawIsodop(x1,v1,x2,v2,vdiff,numPts,maxOrtho)
-% [x_iso,y_iso] = drawIsodop(x1,v1,x2,v2,vdiff,numPts,maxOrtho)
+function xy_iso = drawIsodop(x1,v1,x2,v2,vdiff,numPts,maxOrtho)
+% xy_iso = drawIsodop(x1,v1,x2,v2,vdiff,numPts,maxOrtho)
 %
 % Finds the isochrone with the stated range rate difference from points x1
 % and x2.  Generates an arc with 2*numPts-1 points, that spans up to
@@ -15,8 +15,7 @@ function [x_iso,y_iso] = drawIsodop(x1,v1,x2,v2,vdiff,numPts,maxOrtho)
 %   maxOrtho    Maximum offset from line of sight between x1 and x2 [m]
 %
 % Outputs:
-%   x_iso       First dimension of iso doppler curve [m]
-%   y_iso       Second dimension of iso doppler curve [m]
+%   x_iso       2 x numPts iso doppler contour [m]
 %
 % Nicholas O'Donoughue
 % 1 July 2019
@@ -49,3 +48,5 @@ y_iso=cc(2,:);
 out_of_bounds = abs(x_iso) > maxOrtho | abs(y_iso) > maxOrtho;
 x_iso = x_iso(~out_of_bounds);
 y_iso = y_iso(~out_of_bounds);
+
+xy_iso = cat(1, x_iso(:)', y_iso(:)');

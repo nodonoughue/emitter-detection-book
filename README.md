@@ -47,4 +47,4 @@ A number of utilities are provided in this repository, under the following names
 + **utils/** Generic utilities, including numerical solvers used in geolocation algorithms.
 
 ## Feedback
-Please submit any suggestions, bugs, or comments to nodonoug@rand.org.
+Please submit any suggestions, bugs, or comments to nicholas [dot] odonoughue [at] ieee [dot] org.

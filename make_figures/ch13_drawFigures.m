@@ -89,8 +89,8 @@ plot(xiso(1,:),xiso(2,:),':','DisplayName','Line of Constant TDOA');
 
 % Draw isodoppler line
 vdiff = utils.dopDiff(x_source,[0 0]',x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),3e8);
-[x_isodop,y_isodop] = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff,1000,5);
-plot(x_isodop,y_isodop,'-.','DisplayName','Line of Constant FDOA');
+xy_isodop = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff,1000,5);
+plot(xy_isodop(1,:),xy_isodop(2,:),'-.','DisplayName','Line of Constant FDOA');
 % text(.5,4.1,'FDOA Solution');
 
 ylim([-5 5]);

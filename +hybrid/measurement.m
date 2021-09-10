@@ -30,9 +30,21 @@ if nargin < 7 || ~exist('fdoa_ref_idx','var')
 end
 
 % Construct component measurements
-z_a =triang.measurement(x_aoa, x_source);
-z_t =tdoa.measurement(x_tdoa, x_source,tdoa_ref_idx);
-z_f =fdoa.measurement(x_fdoa, v_fdoa, x_source,fdoa_ref_idx);
+if ~isempty(x_aoa)
+    z_a =triang.measurement(x_aoa, x_source);
+else
+    z_a = [];
+end
+if ~isempty(x_tdoa)
+    z_t =tdoa.measurement(x_tdoa, x_source,tdoa_ref_idx);
+else
+z_t = [];
+end
+if ~isempty(x_fdoa)
+    z_f =fdoa.measurement(x_fdoa, v_fdoa, x_source,fdoa_ref_idx);
+else
+    z_f = [];
+end
 
 % Combine into a single data vector
 z = [z_a; z_t; z_f];
