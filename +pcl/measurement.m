@@ -1,4 +1,4 @@
-function rho = measurement(x_tx, x_rx, x_tgt, v_tx, v_rx, v_tgt, ref_idx)
+function rho = measurement(x_tx, x_rx, x_tgt, v_tx, v_rx, v_tgt, ref_idx, angle_dims)
 % 
 %
 % Computed bistatic range and range rate (Doppler) measurements for a 
@@ -18,15 +18,24 @@ function rho = measurement(x_tx, x_rx, x_tgt, v_tx, v_rx, v_tgt, ref_idx)
 %   ref_idx          Matrix of tx/rx pairing indices (in the order
 %                    they're used in C).  If ignored, then all pairwise
 %                    measurements are used (nTx x nRx)
-%
+%   angle_dims       Flag determining how many angle of arrival dimensions 
+%                    to report (0 =  no angle data, 1 = azimuth, 2 =
+%                    azimuth & elevation)
 % OUTPUTS:
-%   rho              nMsmt x nTgt matrix of bistatic range (and range-rate)
-%                    measurements.
+%   rho              nMsmt x nTgt matrix of bistatic range (and potentially
+%                    range-rate and angle of arrival) measurements.
+%                    Measurements are ordered range, range-rate, azimuth
+%                    and elevation.
 %
 % Nicholas O'Donoughue
 % 13 March 2020
 
-do_doppler = nargin >= 4 && (~isempty(v_tx) || ~isempty(v_rx) || ~isempty(v_tgt))
+do_doppler = nargin >= 4 && (~isempty(v_tx) || ~isempty(v_rx) || ~isempty(v_tgt));
+
+if nargin < 8 || ~exist('angle_dims','var') || isempty(angle_dims)
+    angle_dims = 0;
+end
+assert(angle_dims >=0 && angle_dims <= 2,'Error parsing angle dimensions command, must be between 0 and 2.');
 
 if nargin < 7 || ~exist('ref_idx','var')
     ref_idx = [];
@@ -122,3 +131,13 @@ else
 end
 
 rho = cat(1,rng_bistatic, rr_bistatic);
+
+%% Receiver angle measurements
+if angle_dims > 0
+    % Check dimension output
+    do2DAOA = (angle_dims == 2);
+        
+	% Generate measurements
+    psi = triang.measurement(x_rx,x_tgt,do2DAOA);
+    rho = cat(1,rho,psi);
+end
