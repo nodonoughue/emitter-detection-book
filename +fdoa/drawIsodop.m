@@ -41,12 +41,31 @@ fig00=figure;
 % Close the figure generated
 close(fig00);
 
-x_iso=cc(1,:);
-y_iso=cc(2,:);
+% The contour output is formatted as a 2xN matrix with contours repeated
+% in the column dimension.  Each contour starts with a header column:
+%   column 1, row 1 -- contour level
+%   column 1, row 2 -- number of points
+%   column 2:N+1, row 1 -- x points
+%   column 2:N+1, row 2 -- y points
+% This is repeated for as many contours as are defined
+
+xy_iso = [];
+
+while numel(cc) > 0
+    % level = cc(1,1);
+    n_points = cc(2,1);
+
+    xy_iso=cat(2,xy_iso,cc(:,1+(1:n_points)),[NaN;NaN]);
+   
+    cc = cc(:,n_points+2:end);
+end
+
+% x_iso = xy_iso(1,:);
+% y_iso = xy_iso(2,:);
 
 %% Filter points out of bounds
-out_of_bounds = abs(x_iso) > maxOrtho | abs(y_iso) > maxOrtho;
-x_iso = x_iso(~out_of_bounds);
-y_iso = y_iso(~out_of_bounds);
+% out_of_bounds = abs(x_iso) > maxOrtho | abs(y_iso) > maxOrtho;
+% x_iso = x_iso(~out_of_bounds);
+% y_iso = y_iso(~out_of_bounds);
 
-xy_iso = cat(1, x_iso(:)', y_iso(:)');
+% xy_iso = cat(1, x_iso(:)', y_iso(:)');
