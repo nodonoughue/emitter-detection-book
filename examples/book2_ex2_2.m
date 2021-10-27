@@ -27,20 +27,22 @@ cov_psi = (err_aoa*pi/180)^2; % rad^2
 
 err_time = 1e-7; % 100 ns timing error
 err_r = err_time * utils.constants.c;
-cov_r = 2 * (err_r)^2; % m^2, double for the combination of test/ref msmts
+cov_r = (err_r)^2*eye(size(x_tdoa,2)); % m^2, double for the combination of test/ref msmts
+cov_r_out = utils.resampleCovMtx(cov_r,1);
 
 freq_err = 10; % Hz
 f0 = 1e9; % Hz
 rr_err = freq_err * utils.constants.c/f0; % (m/s)
-cov_rr = 2 * rr_err^2; % (m/s)^2
+cov_rr = rr_err^2*eye(size(x_fdoa,2)); % (m/s)^2
+cov_rr_out = utils.resampleCovMtx(cov_rr,1);
 
 % Hybrid measurement and combined covariance matrix
 z = hybrid.measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source);
-cov_z = diag([cov_psi, cov_r, cov_rr]);
-
+cov_z = blkdiag(cov_psi, cov_r, cov_rr); % raw sensor measurements
+cov_z_out = blkdiag(cov_psi, cov_r_out, cov_rr_out); % sensor pairs
 
 % Generate Random Noise
-L = chol(cov_z,'lower'); % Cholesky decomposition of the covariance matrix
+L = chol(cov_z_out,'lower'); % Cholesky decomposition of the covariance matrix
 noise = L*randn(size(L,2),1);
 
 % Noisy Measurements
@@ -97,4 +99,4 @@ xlim([-0.5 5.5]*1e3);
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
-utils.setPlotStyle(gca,{'widescreen'});
+utils.setPlotStyle(gca,{'widescreen','tight'});

@@ -51,7 +51,7 @@ ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
 
 legend('location','NorthEast')
-utils.setPlotStyle(gca,{'widescreen'});
+utils.setPlotStyle(gca,{'clean','equal','widescreen','tight'});
 
 %% Compute Variances and Print
 err_aoa = 3; % deg
@@ -61,19 +61,19 @@ fprintf('AOA Covariance: %.2g rad^2\n',cov_psi);
 
 err_time = 1e-7; % 100 ns timing error
 err_r = err_time * utils.constants.c;
-cov_r = 2 * (err_r)^2; % m^2, double for the combination of test/ref msmts
+cov_r = (err_r)^2*eye(size(x_tdoa,2)); % m^2
 fprintf('TDOA Measurement: %.2f m\n',r);
-fprintf('TDOA Covariance: %.2g m^2\n',cov_r);
+fprintf('TDOA Covariance: \t[%.2f, %.2f\n\t\t\t\t\t%.2f, %.2f] m^2\n',cov_r);
 
 freq_err = 10; % Hz
 f0 = 1e9; % Hz
 rr_err = freq_err * utils.constants.c/f0; % (m/s)
-cov_rr = 2 * rr_err^2; % (m/s)^2
+cov_rr = rr_err^2*eye(size(x_fdoa,2)); % (m/s)^2
 fprintf('FDOA Measurement: %.2f m/s\n',r_dot);
-fprintf('FDOA Covariance: %.2g (m/s)^2\n',cov_rr);
+fprintf('FDOA Covariance: \t[%.2f, %.2f\n\t\t\t\t\t%.2f, %.2f] (m/s)^2\n',cov_rr);
 
 z = hybrid.measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source);
-cov_z = diag([cov_psi, cov_r, cov_rr]);
+cov_z = blkdiag(cov_psi, cov_r, cov_rr);
 
 %% Set Up Search Grid
 x_grid = (-.5:.02:5.5)*1e3;

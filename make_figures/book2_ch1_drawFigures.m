@@ -116,14 +116,14 @@ r3 = utils.rng(x_sensor3,x_source);
 epsrdoa = .1;
 
 % Find Isochrones
-xiso1 = tdoa.drawIsochrone(x_sensor1,x_sensor2,r2-r1,1000,3);
-xisop1 = tdoa.drawIsochrone(x_sensor1, x_sensor2, r2-r1+epsrdoa, 1000, 3);
-xisom1 = tdoa.drawIsochrone(x_sensor1, x_sensor2, r2-r1-epsrdoa, 1000, 3);
+xiso1 = tdoa.drawIsochrone(x_sensor1,x_sensor2,r2-r1,1000,5);
+xisop1 = tdoa.drawIsochrone(x_sensor1, x_sensor2, r2-r1+epsrdoa, 1000, 5);
+xisom1 = tdoa.drawIsochrone(x_sensor1, x_sensor2, r2-r1-epsrdoa, 1000, 5);
 isoFill1 = cat(2,xisop1,fliplr(xisom1),xisop1(:,1));
 
-xiso2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,r3-r2,1000,3);
-xisop2 = tdoa.drawIsochrone(x_sensor2, x_sensor3, r3-r2+epsrdoa, 1000, 3);
-xisom2 = tdoa.drawIsochrone(x_sensor2, x_sensor3, r3-r2-epsrdoa, 1000, 3);
+xiso2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,r3-r2,1000,5);
+xisop2 = tdoa.drawIsochrone(x_sensor2, x_sensor3, r3-r2+epsrdoa, 1000, 5);
+xisom2 = tdoa.drawIsochrone(x_sensor2, x_sensor3, r3-r2-epsrdoa, 1000, 5);
 isoFill2 = cat(2,xisop2,fliplr(xisom2),xisop2(:,1));
 
 % Draw Figure

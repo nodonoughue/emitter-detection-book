@@ -38,7 +38,10 @@ appD_drawFigures;
 
 % Set this to true to run all of the Monte Carlo
 % examples, although this may take several days to run.
-force_recalc=false;
+force_recalc=true;
 
 book2_ch1_drawFigures;
 book2_ch2_drawFigures;
+book2_ch3_drawFigures;
+book2_ch4_drawFigures;
+book2_ch5_drawFigures;

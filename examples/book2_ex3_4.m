@@ -137,6 +137,7 @@ plot([1 max_num_iterations], rmse_crlb_full*[1 1],'k','DisplayName','CRLB (full)
 xlabel('Iteration Number');
 ylabel('RMSE [m]');
 title('Monte Carlo Geolocation Results');
+xlim([1 max_num_iterations]);
 
 % Compute and display the CEP50
 cep50 = utils.computeCEP50(crlb);

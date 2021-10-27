@@ -133,9 +133,13 @@ figs = book2_ex3_4();
 
 for idx = 1:numel(figs)
     figure(figs(idx));
-    utils.setPlotStyle(gca,{'widescreen','equal','tight'});
+    utils.setPlotStyle(gca,{'widescreen','tight'});
     utils.exportPlot(figs(idx), [prefix '8' char('a' + idx-1)]);
 end
+
+xlim([1600,4400]);
+ylim([3200,4800]);
+utils.exportPlot(figs(end), [prefix '8b_zoom']);
 
 %% Cleanup
 

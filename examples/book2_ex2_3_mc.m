@@ -1,8 +1,8 @@
-function fig = book2_ex2_3()
-% fig=book2_ex2_3()
+function fig = book2_ex2_3_mc()
+% fig=book2_ex2_3_mc()
 %
 % Executes Example 2.3 from Practical Geolocation for Electronic Warfare
-% with MATLAB.
+% with MATLAB; modified to also perform Monte Carlo analysis.
 %
 % INPUTS
 %   none
@@ -42,8 +42,9 @@ cov_z = blkdiag(cov_psi, cov_r, cov_rr);
 cov_z_out = blkdiag(cov_psi, cov_r_out, cov_rr_out);
 
 % Generate Random Noise
+num_mc = 100;
 L = chol(cov_z_out,'lower'); % Cholesky decomposition of the covariance matrix
-noise = L*randn(size(L,2), 1);
+noise = L*randn(size(L,2), num_mc);
 
 % Noisy Measurements
 zeta = z + noise;
@@ -59,18 +60,43 @@ epsilon = grid_res;
 max_num_iterations = 50;
 force_full_calc = true;
 plot_progress = false;
+
+rmse_ml = zeros(num_mc, 1);
+rmse_gd = zeros(num_mc, max_num_iterations);
+rmse_ls = zeros(num_mc, max_num_iterations);
+
+for idx=1:num_mc
+    fprintf('.');
+    if mod(idx,100)==0
+        fprintf('\n');
+    end
     
-%% ML Soln
-x_ml = hybrid.mlSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, cov_z, x_ctr,...
-    grid_size, epsilon);
+    %% ML Soln
+    x_ml = hybrid.mlSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta(:,idx), cov_z, x_ctr,...
+        grid_size, epsilon);
 
-%% GD Soln
-[x_gd, x_gd_full] = hybrid.gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, cov_z, x_init,... 
-                     [], [], epsilon, max_num_iterations, force_full_calc, plot_progress);
+    %% GD Soln
+    [x_gd, x_gd_full] = hybrid.gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta(:,idx), cov_z, x_init,... 
+                         [], [], epsilon, max_num_iterations, force_full_calc, plot_progress);
 
-%% LS Soln
-[x_ls, x_ls_full] = hybrid.lsSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, cov_z, x_init,...
-                     epsilon, max_num_iterations, force_full_calc, plot_progress);
+    %% LS Soln
+    [x_ls, x_ls_full] = hybrid.lsSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta(:,idx), cov_z, x_init,...
+                         epsilon, max_num_iterations, force_full_calc, plot_progress);
+
+    rmse_ml(idx) = norm(x_ml-x_source);
+    rmse_gd(idx,:) = sqrt(sum(abs(x_gd_full-x_source).^2,1));
+    rmse_ls(idx,:) = sqrt(sum(abs(x_ls_full-x_source).^2,1));
+end
+
+rmse_avg_ml = sqrt(sum(rmse_ml.^2)/num_mc);
+rmse_avg_gd = sqrt(sum(rmse_gd.^2,1)/num_mc);
+rmse_avg_ls = sqrt(sum(rmse_ls.^2,1)/num_mc);
+
+figure;
+plot([1 max_num_iterations],rmse_avg_ml*[1 1],'DisplayName','ML');
+hold on;
+plot(1:max_num_iterations, rmse_avg_gd,'DisplayName','Gradient Descent');
+plot(1:max_num_iterations, rmse_avg_ls,'DisplayName','Least Squares')
 
 %% Generate CRLB
 % Compute the CRLB
@@ -80,6 +106,10 @@ display(crlb);
 % Compute and display the RMSE
 rmse_crlb =sqrt(trace(crlb));
 fprintf('RMSE: %.2f km\n',rmse_crlb/1e3);
+plot([1 max_num_iterations], rmse_crlb*[1 1],'--','DisplayName','CRLB');
+xlabel('Iteration Number');
+ylabel('RMSE [m]');
+title('Monte Carlo Geolocation Results');
 
 % Compute and display the CEP50
 cep50 = utils.computeCEP50(crlb);

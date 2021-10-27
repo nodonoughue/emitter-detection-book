@@ -18,6 +18,7 @@ n_sensors = 4;
 baseline = 10e3;
 thSensors = linspace(0,2*pi,n_sensors) +pi/2; % add an extra sample, will be ignored
 x_sensor = [0, cos(thSensors(1:end-1)); 0, sin(thSensors(1:end-1))] * baseline;
+x_sensor = cat(1, x_sensor, 10e3*ones(1,n_sensors));
 
 %% Define Covariance Matrix
 time_err = 100e-9; % 100 ns
@@ -30,7 +31,7 @@ legend('Location','NorthWest');
 
 %% Sensor Pairs
 % Cell array of the different configurations, to be iterated over
-ref_set = {1, 2, 3, 4, 'full'};
+ref_set = {1, 'full', [1 3 3;2 4 2]};
 
 %% Compute CRLB
 figs = [fig1, zeros(size(ref_set))];
@@ -38,9 +39,9 @@ figs = [fig1, zeros(size(ref_set))];
 % Define search grid (targets up to 200 km away)
 xx_vec = linspace(-100e3, 100e3, 101);
 [xx,yy] = meshgrid(xx_vec);
-alt=10e3;
-%x_source = [xx(:), yy(:), alt*ones(numel(xx),1)]';
-x_source = [xx(:), yy(:)]';
+alt=5e3;
+x_source = [xx(:), yy(:), alt*ones(numel(xx),1)]';
+%x_source = [xx(:), yy(:)]';
 
 levels = [.01,1,5,10, 25, 50, 100, 200];
 
@@ -50,8 +51,8 @@ for idx_set = 1:numel(ref_set)
     this_crlb = tdoa.computeCRLB(x_sensor, x_source, cov_full, this_ref);
         % N x N x 3
     
-%    this_cep = sqrt(this_crlb(1,1,:) + this_crlb(2,2,:) + this_crlb(3,3,:));
-    this_cep = utils.computeCEP50(this_crlb);
+    this_cep = sqrt(this_crlb(1,1,:) + this_crlb(2,2,:) + this_crlb(3,3,:));
+    %this_cep = utils.computeCEP50(this_crlb);
     
     % Plot this result
     figs(idx_set+1) = figure;
