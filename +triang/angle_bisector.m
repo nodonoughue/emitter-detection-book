@@ -1,5 +1,5 @@
-function x = angle_bisector(x_source,psi)
-% x = angle_bisector(x_source,psi)
+function x = angle_bisector(x_sensor,psi)
+% x = angle_bisector(x_sensor,psi)
 %
 % Compute the center via intersection of angle bisectors for  
 % 3 or more LOBs given by sensor positions xi and angle 
@@ -10,7 +10,7 @@ function x = angle_bisector(x_source,psi)
 %
 % INPUTS:
 %
-%   x_source    N x 2 matrix of sensor positions
+%   x_sensor    N x 2 matrix of sensor positions
 %   psi         N x 1 vector of AOA measurements (radians)
 %
 % OUTPUTS:
@@ -22,7 +22,11 @@ function x = angle_bisector(x_source,psi)
 
 %% Set up all possible permutations of 3 elements
 N = numel(psi);
-if N <= 15
+assert(N>2,'At least 3 DF measurements required for angle bisector.');
+
+if N <= 3
+    A = 1:N;
+elseif N <= 15
     A = nchoosek(1:N,3);
 else
     % If there are more than ~15 rows, nchoosek returns an extremely large
@@ -38,7 +42,7 @@ end
 N_sets = size(A,1);
 x_est = zeros(2,N_sets);
 for idx_set = 1:N_sets
-    thisX = x_source(:,A(idx_set,:));
+    thisX = x_sensor(:,A(idx_set,:));
     thisPsi = psi(A(idx_set,:));
     
     % Find vertices
