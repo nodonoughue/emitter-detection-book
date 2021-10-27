@@ -37,7 +37,7 @@ Rtx = utils.rng(x_tx,x_tgt); % ntx x ntgt
 Rrx = utils.rng(x_rx,x_tgt); % nrx x ntgt
 
 % Wavelength
-lambda = utils.constants.c/f0;
+lambda = utils.constants.c./f0;
 
 % Tx FOM
 % ERP * bt * (lam^2) / (4*pi)^3 Rtx^2 

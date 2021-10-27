@@ -69,8 +69,8 @@ end
 if numel(size(C)) > 2
     assert(size(C,3)==size(x_src,2),'For target position specific covariance matrices, the third dimension of the covariance matrix must match the number of target positions.');
     % Make sure the velocity is similarly sized
-    if size(v_src,2)==1
-        v_src = v_src * ones(1,size(x_src,2));
+    if size(v_src,2)==1 || size(v_src,1)==1
+        v_src = v_src(:) * ones(1,size(x_src,2));
     end
     if do_doppler
         crlb_cell = arrayfun(@(idx) pcl.computeCRLB(x_tx,x_rx,x_src(:,idx),v_tx,v_rx,v_src(:,idx),C(:,:,idx),ref_idx,angle_dims,false),1:size(C,3),'UniformOutput',false);
