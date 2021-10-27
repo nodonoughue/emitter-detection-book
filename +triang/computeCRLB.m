@@ -25,6 +25,9 @@ n_source = size(x0,2);
 % Set up Jacobian function
 J = @(x) triang.jacobian(x_aoa,x);
 
+% Ensure the covariance matrix is invertible
+C = utils.ensureInvertible(C);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp

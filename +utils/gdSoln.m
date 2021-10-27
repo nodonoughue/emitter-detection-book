@@ -1,5 +1,5 @@
 function [x,x_full] = gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = gdSoln(y,J,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full] = gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the gradient descent solution for localization given the 
 % provided measurement and Jacobian function handles, and measurement 
@@ -68,6 +68,9 @@ error = Inf;
 x_full = zeros(n_dims,max_num_iterations);
 x_prev = x_init;
 x_full(:,1) = x_prev;
+
+% Ensure the covariance matrix is invertible
+C = utils.ensureInvertible(C);
 
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');

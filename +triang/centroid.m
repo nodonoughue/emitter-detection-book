@@ -1,5 +1,5 @@
-function x = centroid(x_source,psi)
-% x = centroid(x_source,psi)
+function x = centroid(x_sensor,psi)
+% x = centroid(x_sensor,psi)
 %
 % Compute the centroid of the intersection of 3 or more LOBs given by
 % sensor positions x_source and angle of arrival measurements psi.
@@ -21,6 +21,8 @@ function x = centroid(x_source,psi)
 
 %% Set up all possible permutations of 3 elements
 N = numel(psi);
+assert(N>2,'At least 3 DF measurements required for angle bisector.');
+
 if N <= 15
     A = nchoosek(1:N,3);
 else
@@ -37,7 +39,7 @@ end
 N_sets = size(A,1);
 x_est = zeros(2,N_sets);
 for idx_set = 1:N_sets
-    thisX = x_source(:,A(idx_set,:));
+    thisX = x_sensor(:,A(idx_set,:));
     thisPsi = psi(A(idx_set,:));
     
     % Find vertices
