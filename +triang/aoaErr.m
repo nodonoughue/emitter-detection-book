@@ -25,8 +25,8 @@ function [epsilon,x_vec,y_vec] = aoaErr(x_sensor,C,x_source,x_max,numPts)
 % the final sensor as the reference for all difference measurements.
 psi = triang.measurement(x_sensor,x_source);
 
-% Preprocess covariance matrix inverses
-C_out = C(1:end-1,1:end-1) + C(end,end);
+% Make sure the covariance matrix is invertible
+C_out = utils.ensureInvertible(C);
 
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
