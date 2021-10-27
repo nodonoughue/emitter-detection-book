@@ -49,11 +49,17 @@ n_aoa = size(x_aoa,2);
 n_tdoa = size(x_tdoa,2);
 n_fdoa = size(x_fdoa,2);
 
+% Determine if AOA measurements are 1D (azimuth) or 2D (az/el)
+assert(size(C,1) == n_aoa + n_tdoa + n_fdoa || size(C,1) == 2*n_aoa + n_tdoa + n_fdoa,'Unable to determine if AOA measurements are 1D or 2D');
+do2DAoA = size(C,1) == 2*n_aoa + n_tdoa + n_fdoa;
+if do2DAoA, n_aoa = 2*n_aoa; end
+
 % Parse the TDOA and FDOA reference indices together
 [tdoa_test_idx_vec, tdoa_ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
 [fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
 test_idx_vec = cat(2,tdoa_test_idx_vec, n_tdoa + fdoa_test_idx_vec);
 ref_idx_vec = cat(2,tdoa_ref_idx_vec, n_tdoa + fdoa_ref_idx_vec);
+
 
 % For now, we assume the AOA is independent of TDOA/FDOA
 C_aoa = C(1:n_aoa, 1:n_aoa);

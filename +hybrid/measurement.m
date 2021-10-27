@@ -1,6 +1,6 @@
-function z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, fdoa_ref_idx)
+function z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, fdoa_ref_idxm, do2Daoa)
 % z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, 
-%                                                          fdoa_ref_idx)
+%                                                fdoa_ref_idx, do2Daoa)
 %
 % Computes hybrid measurements, for AOA, TDOA, and FDOA sensors.
 %
@@ -14,6 +14,8 @@ function z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, 
 %                   TDOA sensor pairing indices [optional]
 %   fdoa_ref_idx    Index for reference FDOA sensor or 2 x nPair set of
 %                   FDOA sensor pairing indices [optional]
+%   do2Daoa     Boolean flag, if true then 2D AOA measurements will be
+%               generated (azimuth and elevation)
 %
 % OUTPUTS:
 %   z           nAoa + nTDOA + nFDOA - 2 x nSource array of measurements
@@ -29,9 +31,13 @@ if nargin < 7 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 
+if nargin < 8 || ~exist('do2Daoa','var')
+    do2Daoa = true;
+end
+
 % Construct component measurements
 if ~isempty(x_aoa)
-    z_a =triang.measurement(x_aoa, x_source);
+    z_a =triang.measurement(x_aoa, x_source, do2Daoa);
 else
     z_a = [];
 end
