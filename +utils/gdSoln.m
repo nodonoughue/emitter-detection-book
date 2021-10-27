@@ -1,5 +1,5 @@
 function [x,x_full] = gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = gdSoln(y,J,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full] = gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the gradient descent solution for localization given the 
 % provided measurement and Jacobian function handles, and measurement 
