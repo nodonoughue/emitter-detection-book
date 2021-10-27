@@ -55,6 +55,8 @@ end
 % Initialize output variable
 crlb = zeros([n_dim,n_dim,n_source]);
 
+warning('on','MATLAB:nearlySingularMatrix')
+        
 % Repeat CRLB for each of the n_source test positions
 for idx =1:n_source
     this_x = xs(:,idx);
@@ -73,9 +75,21 @@ for idx =1:n_source
         % Problem is ill defined, Fisher Information Matrix cannot be
         % inverted
         crlb(:,:,idx) = NaN;
+    elseif any(diag(F)<= 1e-15)
+        % Problem is ill-defined
+        valid_ind = diag(F) > 1e-15;
+        crlb(~valid_ind,~valid_ind,idx) = Inf;
+        crlb(valid_ind,valid_ind,idx) = inv(F(valid_ind,valid_ind));
     else
         % Invert the Fisher Information Matrix to compute the CRLB
-        crlb(:,:,idx) = pinv(F);
+        C = inv(F);
+        if any(diag(C)<0)
+            % We got a negative noise term; invalid result
+            crlb(:,:,idx) = NaN;
+        else
+            crlb(:,:,idx) = C;
+        end
     end
 end
 
+warning('off','MATLAB:nearlySingularMatrix');
