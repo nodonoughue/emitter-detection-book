@@ -37,10 +37,13 @@ GR2 = sum(abs(dx(1:2,:,:)).^2,1); % 1 x nSensor x nSource -- ground range
 % Build Jacobian
 J = cat(1,-dx(2,:,:),dx(1,:,:))./GR2;
 
-% Elevation Angle Jacobian
-if do2DAoA && nDim1 == 3
+if nDim1 == 3
     % Add a z dimension to the azimuth Jacobian
     J = cat(1, J, zeros(1, nSensor, nSource));
+end
+
+% Elevation Angle Jacobian
+if do2DAoA && nDim1 == 3
     
     % Jacobian for elevation
     % del_x(phi_n(x)) = -(x-xn)(z-zn)/ ground_range * slant_range^2
