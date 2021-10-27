@@ -92,41 +92,87 @@ if do_doppler
     Jr_vel = -Jr_rng;
 end
 
+%% Angle of Arrival Measurements
+if angle_dims > 0 
+    do2DAOA = (angle_dims==2);
+    
+    Jr_psi = triang.jacobian(x_rx, x_tgt, do2DAOA);
+        % This is occurring for each Tx/Rx pair, but triang is just doing
+        % the geometry for target to receiver, so let's repeat it once
+        % for each transmitter to capture the fact that each Tx/Rx link
+        % has a unique look at that DOA.
+
+    Jr_psi = reshape(Jr_psi,nDim,1,nRx,angle_dims,nTgt);
+else
+    Jr_psi = [];
+end
+
 %% Parse Tx/Rx pairing indices
 if isempty(ref_idx) || strcmpi(ref_idx,'full')==1
     % Nothing (or full set of pairs) specified, do all pairs
     Jrng = reshape(Jt_rng,nDim,nTx,1,nTgt) + reshape(Jr_rng,nDim,1,nRx,nTgt);
+    if angle_dims > 0
+        Jpsi = reshape(repmat(Jr_psi,1,nTx,1,1,1),nDim,nTx,nRx*angle_dims,nTgt);
+    end
     if do_doppler
         Jrng = cat(1,Jrng,zeros(size(Jrng))); % the jacobian of range w.r.t. vel is zero
+        if angle_dims > 0
+            Jpsi = cat(1,Jpsi,zeros(size(Jpsi))); % the jacobian of DOA w.r.t. vel is zero
+        end
         Jvelrng = reshape(Jt_velrng,nDim,nTx,1,nTgt) + reshape(Jr_velrng,nDim,1,nRx,nTgt);
         Jvel = reshape(Jt_vel,nDim,nTx,1,nTgt) + reshape(Jr_vel,nDim,1,nRx,nTgt);
             % Jrng is (2*nDim) x nTx x nRx x nTgt
+            % Jpsi is (2*nDim) x nTx x (nRx*angleDims) x nTgt
             % Jvelrng and Jvel are nDim x nTx x nRx x nTgt
     end
     
     if do_doppler
-        J = cat(2,reshape(Jrng,2*nDim,nTx*nRx,nTgt), reshape(cat(1,Jvelrng,Jvel),2*nDim,nTx*nRx,nTgt));
-            % (2*nDim) x (2*nTx*nRx) x nTgt
-            % nMsmt = 2*nTx*nRx
+        if angle_dims > 0
+            J = cat(2,reshape(Jrng,2*nDim,nTx*nRx,nTgt), reshape(cat(1,Jvelrng,Jvel),2*nDim,nTx*nRx,nTgt), reshape(Jpsi,2*nDim,nTx*nRx*angle_dims,nTgt));
+        else
+            J = cat(2,reshape(Jrng,2*nDim,nTx*nRx,nTgt), reshape(cat(1,Jvelrng,Jvel),2*nDim,nTx*nRx,nTgt));
+        end
+            % (2*nDim) x ((2+angle_dims)*nTx*nRx) x nTgt
+            % nMsmt = (2+angle_dims)*nTx*nRx
     else
-        J = reshape(Jrng,nDim, nTx*nRx, nTgt);
-            % nDim x (nTx*nRx) x nTgt
-            % nMsmt = nTx*nRx
+        if angle_dims > 0
+            J = cat(2,reshape(Jrng,nDim, nTx*nRx, nTgt), reshape(Jpsi,nDim, nTx*nRx*angle_dims, nTgt));
+        else
+            J = reshape(Jrng,nDim, nTx*nRx, nTgt);
+        end
+            % nDim x ((1+angle_dims)*nTx*nRx) x nTgt
+            % nMsmt = (1+angle_dims)*nTx*nRx
     end
 elseif isscalar(ref_idx)
     % Scalar specified, just keep that tx-rx pair
     Jrng = Jt_rng(:,ref_idx,:) + Jr_rng(:,ref_idx,:);
+    if angle_dims > 0
+        Jpsi = reshape(Jr_psi(:,1,ref_idx,:,:),nDim,angle_dims,nTgt);
+    end
     if do_doppler
         Jrng = cat(1,Jrng,zeros(size(Jrng)));
+        if angle_dims > 0
+            Jpsi = cat(1,Jpsi,zeros(size(Jpsi)));
+        end
         Jvelrng = Jt_velrng(:,ref_idx,:) + Jr_velrng(:,ref_idx,:);
         Jvel = Jt_vel(:,ref_idx,:) + Jr_vel(:,ref_idx,:);
-        J = cat(2,Jrng,cat(1,Jvelrng,Jvel));
-            % (2*nDim) x 2 x nTgt
-            % nMsmt = 2 (single tx/rx pair, but range and range-rate)
+        if angle_dims > 0
+            J = cat(2,Jrng,cat(1,Jvelrng,Jvel),Jpsi);
+        else
+            J = cat(2,Jrng,cat(1,Jvelrng,Jvel));
+        end
+            % (2*nDim) x (2+angle_dims) x nTgt
+            % nMsmt = 2 + angle_dims (single tx/rx pair)
     else
-        J = Jrng;
-            % nDim x 1 x nTgt
-            % nMsmt = 1
+        if angle_dims > 0
+            J = cat(2,Jrng,Jpsi);
+                % nDim x (1 + angle_dims) x nTgt
+                % nMsmt = 1 + angle_dims
+        else
+            J = Jrng;
+                % nDim x 1 x nTgt
+                % nMsmt = 1
+        end
     end
 else
     % Matrix; it must have two rows.  Each column is a tx/rx pair setting
@@ -138,33 +184,35 @@ else
     rx_idx = ref_idx(2,:);
     
     Jrng = Jt_rng(:,tx_idx,:) + Jr_rng(:,rx_idx,:);
+    if angle_dims > 0
+        Jpsi = reshape(Jr_psi(:,1,rx_idx,:,:),nDim,numel(rx_idx)*angle_dims,nTgt);
+    end
     if do_doppler
         Jrng = cat(1,Jrng,zeros(size(Jrng)));
+        if angle_dims > 0
+            Jpsi = cat(1,Jpsi,zeros(size(Jpsi)));
+        end
         Jvelrng = Jt_velrng(:,tx_idx,:) + Jr_velrng(:,rx_idx,:);
         Jvel = Jt_vel(:,tx_idx,:) + Jr_vel(:,rx_idx,:);
-        
-        J = cat(2,Jrng,cat(1,Jvelrng,Jvel));
-            % (2*nDim) x 2*size(ref_idx,2) x nTgt
-            % nMsmt = 2*size(ref_idx,2)
-    else
-        J = Jrng;
-            % nDim x size(ref_idx,2) x nTgt
-            % nMsmt = size(ref_idx,2)
-    end
-end
 
-%% Angle Jacobian
-if angle_dims > 0 
-    do2DAOA = (angle_dims==2);
-    
-    J_psi = triang.jacobian(x_rx, x_tgt, do2DAOA);
-    
-    if do_doppler
-        % Angle measurements are independent of velocity
-        J_psi = cat(1,Jpsi,zeros(size(J_psi)));
+        if angle_dims > 0
+            J = cat(2,Jrng,cat(1,Jvelrng,Jvel), Jpsi);
+                % (2*nDim) x (2+angle_dims)*size(ref_idx,2) x nTgt
+                % nMsmt = (2+angle_dims)*size(ref_idx,2)
+        else
+            J = cat(2,Jrng,cat(1,Jvelrng,Jvel));
+                % (2*nDim) x 2*size(ref_idx,2) x nTgt
+                % nMsmt = 2*size(ref_idx,2)
+        end
+    else
+        if angle_dims > 0
+            J = cat(2,Jrng,Jpsi);
+                % nDim x (1+angle_dims)*size(ref_idx,2) x nTgt
+                % nMsmt = (1+angle_dims)*size(ref_idx,2)
+        else
+            J = Jrng;
+                % nDim x size(ref_idx,2) x nTgt
+                % nMsmt = size(ref_idx,2)
+        end
     end
-    
-    J = cat(2,J,J_psi);
-        % Add nRx (if angle_dims=1) or 2*nRx (if angle_dims=2) to the 
-        % number of measurements
 end
