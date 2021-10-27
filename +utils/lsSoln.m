@@ -29,23 +29,23 @@ function [x,x_full] = lsSoln(y,J,C,x_init,epsilon,max_num_iterations,force_full_
 % Parse inputs
 n_dims = numel(x_init);
 
-if nargin < 7 || isempty(plot_progress)
+if nargin < 8 || isempty(plot_progress)
     % By default, do not plot
     plot_progress = false;
 end
 
-if nargin < 6 || isempty(force_full_calc)
+if nargin < 7 || isempty(force_full_calc)
     % If not specified, don't force the solver to run until it hits
     % max_num_iterations
     force_full_calc = false;
 end
 
-if nargin < 5 || isempty(max_num_iterations)
+if nargin < 6 || isempty(max_num_iterations)
     % Number of iterations not specified, default is 10,000
     max_num_iterations = 10000;
 end
 
-if nargin < 4 || isempty(epsilon)
+if nargin < 5 || isempty(epsilon)
     % Maximum error not specified; default to .1 (distance units)
     epsilon = 1e-6;
 end
@@ -57,6 +57,9 @@ x_full = zeros(n_dims,max_num_iterations);
 x_prev = x_init;
 x_full(:,1) = x_prev;
     
+% For now, we assume the AOA is independent of TDOA/FDOA
+C = utils.ensureInvertible(C);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
