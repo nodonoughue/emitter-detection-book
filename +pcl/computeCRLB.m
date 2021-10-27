@@ -1,4 +1,4 @@
-function crlb = computeCRLB(x_tx,x_rx,x_src,v_tx,v_rx,v_src,C,ref_idx,angle_dims)
+function crlb = computeCRLB(x_tx,x_rx,x_src,v_tx,v_rx,v_src,C,ref_idx,angle_dims,print_status)
 % crlb = computeCRLB(x_tx,x_rx,x_src,v_tx,v_rx,v_src,C,ref_idx,angle_dims)
 %
 % Computes the CRLB on position accuracy for source at location x_src and
@@ -22,6 +22,9 @@ function crlb = computeCRLB(x_tx,x_rx,x_src,v_tx,v_rx,v_src,C,ref_idx,angle_dims
 %   angle_dims          Number of receiver angle of arrival dimensions
 %                       reported (0 = no angles, 1 = azimuth, 2 = azimuth 
 %                       & elevation)
+%   print_status        Optional flag, controlling print statement on
+%                       how many solutions were nearly singular.
+%                       Default=True
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
@@ -30,6 +33,14 @@ function crlb = computeCRLB(x_tx,x_rx,x_src,v_tx,v_rx,v_src,C,ref_idx,angle_dims
 % Nicholas O'Donoughue
 % 10 September 2021
 
+%% Turn off warnings for badly scaled matrices
+warning('off','MATLAB:nearlySingularMatrix');
+singular_matrix_errors = 0;
+
+%% Parse inputs
+if nargin < 10 || ~exist('print_status','var') || isempty(print_status)
+    print_status = 0;
+end
 
 if nargin < 9 || ~exist('angle_dims','var') || isempty(angle_dims)
     angle_dims = 0;
@@ -51,7 +62,24 @@ if do_doppler && isempty(v_rx)
 end
 
 if do_doppler && isempty(v_src)
-    v_src = zeros(size(x_tgt));
+    v_src = zeros(size(x_src));
+end
+
+% Handle position-specific CRLB inputs
+if numel(size(C)) > 2
+    assert(size(C,3)==size(x_src,2),'For target position specific covariance matrices, the third dimension of the covariance matrix must match the number of target positions.');
+    % Make sure the velocity is similarly sized
+    if size(v_src,2)==1
+        v_src = v_src * ones(1,size(x_src,2));
+    end
+    if do_doppler
+        crlb_cell = arrayfun(@(idx) pcl.computeCRLB(x_tx,x_rx,x_src(:,idx),v_tx,v_rx,v_src(:,idx),C(:,:,idx),ref_idx,angle_dims,false),1:size(C,3),'UniformOutput',false);
+    else
+        crlb_cell = arrayfun(@(idx) pcl.computeCRLB(x_tx,x_rx,x_src(:,idx),[],[],[],C(:,:,idx),ref_idx,angle_dims,false),1:size(C,3),'UniformOutput',false);
+    end
+        % n_tgt x 1 cell array of CRLBs, reshape
+    crlb = cell2mat(reshape(crlb_cell,1,1,size(C,3)));
+    return;
 end
 
 % Check source pos/vel inputs
@@ -62,20 +90,20 @@ if do_doppler
 
     in_size = max(size_pos,size_vel);
     out_size = in_size(2:end); % drop first dimension
-    nDim = in_size(1);
+    n_dim = in_size(1);
     n_source_pos = prod(out_size);
 
     % Broadcast x_source and v_source to common size
-    x_src = reshape(x_src.*ones(size(in_size)), nDim, n_source_pos);
-    v_src = reshape(v_src.*ones(size(in_size)), nDim, n_source_pos);
+    x_src = reshape(x_src.*ones(in_size), n_dim, n_source_pos);
+    v_src = reshape(v_src.*ones(in_size), n_dim, n_source_pos);
 else
     in_size = size(x_src);
     out_size = in_size(2:end); % drop first dimension
-    nDim = in_size(1);
+    n_dim = in_size(1);
     n_source_pos = prod(out_size);
 
-    x_src = reshape(x_src,nDim,n_source_pos);
-    v_src = zeros(nDim,n_source_pos);
+    x_src = reshape(x_src,n_dim,n_source_pos);
+    v_src = zeros(n_dim,n_source_pos);
 end
 
 
@@ -99,15 +127,18 @@ if do_decomp
     % right-division in for loops.
     C_d = decomposition(C_out,'chol');
 else
-    % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
-    C_inv = pinv(C_out);
+    % If DECOMPOSITION is unavailable, let's precompute the inverse.
+    C_inv = inv(C_out);
 end
 
 % Initialize output variable
-crlb = zeros([n_dim,n_dim,n_source]);
-
+if do_doppler
+    crlb = zeros([2*n_dim,2*n_dim,n_source_pos]);
+else
+    crlb = zeros([n_dim,n_dim,n_source_pos]);
+end
 % Repeat CRLB for each of the n_source test positions
-for idx =1:n_source
+for idx =1:n_source_pos
     this_x = x_src(:,idx);
     this_v = v_src(:,idx);
 
@@ -131,7 +162,19 @@ for idx =1:n_source
         crlb(:,:,idx) = NaN;
     else
         % Invert the Fisher Information Matrix to compute the CRLB
-        crlb(:,:,idx) = pinv(F);
+        crlb(:,:,idx) = inv(F);
+        
+        % Check for singular matrices and count
+        ME = warning('query','last');
+        if ~isempty(ME) && strcmpi(ME.identifier,'MATLAB:nearlySingularMatrix')
+            singular_matrix_errors = singular_matrix_errors + 1;
+        end
+        % Clear the last warning, so we don't double count it
+        lastwarn('');
     end
 end
 
+warning('on','MATLAB:nearlySingularMatrix');
+if singular_matrix_errors > 0 && print_status
+    fprintf('computeCRLB encountered %d degenerate cases out of %d source positions. Problem potentially ill-defined.\n',singular_matrix_errors, n_source_pos);
+end

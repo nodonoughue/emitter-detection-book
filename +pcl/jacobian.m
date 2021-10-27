@@ -77,8 +77,8 @@ if do_doppler
     u_rx = Jr_rng; % The receiver-tgt jacobian is u_n(x) for receiver n
     
     % Projection matrix
-    Proj_ortho_tx = eye(nDim) - reshape(u_tx,nDim,1,nTx,nTgt)*reshape(u_tx,1,nDim,nTx,nTgt);
-    Proj_ortho_rx = eye(nDim) - reshape(u_rx,nDim,1,nRx,nTgt)*reshape(u_rx,1,nDim,nRx,nTgt);
+    Proj_ortho_tx = eye(nDim) - reshape(u_tx,nDim,1,nTx,nTgt).*reshape(u_tx,1,nDim,nTx,nTgt);
+    Proj_ortho_rx = eye(nDim) - reshape(u_rx,nDim,1,nRx,nTgt).*reshape(u_rx,1,nDim,nRx,nTgt);
     
     % Scaled velocity vector
     uv_t = (reshape(v_tx,nDim,nTx) - reshape(v_tgt,nDim,1,nTgt)) ./ Rt; % nDim x nTx x nTgt
@@ -93,7 +93,7 @@ if do_doppler
 end
 
 %% Parse Tx/Rx pairing indices
-if isempty(ref_idx) || strcmpi(ref_idx,'full')==0
+if isempty(ref_idx) || strcmpi(ref_idx,'full')==1
     % Nothing (or full set of pairs) specified, do all pairs
     Jrng = reshape(Jt_rng,nDim,nTx,1,nTgt) + reshape(Jr_rng,nDim,1,nRx,nTgt);
     if do_doppler
