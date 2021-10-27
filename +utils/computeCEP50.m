@@ -60,11 +60,11 @@ lam = diag(Lam); % Pull eigenvalue vector from diagonal matrix Lam
 [lamSort,~] = sort(lam,'descend'); % Sort the eigenvalues
 
 % Dominant eigenvalue
-lamMax = lamSort(1);
+lamMax = abs(lamSort(1));
 %vMax = V(:,iSort(1)); 
 
 % Secondary eigenvalue
-lamMin = lamSort(2);
+lamMin = abs(lamSort(2));
 %vMin = V(:,iSort(2));
 
 % Ratio of dominant to secondary eigenvalues
