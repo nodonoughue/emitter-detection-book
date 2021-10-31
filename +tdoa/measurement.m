@@ -1,4 +1,4 @@
-function rdoa = measurement(x_sensor, x_source, ref_idx)
+function rdoa = measurement(x_sensor, x_source, ref_idx, alpha)
 % rdoa = measurement(x_sensor, x_source, ref_idx)
 %
 % Computes range difference measurements, using the
@@ -9,6 +9,7 @@ function rdoa = measurement(x_sensor, x_source, ref_idx)
 %   x_source    nDim x nSource array of source positions
 %   ref_idx     Either a scalar index for which sensor is the reference,
 %               or a 2 x nPairing matrix of sensor pairing indices
+%   alpha       nSensor x 1 vector of range bias terms
 %
 % OUTPUTS:
 %   rdoa        nSensor -1 x nSource array of RDOA measurements
@@ -29,9 +30,16 @@ end
 
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, nSensor);
 
+if nargin < 4 || ~exist('alpha','var')
+    rdoa_bias = 0;
+else
+    % Parse the TDOA bias
+    rdoa_bias = (alpha(test_idx_vec) - alpha(ref_idx_vec));
+end
+
 % Compute range from each source to each sensor
 dx = reshape(x_source,nDim1,1,nSource) - reshape(x_sensor,nDim1,nSensor);
 R = reshape(sqrt(sum(abs(dx).^2,1)),nSensor,nSource); % nSensor x nSource
 
 % Compute range difference for each pair of sensors
-rdoa = R(test_idx_vec,:) - R(ref_idx_vec,:);
+rdoa = R(test_idx_vec,:) - R(ref_idx_vec,:) + rdoa_bias;
