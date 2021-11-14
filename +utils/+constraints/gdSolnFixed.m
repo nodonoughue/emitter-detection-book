@@ -5,6 +5,9 @@ function [x,x_full] = gdSolnFixed(y,J,C,x_init,a,tol,alpha,beta,epsilon,max_num_
 % provided measurement and Jacobian function handles, and measurement 
 % error covariance.
 %
+% Utilized the utils.constraints package to accept equality constraints (a)
+% with tolerance (tol).
+%
 % Inputs:
 %   
 %   y               Measurement vector function handle (accepts n_dim 

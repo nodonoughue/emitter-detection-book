@@ -3,6 +3,9 @@ function [x,x_full] = lsSolnFixed(y,J,C,x_init,a,tol,epsilon,max_num_iterations,
 %
 % Computes the least square solution for TDOA processing.
 %
+% Utilized the utils.constraints package to accept equality constraints (a)
+% with tolerance (tol).
+%
 % Inputs:
 %   
 %   y               Measurement vector function handle (accepts n_dim 

@@ -5,6 +5,9 @@ function [x,x_full] = gdSolnBounded(y,J,C,x_init,b,alpha,beta,epsilon,max_num_it
 % provided measurement and Jacobian function handles, and measurement 
 % error covariance.
 %
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
+%
 % Inputs:
 %   
 %   y               Measurement vector function handle (accepts n_dim 

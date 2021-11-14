@@ -1,19 +1,21 @@
-function [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,...
-%               max_num_iterations,force_full_calc,plot_progress,ref_idx)
+function [x,x_full] = lsSolnBounded(x_fdoa,v_fdoa,rho_dot,C,x_init,b,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = lsSolnBounded(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,numIterations,
+%                                 force_full_calc,plot_progress,ref_idx)
 %
-% Computes the gradient descent solution for TDOA processing.
+% Computes the least square solution for FDOA processing.
+%
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
 %
 % Inputs:
 %   
-%   x_tdoa              TDOA sensor positions [m]
-%   rho                 Measurement vector
-%   C                   Combined error covariance matrix
+%   x_fdoa              Sensor positions [m]
+%   v_fdoa              Sensor velocities [m/s]
+%   rho_dot             Range Rate-Difference Measurements [m/s]
+%   C                   Measurement Error Covariance Matrix [(m/s)^2]
 %   x_init              Initial estimate of source position [m]
-%   alpha               Backtracking line search parameter
-%   beta                Backtracking line search parameter
-%   epsilon             Desired position error tolerance (stopping 
-%                       condition)
+%   a                   Array of inequality constraint function handles
+%   epsilon             Desired estimate resolution [m]
 %   max_num_iterations  Maximum number of iterations to perform
 %   force_full_calc     Boolean flag to force all iterations (up to
 %                       max_num_iterations) to be computed, regardless
@@ -22,14 +24,14 @@ function [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,max_num_iter
 %                       intermediate solutions as they are derived 
 %                       (DEFAULT = False).
 %   ref_idx             Scalar index of reference sensor, or nDim x nPair
-%                       matrix of sensor pairings
+%                       matrix of sensor pairings  
 %
 % Outputs:
 %   x               Estimated source position
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 14 Nov 2021
 
 % Parse inputs
 if nargin < 11 || ~exist('ref_idx','var')
@@ -52,22 +54,14 @@ if nargin < 7 || ~exist('epsilon','var')
     epsilon = [];
 end
 
-if nargin < 6 || ~exist('beta','var')
-    beta = [];
-end
-
-if nargin < 5 || ~exist('alpha','var')
-    alpha = [];
-end
-
-% Set up measurement error and Jacobian functions
-y = @(x) rho- tdoa.measurement(x_tdoa, x, ref_idx);
-J = @(x) tdoa.jacobian(x_tdoa, x, ref_idx);
+% Initialize measurement error and Jacobian function handles
+y = @(x) rho_dot - fdoa.measurement(x_fdoa, v_fdoa, x, ref_idx);
+J = @(x) fdoa.jacobian(x_fdoa, v_fdoa, x, ref_idx);
 
 % Resample covariance matrix
-n_sensor = size(x_tdoa, 2);
+n_sensor = size(x_fdoa, 2);
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
-% Call generic Gradient Descent solver
-[x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
+% Call the generic Least Square solver
+[x,x_full] = utils.constraints.lsSolnBounded(y,J,C_tilde,x_init,b,epsilon,max_num_iterations,force_full_calc,plot_progress);

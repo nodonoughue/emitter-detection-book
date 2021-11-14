@@ -1,9 +1,12 @@
-function [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,tdoa_ref_idx,fdoa_ref_idx)
-% [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,...
+function [x,x_full] = gdSolnBounded(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,b,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,tdoa_ref_idx,fdoa_ref_idx)
+% [x,x_full] = gdSolnFixed(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,b,alpha,...
 %            beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the gradient descent solution for hybrid AOA, TDOA, and
 % FDOA processing.
+%
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
 %
 % Inputs:   
 %   x_aoa               AOA sensor positions
@@ -13,6 +16,7 @@ function [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,bet
 %   z                   Measurement vector
 %   C                   Combined error covariance matrix
 %   x_init              Initial estimate of source position [m]
+%   b               Array of inequality constraints
 %   alpha               Backtracking line search parameter
 %   beta                Backtracking line search parameter
 %   epsilon             Desired position error tolerance (stopping 
@@ -33,38 +37,38 @@ function [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,bet
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 14 Nov 2021
 
 % Parse inputs
-if nargin < 15 || ~exist('fdoa_ref_idx','var')
+if nargin < 16 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 
-if nargin < 14 || ~exist('tdoa_ref_idx','var')
+if nargin < 15 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
 
-if nargin < 13 || ~exist('plot_progress','var')
+if nargin < 14 || ~exist('plot_progress','var')
     plot_progress = false;
 end
 
-if nargin < 12 || ~exist('force_full_calc','var')
+if nargin < 13 || ~exist('force_full_calc','var')
     force_full_calc = false;
 end
 
-if nargin < 11 || ~exist('max_num_iterations','var')
+if nargin < 12 || ~exist('max_num_iterations','var')
     max_num_iterations = [];
 end
 
-if nargin < 10 || ~exist('epsilon','var')
+if nargin < 11 || ~exist('epsilon','var')
     epsilon = [];
 end
 
-if nargin < 9 || ~exist('beta','var')
+if nargin < 10 || ~exist('beta','var')
     beta = [];
 end
 
-if nargin < 8 || ~exist('alpha','var')
+if nargin < 9 || ~exist('alpha','var')
     alpha = [];
 end
 
@@ -88,4 +92,5 @@ C_aoa = C(1:n_aoa, 1:n_aoa);
 C_tfdoa = C(n_aoa+1:end, n_aoa+1:end);
 C_tilde = blkdiag(C_aoa, utils.resampleCovMtx(C_tfdoa, test_idx_vec, ref_idx_vec));
 
-[x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
+[x,x_full] = utils.constraints.gdSolnBounded(y,J,C_tilde,x_init,b,...
+     alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

@@ -1,8 +1,11 @@
-function [x,x_full] = gdSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = gdSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,...
+function [x,x_full] = gdSolnBounded(x_fdoa,v_fdoa,rho_dot,C,x_init,b,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = gdSolnBounded(x_fdoa,v_fdoa,rho_dot,C,x_init,b,alpha,...
 %           beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the gradient descent solution for FDOA processing.
+%
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
 %
 % Inputs:
 %   
@@ -11,6 +14,7 @@ function [x,x_full] = gdSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,beta,epsilon,m
 %   rho_dot             Measurement vector
 %   C                   FDOA error covariance matrix
 %   x_init              Initial estimate of source position [m]
+%   b                   Array of inequality constraint function handles
 %   alpha               Backtracking line search parameter
 %   beta                Backtracking line search parameter
 %   epsilon             Desired position error tolerance (stopping 
@@ -30,35 +34,34 @@ function [x,x_full] = gdSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,alpha,beta,epsilon,m
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
-
+% 14 November 2021
 
 % Parse inputs
-if nargin < 12 || ~exist('ref_idx','var')
+if nargin < 13 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 
-if nargin < 11 || ~exist('plot_progress','var')
+if nargin < 12 || ~exist('plot_progress','var')
     plot_progress = false;
 end
 
-if nargin < 10 || ~exist('force_full_calc','var')
+if nargin < 11 || ~exist('force_full_calc','var')
     force_full_calc = false;
 end
 
-if nargin < 9 || ~exist('max_num_iterations','var')
+if nargin < 10 || ~exist('max_num_iterations','var')
     max_num_iterations = [];
 end
 
-if nargin < 8 || ~exist('epsilon','var')
+if nargin < 9 || ~exist('epsilon','var')
     epsilon = [];
 end
 
-if nargin < 7 || ~exist('beta','var')
+if nargin < 8 || ~exist('beta','var')
     beta = [];
 end
 
-if nargin < 6 || ~exist('alpha','var')
+if nargin < 7 || ~exist('alpha','var')
     alpha = [];
 end
 
@@ -72,4 +75,5 @@ n_sensor = size(x_fdoa, 2);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
 % Call generic Gradient Descent solver
-[x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
+[x,x_full] = utils.constraints.gdSolnBounded(y,J,C_tilde,x_init,b,...
+    alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

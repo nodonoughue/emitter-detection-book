@@ -1,8 +1,11 @@
-function [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,numIterations,
+function [x,x_full] = lsSolnFixed(x_fdoa,v_fdoa,rho_dot,C,x_init,a,tol,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = lsSolnFixed(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,numIterations,
 %                                 force_full_calc,plot_progress,ref_idx)
 %
 % Computes the least square solution for FDOA processing.
+%
+% Utilized the utils.constraints package to accept equality constraints (a)
+% with tolerance (tol).
 %
 % Inputs:
 %   
@@ -11,6 +14,8 @@ function [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,max_num_iter
 %   rho_dot             Range Rate-Difference Measurements [m/s]
 %   C                   Measurement Error Covariance Matrix [(m/s)^2]
 %   x_init              Initial estimate of source position [m]
+%   a               Array of equality constraint function handles
+%   tol             Tolerance for equality constraints
 %   epsilon             Desired estimate resolution [m]
 %   max_num_iterations  Maximum number of iterations to perform
 %   force_full_calc     Boolean flag to force all iterations (up to
@@ -27,26 +32,26 @@ function [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,max_num_iter
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 14 Nov 2021
 
 % Parse inputs
-if nargin < 9 || ~exist('ref_idx','var')
+if nargin < 12 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 
-if nargin < 8 || ~exist('plot_progress','var')
+if nargin < 11 || ~exist('plot_progress','var')
     plot_progress = false;
 end
 
-if nargin < 7 || ~exist('force_full_calc','var')
+if nargin < 10 || ~exist('force_full_calc','var')
     force_full_calc = false;
 end
 
-if nargin < 6 || ~exist('max_num_iterations','var')
+if nargin < 8 || ~exist('max_num_iterations','var')
     max_num_iterations = [];
 end
 
-if nargin < 5 || ~exist('epsilon','var')
+if nargin < 8 || ~exist('epsilon','var')
     epsilon = [];
 end
 
@@ -60,4 +65,4 @@ n_sensor = size(x_fdoa, 2);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
 % Call the generic Least Square solver
-[x,x_full] = utils.lsSoln(y,J,C_tilde,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress);
+[x,x_full] = utils.constraints.lsSolnFixed(y,J,C_tilde,x_init,a, tol,epsilon,max_num_iterations,force_full_calc,plot_progress);

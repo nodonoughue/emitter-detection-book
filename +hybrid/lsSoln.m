@@ -6,11 +6,13 @@ function [x,x_full] = lsSoln(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,max_n
 % FDOA processing.
 %
 % Inputs:
-%   
-%   x0                  Sensor positions [m]
-%   rho                 Combined measurement vector
+%   x_aoa               AOA sensor positions
+%   x_tdoa              TDOA sensor positions
+%   x_fdoa              FDOA sensor positions
+%   v_fdoa              FDOA sensor velocities
+%   z                   Measurement vector
 %   C                   Combined Error Covariance Matrix
-%   xs_init             Initial estimate of source position [m]
+%   x_init             Initial estimate of source position [m]
 %   epsilon             Desired estimate resolution [m]
 %   max_num_iterations  Maximum number of iterations to perform
 %   force_full_calc     Boolean flag to force all iterations (up to
@@ -32,12 +34,28 @@ function [x,x_full] = lsSoln(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,max_n
 % 1 July 2019
 
 % Parse inputs
+if nargin < 13 || ~exist('fdoa_ref_idx','var')
+    fdoa_ref_idx = [];
+end
+
 if nargin < 12 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
 
-if nargin < 13 || ~exist('fdoa_ref_idx','var')
-    fdoa_ref_idx = [];
+if nargin < 11 || ~exist('plot_progress','var')
+    plot_progress = false;
+end
+
+if nargin < 10 || ~exist('force_full_calc','var')
+    force_full_calc = false;
+end
+
+if nargin < 9 || ~exist('max_num_iterations','var')
+    max_num_iterations = [];
+end
+
+if nargin < 8 || ~exist('epsilon','var')
+    epsilon = [];
 end
 
 % Initialize measurement error and Jacobian function handles
@@ -59,7 +77,6 @@ if do2DAoA, n_aoa = 2*n_aoa; end
 [fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
 test_idx_vec = cat(2,tdoa_test_idx_vec, n_tdoa + fdoa_test_idx_vec);
 ref_idx_vec = cat(2,tdoa_ref_idx_vec, n_tdoa + fdoa_ref_idx_vec);
-
 
 % For now, we assume the AOA is independent of TDOA/FDOA
 C_aoa = C(1:n_aoa, 1:n_aoa);

@@ -1,8 +1,11 @@
-function [x,x_full] = gdSoln(x_aoa,psi,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = gdSoln(x_aoa,psi,C,x_init,alpha,beta,epsilon,...
+function [x,x_full] = gdSolnBounded(x_aoa,psi,C,x_init,b,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full] = gdSolnBounded(x_aoa,psi,C,x_init,b,alpha,beta,epsilon,...
 %                       max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the gradient descent solution for AOA processing.
+%
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
 %
 % Inputs:
 %   
@@ -10,6 +13,7 @@ function [x,x_full] = gdSoln(x_aoa,psi,C,x_init,alpha,beta,epsilon,max_num_itera
 %   psi                 Measurement vector
 %   C                   Combined error covariance matrix
 %   x_init              Initial estimate of source position [m]
+%   b                   Array of inequality constraint function handles
 %   alpha               Backtracking line search parameter
 %   beta                Backtracking line search parameter
 %   epsilon             Desired position error tolerance (stopping 
@@ -27,29 +31,30 @@ function [x,x_full] = gdSoln(x_aoa,psi,C,x_init,alpha,beta,epsilon,max_num_itera
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 14 November 2021
 
 % Parse inputs
-if nargin < 10
+if nargin < 11
     plot_progress = [];
 end
 
-if nargin < 9
+if nargin < 10
     force_full_calc = [];
 end
 
-if nargin < 8
+if nargin < 9
     max_num_iterations = [];
 end
-if nargin < 7
+
+if nargin < 8
     epsilon = [];
 end
 
-if nargin < 6
+if nargin < 7
     beta = [];
 end
 
-if nargin < 5
+if nargin < 6
     alpha = [];
 end
 
@@ -58,4 +63,5 @@ y = @(x) psi - triang.measurement(x_aoa, x);
 J = @(x) triang.jacobian(x_aoa,x);
 
 % Call the generic Gradient Descent solver
-[x,x_full] = utils.gdSoln(y,J,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
+[x,x_full] = utils.constraints.gdSolnBounded(y,J,C,x_init,b,...
+    alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

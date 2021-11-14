@@ -3,6 +3,9 @@ function [x,x_full] = lsSolnBounded(y,J,C,x_init,b,epsilon,max_num_iterations,fo
 %
 % Computes the least square solution for TDOA processing.
 %
+% Utilized the utils.constraints package to accept inequality constraints 
+% (b).
+%
 % Inputs:
 %   
 %   y               Measurement vector function handle (accepts n_dim 
