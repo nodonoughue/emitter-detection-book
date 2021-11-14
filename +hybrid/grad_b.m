@@ -74,4 +74,4 @@ else
 end
 
 % Combine component Jacobians
-J = [J_aoa, J_tdoa, J_fdoa];
+J = blkdiag(J_aoa, J_tdoa, J_fdoa);
