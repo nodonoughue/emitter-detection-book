@@ -1,5 +1,5 @@
-function [x,x_full] = lsSoln(y,J,C,x_init,a,tol,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = lsSoln(y,J,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
+function [x,x_full] = lsSolnBounded(y,J,C,x_init,b,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full] = lsSolnBounded(y,J,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
 %
 % Computes the least square solution for TDOA processing.
 %
@@ -13,8 +13,7 @@ function [x,x_full] = lsSoln(y,J,C,x_init,a,tol,epsilon,max_num_iterations,force
 %                   n_sensor Jacobian matrix
 %   C               Measurement error covariance matrix
 %   x_init          Initial estimate of source position
-%   a
-%   tol
+%   b               Array of inequality constraint function handles
 %   epsilon         Desired position error tolerance (stopping condition)
 %   max_num_iterations  Maximum number of LS iterations to perform
 %   force_full_calc Forces all max_num_iterations to be calculated
@@ -26,7 +25,7 @@ function [x,x_full] = lsSoln(y,J,C,x_init,a,tol,epsilon,max_num_iterations,force
 %   x_full          Iteration-by-iteration estimated source positions
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 14 Nov 2021
 
 % Parse inputs
 n_dims = numel(x_init);
@@ -105,25 +104,13 @@ while iter < max_num_iterations && (force_full_calc || error >= epsilon)
     end
     
     % Update predicted location
-    x_full(:,iter) = x_prev + delta_x;
+    x_unconst = x_prev + delta_x;
 
-    % Apply Equality Constraint
-    for idxConst = 1:numel(a)
-        const = a(idxConst);
-        [eps,scale] = const(x_full(:,iter));
-        
-        if abs(eps) > tol
-            % Equality constraint is broken, apply scale factor
-            x_full(:,iter) = scale * x_full(:,iter);
-        end
-        
-        % Note that we're updating x_full(:,iter) to match each constraint
-        % one-by-one.  It is likely, if there are multiple constraints,
-        % that when we align to the last, we are no longer aligned to the
-        % first.
-    end
+    % Apply Inequality Constraint
+    x_const = utils.constraints.snapToIneqConstraint(x_unconst, b);
     
     % Update variables
+    x_full(:, iter) = x_const;
     x_prev = x_full(:,iter);
     error = norm(delta_x);
 
