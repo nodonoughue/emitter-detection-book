@@ -94,6 +94,14 @@ else
         rcs_rx_idx = 1;
     end
 
+    % Handle scalar cases
+    if size(tx_fom,1)==1
+        tx_idx = ones(size(tx_idx));
+    end
+    
+    if size(rx_fom,1)==1
+        rx_idx = ones(size(rx_idx));
+    end
     % Construct SNR
     snr = tx_fom(tx_idx,:) + rx_fom(rx_idx,:) + rcs(rcs_tx_idx,rcs_rx_idx,:);
             % size(ref_idx,2) x ntgt
