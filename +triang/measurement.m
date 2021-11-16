@@ -27,14 +27,14 @@ if nargin < 3 || isempty(do2DAoA)
 end
 
 if nargin < 4
-    alpha_az = [];
-    alpha_el = [];
+    alpha_az = 0;
+    alpha_el = 0;
 else
     alpha_az = alpha(:,1);
     if do2DAoA && size(alpha,2) > 1
         alpha_el = alpha(:,2);
     else
-        alpha_el = [];
+        alpha_el = 0;
     end
 end
 

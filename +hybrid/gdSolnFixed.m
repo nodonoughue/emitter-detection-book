@@ -73,6 +73,10 @@ if nargin < 10 || ~exist('alpha','var')
     alpha = [];
 end
 
+if nargin < 9 || ~exist('tol','var')
+    tol = [];
+end
+
 % Initialize measurement error and Jacobian function handles
 y = @(x) z - hybrid.measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x, tdoa_ref_idx, fdoa_ref_idx);
 J = @(x) hybrid.jacobian(x_aoa, x_tdoa, x_fdoa, v_fdoa, x, tdoa_ref_idx, fdoa_ref_idx);

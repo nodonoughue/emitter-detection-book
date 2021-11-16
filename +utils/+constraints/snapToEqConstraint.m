@@ -33,6 +33,10 @@ function x_valid = snapToEqConstraint(x, a, tol)
 %% Parse Inputs
 [~, N] = size(x); % Specifying 2 outputs collapses any higher 
                      % dimensions of x
+if isa(a,'function_handle')
+    % Wrap it in a cell array for indexing
+    a = {a};
+end
 nConst = numel(a);
 
 if nargin < 3 || ~exist('tol','var') || isempty(tol)
@@ -57,15 +61,17 @@ end
 x_valid = x; % Initialize the output
 for idx=1:nConst
     % Isolate the current equality constraint (function handle)
-    this_a = a(idx);
-    
+    this_a = a{idx};
+    if isempty(this_a), continue, end
+    if ~isa(this_a,'function_handle'), continue, end
+
     % Test the current value (what is the error, and what scale parameter
     % are needed to force equality)
     [epsilon, scale] = this_a(x_valid);
 
     if abs(epsilon) > tol
         % Equality constraint is broken, apply scale factor
-        x_valid = scale * x_valid;
+        x_valid = scale .* x_valid;
     end
 
     % Note that we're updating x_valid to match each constraint

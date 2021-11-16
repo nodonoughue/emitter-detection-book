@@ -52,7 +52,7 @@ end
 x_valid = x; % Initialize the output
 for idx=1:nConst
     % Isolate the current equality constraint (function handle)
-    this_b = b(idx);
+    this_b = b{idx};
     
     % Test the current value (what is the error, and what scale parameter
     % are needed to force equality)

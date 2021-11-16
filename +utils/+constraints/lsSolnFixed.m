@@ -129,7 +129,7 @@ while iter < max_num_iterations && (force_full_calc || error >= epsilon)
         num_expanding_iters = num_expanding_iters + 1;
         if num_expanding_iters >= max_num_expanding_iters
             % Divergence detected
-            x_full(:,iter:end) = NaN;
+            x_full(:,iter+1:end) = NaN;
             break;
         end
     end
@@ -138,6 +138,7 @@ end
 
 % Bookkeeping
 if ~force_full_calc
+
     x_full = x_full(:,1:iter);
 end
 x = x_full(:,iter);

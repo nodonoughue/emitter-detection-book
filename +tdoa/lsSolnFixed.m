@@ -54,6 +54,11 @@ if nargin < 7 || ~exist('epsilon','var')
     epsilon = [];
 end
 
+if nargin < 6 || ~exist('tol','var')
+    tol = [];
+end
+
+
 % Initialize measurement error and Jacobian function handles
 y = @(x) rho- tdoa.measurement(x_tdoa, x, ref_idx);
 J = @(x) tdoa.jacobian(x_tdoa, x, ref_idx);

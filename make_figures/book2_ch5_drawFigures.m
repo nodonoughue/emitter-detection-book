@@ -25,7 +25,14 @@ rng('default') ;
 
 addpath('examples');
 
-%% Figure 1, Logarithmic Barriers
+%% Figures 5 and 6, Example 5.1
+figs = book2_ex5_1;
+
+utils.exportPlot(figs(1),[prefix '5']);
+utils.exportPlot(figs(2),[prefix '6']);
+utils.exportPlot(figs(3),[prefix '6b']);
+
+%% Figure 10, Logarithmic Barriers
 
 % Ideal barrier
 u = linspace(-3,1,1001);
@@ -49,10 +56,10 @@ xlabel('u');
 ylabel('Cost');
 
 utils.setPlotStyle(gca,{'widescreen', 'tight'});
-utils.exportPlot(fig1,[prefix '1']);
+utils.exportPlot(fig1,[prefix '10']);
 
 
-%% Illustration of Likelihood and Priors
+%% Figure 11, Illustration of Likelihood and Priors
 
 % Set up axes
 y = linspace(0,10,101);
@@ -81,7 +88,7 @@ zlabel('f(x,y)');
 title('Data Likelihood');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig2a,[prefix '2a']);
+utils.exportPlot(fig2a,[prefix '11a']);
 
 % A priori pdf
 
@@ -97,7 +104,7 @@ zlabel('f(x,y)');
 title('Prior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig2b,[prefix '2b']);
+utils.exportPlot(fig2b,[prefix '11b']);
 
 % Posterier
 fig2c=figure;
@@ -110,7 +117,7 @@ zlabel('f(x,y)');
 title('Posterior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig2c,[prefix '2c']);
+utils.exportPlot(fig2c,[prefix '11c']);
 
 %% Cleanup
 

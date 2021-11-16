@@ -48,6 +48,10 @@ if nargin < 7
     epsilon = [];
 end
 
+if nargin < 6
+    tol = [];
+end
+
 % Set up function handles
 y = @(x) psi - triang.measurement(x_aoa, x);
 J = @(x) triang.jacobian(x_aoa, x);

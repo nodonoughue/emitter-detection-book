@@ -66,6 +66,10 @@ if nargin < 8 || ~exist('alpha','var')
     alpha = [];
 end
 
+if nargin < 7 || ~exist('tol','var')
+    tol = [];
+end
+
 % Initialize measurement error and jacobian functions
 y = @(x) rho_dot- fdoa.measurement(x_fdoa, v_fdoa, x, ref_idx);
 J = @(x) fdoa.jacobian(x_fdoa,v_fdoa,x,ref_idx);

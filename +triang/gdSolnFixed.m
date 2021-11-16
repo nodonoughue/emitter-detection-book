@@ -59,6 +59,10 @@ if nargin < 7
     alpha = [];
 end
 
+if nargin < 6
+    tol = [];
+end
+
 % Initialize measurement error and Jacobian functions
 y = @(x) psi - triang.measurement(x_aoa, x);
 J = @(x) triang.jacobian(x_aoa,x);
