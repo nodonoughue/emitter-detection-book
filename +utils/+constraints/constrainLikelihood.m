@@ -38,68 +38,43 @@ if (nargin < 4 || isempty(tol)) && doEqConst
     error('No tolerance provided; equality constraints require a tolerance.');
 end
 
-if doEqConst && ~doIneqConst
-    ellC = @(x) constrainedLikelihoodEq(x, ell, a, tol);
-elseif doEqConst
-    ellC = @(x) constrainedLikelihoodEqIneq(x, ell, a, tol, b);
-else
-    ellC = @(x) constrainedLikelihoodIneq(x, ell, b);
-end
+%% Determine which points are valid
+valid_mask = true(size(x));
 
-return
-
-
-function ell_out = constrainedLikelihoodEq(x, ell, a, tol)
-    % Start with unconstrained likelihood
-    ell_out = ell(x);
-    
-    % Check all constraints and set likelihood to -Inf for any point
-    % that violate them.
+if doEqConst
+    % Check all constraints and mask out any points that violate them.
     for idxConst = 1:numel(a)
-        const = a(idxConst);
-        [eps, ~] = const(x);
-        valid_mask = abs(eps) <= tol;
-        ell_out(~valid_mask) = -Inf;
-    end
+        % Grab the current constraint (function handle)
+        const = a{idxConst};
+
+        % Test only those points that are still valid (haven't violated any
+        % previous constraints
+        [eps, ~] = const(x(valid_mask));
+        this_valid_mask = abs(eps) <= tol;
         
+        % Overwrite the set of mask points that are currently valid with
+        % the outcome of this constraint test
+        valid_mask(valid_mask) = this_valid_mask;
+    end
 end
 
-function ell_out = constrainedLikelihoodEqIneq(x, ell, a, tol, b)
-    % Start with unconstrained likelihood
-    ell_out = ell(x);
-    
-    % Check all eq constraints and set likelihood to -Inf for any point
-    % that violate them.
-    for idxConst = 1:numel(a)
-        const = a(idxConst);
-        [eps, ~] = const(x);
-        valid_mask = abs(eps) <= tol;
-        ell_out(~valid_mask) = -Inf;
-    end
-
-    % Check all ineq constraints and set likelihood to -Inf for any point
-    % that violate them.
+if doIneqConst
+    % Check all constraints and mask out any points that violate them.
     for idxConst = 1:numel(b)
-        const = b(idxConst);
-        [eps, ~] = const(x);
-        valid_mask = eps <= 0;
-        ell_out(~valid_mask) = -Inf;
-    end
+        % Grab the current constraint (function handle)
+        const = b{idxConst};
 
-end
-
-function ell_out = constrainedLikelihoodIneq(x, ell, b)
-    % Start with unconstrained likelihood
-    ell_out = ell(x);
-    
-    % Check all ineq constraints and set likelihood to -Inf for any point
-    % that violate them.
-    for idxConst = 1:numel(b)
-        const = b(idxConst);
-        [eps, ~] = const(x);
-        valid_mask = eps <= 0;
-        ell_out(~valid_mask) = -Inf;
+        % Test only those points that are still valid (haven't violated any
+        % previous constraints
+        [eps, ~] = const(x(valid_mask));
+        this_valid_mask = eps > 0;
+        
+        % Overwrite the set of mask points that are currently valid with
+        % the outcome of this constraint test
+        valid_mask(valid_mask) = this_valid_mask;
     end
 end
 
-end
+%% Evaluate the Likelihood
+ellC = -inf * ones(size(x));
+ellC(valid_mask) = ell(x(valid_mask));        
