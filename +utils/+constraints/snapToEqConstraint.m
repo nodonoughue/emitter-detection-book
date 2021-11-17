@@ -67,11 +67,11 @@ for idx=1:nConst
 
     % Test the current value (what is the error, and what scale parameter
     % are needed to force equality)
-    [epsilon, scale] = this_a(x_valid);
+    [epsilon, this_x_valid] = this_a(x_valid);
 
     if abs(epsilon) > tol
         % Equality constraint is broken, apply scale factor
-        x_valid = scale .* x_valid;
+        x_valid = this_x_valid;
     end
 
     % Note that we're updating x_valid to match each constraint

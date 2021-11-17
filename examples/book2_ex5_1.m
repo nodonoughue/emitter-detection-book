@@ -43,7 +43,7 @@ utils.setPlotStyle(gca,'widescreen');
 
 %% Gradient Descent Solution (constrained)
 y_soln = 25;
-a = utils.constraints.fixedCartesian([],y_soln,[]);
+[a, ~] = utils.constraints.fixedCartesian('y',y_soln);
 [x_gd_const,x_gd_full_const] = triang.gdSolnFixed(x_aoa, psi, C, x_init, a);
 
 %% Print Results
@@ -52,7 +52,7 @@ fprintf('Constrained Solution:   (%.2f, %.2f)\n', x_gd_const(1), x_gd_const(2));
 
 %% Plot with Solutions
 fig2 = figure;
-plot(x_aoa(1,:),x_aoa(2,:),'+','DisplayName','Sensors')
+plot(x_aoa(1,:),x_aoa(2,:),'k+','DisplayName','Sensors')
 hold on;
 set(gca,'ColorOrderIndex',1);
 grid on;

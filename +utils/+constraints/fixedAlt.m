@@ -30,13 +30,13 @@ end
 %  are defined in this manner because they are too complex to be directly
 %  defined as an anonymous function.
 
-    function [epsilon, scale] = fixedAltConstraintFlat(x, alt)
+    function [epsilon, x_valid] = fixedAltConstraintFlat(x, alt)
         % Flat Earth; altitude is equivalent to the z-dimension
         epsilon = x(3,:) - alt;
         
-        % Scale is 1 for x and y, and 1/epsilon for z
-        scale = [ones(2,size(x,2)); alt./x(3,:)];
-
+        % To make x valid, replace x(3,:) with alt
+        x_valid = x;
+        x_valid(3,:) = alt;
     end
 
     function epsilon_grad = fixedAltGradFlat(x)
@@ -44,13 +44,15 @@ end
         epsilon_grad = cat(1,zeros(2,n), ones(1,n));
     end
 
-    function [epsilon, scale] = fixedAltConstraintSphere(x, alt)
+    function [epsilon, x_valid] = fixedAltConstraintSphere(x, alt)
         % Implement equation 5.5, and the scale term defined in 5.9
 
         radius_tgt_sq = sum(abs(x).^2,1); % x'x
         epsilon = radius_tgt_sq - (utils.constants.radiusEarth + alt).^2; % eq 5.5
         scale = (utils.constants.radiusEarth + alt)/ sqrt(radius_tgt_sq); % eq 5.9, modified
 
+        x_valid = scale * x; % origin is the center of the spherical Earth,
+                             % just scale x
     end
 
     function epsilon_grad = fixedAltGradSphere(x)
@@ -58,7 +60,7 @@ end
         epsilon_grad = 2*x;
     end
 
-    function [epsilon, scale] = fixedAltConstraintEllipse(x, alt)
+    function [epsilon, x_valid] = fixedAltConstraintEllipse(x, alt)
         % Implements equation 5.6, with scale term defined in 5.9.
 
         % Load constants
@@ -91,6 +93,8 @@ end
         % Compute scale
         scale = ht_geoc_desired./sqrt(tgt_rad_sq);
 
+        % Apply the scale term to get a valid x
+        x_valid = scale * x;
     end
 
     function epsilon_grad = fixedAltGradEllipse(x, alt)

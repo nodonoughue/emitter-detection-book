@@ -32,6 +32,12 @@ utils.exportPlot(figs(1),[prefix '5']);
 utils.exportPlot(figs(2),[prefix '6']);
 utils.exportPlot(figs(3),[prefix '6b']);
 
+%% Figure 7, Example 5.2
+figs = book2_ex5_2;
+
+utils.exportPlot(figs(1), [prefix '7']);
+utils.exportPlot(figs(2), [prefix '7b']);
+
 %% Figure 10, Logarithmic Barriers
 
 % Ideal barrier

@@ -56,10 +56,10 @@ for idx=1:nConst
     
     % Test the current value (what is the error, and what scale parameter
     % are needed to force equality)
-    [epsilon, scale] = this_b(x_valid);
+    [epsilon, this_x_valid] = this_b(x_valid);
     
     if epsilon > 0
         % Inequality constraint is broken, apply scale factor
-        x_valid = scale * x_valid;
+        x_valid = this_x_valid;
     end
 end
