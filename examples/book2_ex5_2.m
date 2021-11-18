@@ -17,7 +17,6 @@ function figs = book2_ex5_2()
 alt1 = 1e3;
 x_tdoa = [-15e3, -5e3, 5e3, 15e3; 0, 0, 0, 0; alt1, alt1, alt1, alt1];
 [~,n_tdoa] = size(x_tdoa);
-ref_idx = []; % use default sensor pair selection
 
 % Define target position and initial estimate
 tgt_alt = 100; % known target altitude
@@ -25,9 +24,9 @@ x_tgt = [-10e3; 40e3; tgt_alt];
 x_init = [0;10e3;alt1];
 
 % Sensor Accuracy
-time_err = 1e-6;
-Ctoa = time_err^2 * eye(n_tdoa);
-U = chol(Ctoa,'upper');
+time_err = 1e-7;
+Croa = (utils.constants.c*time_err)^2 * eye(n_tdoa);
+U = chol(Croa,'upper');
 
 % Measurement and Noise
 z = tdoa.measurement(x_tdoa, x_tgt, []);
@@ -36,10 +35,10 @@ noise_z = utils.resampleNoise(noise, []); % generate measurement-level noise
 zeta = z + noise_z;
 
 %% Solve for target position
-[x_gd, x_gd_full] = tdoa.gdSoln(x_tdoa, zeta, Ctoa, x_init);
+[x_gd, x_gd_full] = tdoa.gdSoln(x_tdoa, zeta, Croa, x_init);
 
 [a, ~] = utils.constraints.fixedAlt(tgt_alt, 'flat');
-[x_gd_alt, x_gd_alt_full] = tdoa.gdSolnFixed(x_tdoa, zeta, Ctoa, x_init, a);
+[x_gd_alt, x_gd_alt_full] = tdoa.gdSolnFixed(x_tdoa, zeta, Croa, x_init, a);
 
 fprintf('Unconstrained Solution: %.2f km E, %.2f km N, %.2f km U\n',...
         x_gd(1)/1e3, x_gd(2)/1e3, x_gd(3)/1e3);
@@ -56,7 +55,7 @@ set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
-fprintf('DRAW THE ISOCHRONES');
+warning('DRAW THE ISOCHRONES');
 
 % Draw the GD
 hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
@@ -77,10 +76,9 @@ xlabel('x [m]');
 ylabel('y [m]');
 zlabel('z [m]');
 
-% utils.setPlotStyle(gca,'widescreen');
 
 %% Retry with better elevation support
-alt2=.5*alt1;
+alt2=2*alt1;
 x_tdoa2 = [-15e3, -5e3, 5e3, 15e3; 0, 0, 0, 0; alt1, alt2, alt1, alt2];
 
 % Measurement and Noise
@@ -88,7 +86,7 @@ z2 = tdoa.measurement(x_tdoa2, x_tgt, []);
 zeta2 = z2 + noise_z;
 
 % Solve for target position
-[x_gd2, x_gd2_full] = tdoa.gdSoln(x_tdoa2, zeta2, Ctoa, x_init);
+[x_gd2, x_gd2_full] = tdoa.gdSoln(x_tdoa2, zeta2, Croa, x_init);
 
 % Plot old and new results
 fig2 = figure;
@@ -100,7 +98,7 @@ set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
-fprintf('DRAW THE ISOCHRONES');
+warning('DRAW THE ISOCHRONES');
 
 % Draw the GD
 hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
@@ -125,7 +123,7 @@ xlabel('x [m]');
 ylabel('y [m]');
 zlabel('z [m]');
 
-% utils.setPlotStyle(gca,'widescreen');
-
+fprintf('Unconstrained Solution (alt config):   %.2f km E, %.2f km N, %.2f km U\n',...
+        x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, x_gd_alt(3)/1e3);
 %% Collect Figure Handles for Export
 figs = [fig1, fig2];

@@ -1,11 +1,13 @@
-function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_ref_idx)
-% crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,
+function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref_idx,fdoa_ref_idx)
+% crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad, tdoa_ref_idx,
 %                                                    fdoa_ref_idx)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % a combined set of AOA, TDOA, and FDOA measurements.  The covariance
 % matrix C dictates the combined variances across the three measurement
 % types.
+%
+% Employs the constrained CRLB, according to equation 5.15.
 %
 % Inputs:
 %   x_aoa           (Ndim x Na) array of AOA sensor positions
@@ -16,6 +18,9 @@ function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_re
 %                   calculate CRLB
 %   C               Combined covariance matrix for the AOA, TDOA and FDOA
 %                   estimates (Na + Nt + Nf x Na + Nt + Nf)
+%   a_grad          Function handle that returns the gradient of the
+%                   equality constraints a(x) as an nDim x nConstraint 
+%                   matrix
 %   tdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
 %                   matrix of sensor pairings for TDOA
 %   fdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
@@ -23,10 +28,10 @@ function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_re
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
-%           hybrid AOA/TDOA/FDOA estimator (Ndim x Ndim)
+%           estimator (Ndim x Ndim)
 %
 % Nicholas O'Donoughue
-% 1 July 2019
+% 17 November 2021
 
 % Parse inputs
 if nargin < 6 || ~exist('tdoa_ref_idx','var')
@@ -77,6 +82,8 @@ end
 % Initialize output variable
 crlb = zeros([n_dim,n_dim,n_source]);
 
+warning('off','MATLAB:nearlySingularMatrix');
+
 % Repeat CRLB for each of the n_source test positions
 for idx =1:n_source
     this_x = xs(:,idx);
@@ -84,6 +91,9 @@ for idx =1:n_source
     % Evaluate the Jacobian
     J_i = J(this_x);
     
+    % Evaluate the Gradient of the Constraint matrix
+    A_i = a_grad(this_x);
+
     % Compute the Fisher Information Matrix
     if do_decomp
         F = J_i/C_d*J_i'; % Ndim x Ndim
@@ -97,7 +107,15 @@ for idx =1:n_source
         crlb(:,:,idx) = NaN;
     else
         % Invert the Fisher Information Matrix to compute the CRLB
-        crlb(:,:,idx) = pinv(F);
+        F_inv = pinv(F);
+
+        % Build the constraint effect matrix
+        F_const_inv = F_inv * A_i / (A_i'*F_inv*A_i) * A_i'*F_inv;
+
+        % CRLB is the inverse of the Fisher minus the constraint effect
+        crlb(:,:,idx) = F_inv - F_const_inv;
+
     end
 end
 
+warning('on','MATLAB:nearlySingularMatrix');

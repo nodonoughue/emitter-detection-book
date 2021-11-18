@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSolnConst(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
-% [x_est,A,x_grid] = mlSolnConst(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
+% [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index

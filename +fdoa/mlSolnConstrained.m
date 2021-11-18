@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSolnConst(x_sensor,v_sensor,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
-% [x_est,A,x_grid] = mlSolnConst(x_sensor,v_sensor,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
+% [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -12,8 +12,8 @@ function [x_est,A,x_grid] = mlSolnConst(x_sensor,v_sensor,rho_dot,C,x_ctr,search
 % violate these constraints is Inf.
 %
 % INPUTS:
-%   x_sensor    Sensor positions [m]
-%   v_sensor    Sensor velocities [m/s]
+%   x_fdoa      Sensor positions [m]
+%   v_fdoa      Sensor velocities [m/s]
 %   rho_dot     Measurement vector [Hz]
 %   C           Measurement error covariance matrix
 %   x_ctr       Center of search grid [m]
@@ -35,7 +35,7 @@ function [x_est,A,x_grid] = mlSolnConst(x_sensor,v_sensor,rho_dot,C,x_ctr,search
 % 5 September 2021
 
 % Set up function handle
-ell = @(x) fdoa.loglikelihood(x_sensor,v_sensor,rho_dot,C,x,ref_idx);
+ell = @(x) fdoa.loglikelihood(x_fdoa,v_fdoa,rho_dot,C,x,ref_idx);
 
 % Call the util function
 [x_est,A,x_grid] = utils.constraints.mlSolnConstrained(ell,x_ctr,search_size,epsilon,a,b,tol);

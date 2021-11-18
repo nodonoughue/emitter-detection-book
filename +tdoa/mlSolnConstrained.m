@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSolnConst(x_sensor,rho,C,x_ctr,search_size,epsilon,a,b,tol)
-% [x_est,A,x_grid] = mlSolnConst(x_sensor,rho,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol)
+% [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -12,7 +12,7 @@ function [x_est,A,x_grid] = mlSolnConst(x_sensor,rho,C,x_ctr,search_size,epsilon
 % violate these constraints is Inf.
 %
 % INPUTS:
-%   x_sensor    Sensor positions [m]
+%   x_tdoa      Sensor positions [m]
 %   rho         Measurement vectors [m]
 %   C           Measurement error covariance matrix
 %   x_ctr       Center of search grid [m]
@@ -34,7 +34,7 @@ function [x_est,A,x_grid] = mlSolnConst(x_sensor,rho,C,x_ctr,search_size,epsilon
 % 5 September 2021
 
 % Set up function handle
-ell = @(x) tdoa.loglikelihood(x_sensor,rho,C,x,ref_idx);
+ell = @(x) tdoa.loglikelihood(x_tdoa,rho,C,x,ref_idx);
 
 % Call the util function
 [x_est,A,x_grid] = utils.constraints.mlSolnConstrained(ell,x_ctr,search_size,epsilon,a,b,tol);
