@@ -1,4 +1,4 @@
-function [x_set, x_grid] = make_nd_grid(ctr,max_offset,spacing)
+function [x_set, dims] = make_nd_grid(ctr,max_offset,spacing)
 % x_set = make_nd_grid(ctr,max_offset,spacing)
 %
 % Accepts a center value, maximum offset, and spacing vectors, of arbitrary
@@ -25,8 +25,9 @@ function [x_set, x_grid] = make_nd_grid(ctr,max_offset,spacing)
 %               dimension
 %
 % OUTPUTS:
-%   x_full      n_dim x N matrix of coordinates that span the full search
-%               space
+%   x_set       n_dim x n_pt matrix of coordinates for n_pt test points
+%   x_grid      n_dim x 1 cell array, each bearing the principal vector for
+%               one dimension (to be used in plotting commands)
 %
 % Nicholas O'Donoughue
 % 7 Nov 2021
@@ -35,18 +36,18 @@ function [x_set, x_grid] = make_nd_grid(ctr,max_offset,spacing)
 n_dims = numel(ctr);
 
 if numel(max_offset)==1
-    max_offset = max_offset*ones(n_dim,1);
+    max_offset = max_offset*ones(n_dims,1);
 end
 
 if numel(spacing)==1
-    spacing = spacing * ones(n_dim,1);
+    spacing = spacing * ones(n_dims,1);
 end
 
 assert(n_dims == numel(max_offset) && ...
        n_dims == numel(spacing),...
        'Search space dimensions do not match across specification of the center, search_size, and epsilon.');
 
-n_elements = 1+ 2*search_size./epsilon;
+n_elements = 1+ 2*max_offset(:)./spacing(:);
 
 % Check Search Size
 [user, ~] = memory;
@@ -58,12 +59,12 @@ assert(prod(n_elements) < maxElements, 'Search size is too large; MATLAB is like
 
 % dims is a cell array of dimensions, each of which contains a vector of
 % grid points along that dimension
-dims = arrayfun(@(x,x_mx,n) x + x_mx * linspace(-1,1,n),  ctr, max_offset, n_elements, 'UniformOutput',false);
+dims = arrayfun(@(x,x_mx,n) x + x_mx * linspace(-1,1,n),  ctr(:), max_offset(:), n_elements(:), 'UniformOutput',false);
 
-% Use ndgrid expansion; each element of dims_full is now a full n_dim 
+% Use meshgrid expansion; each element of dims_full is now a full n_dim 
 % dimensioned grid for one of the elements of x
-[x_grid{1:numel(dims)}] = ndgrid(dims{:}); %use comma-separated list expansion on both sides
+[x_grid{1:numel(dims)}] = meshgrid(dims{:}); %use comma-separated list expansion on both sides
 
 % Rearrange to an n_dim x N matrix
 x_grid_vec = cellfun(@(A) reshape(A,1,[]), x_grid, 'UniformOutput',false);
-x_set = cell2mat(x_grid_vec(:)).'; % n_dim x N
+x_set = cell2mat(x_grid_vec(:)); % n_dim x N

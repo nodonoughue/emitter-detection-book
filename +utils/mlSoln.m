@@ -20,7 +20,7 @@ function [x_est,A, x_grid] = mlSoln(ell,x_ctr,search_size,epsilon)
 % Nicholas O'Donoughue
 % 1 July 2019
 
-[x_set, x_grid] = utils.make_nd_search_space(x_ctr, search_size, epsilon);
+[x_set, x_grid] = utils.make_nd_grid(x_ctr, search_size, epsilon);
 
 % rearrange to a matrix, where each column is
 % Evaluate the likelihood function at each coordinate in the search space
