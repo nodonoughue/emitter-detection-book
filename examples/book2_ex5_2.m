@@ -48,14 +48,20 @@ fprintf('Constrained Solution:   %.2f km E, %.2f km N, %.2f km U\n',...
 
 %% Plot the scenario
 fig1 = figure;
-stem3(x_tdoa(1,:),x_tdoa(2,:),x_tdoa(3,:),'+','DisplayName','Sensors')
+stem3(x_tdoa(1,:),x_tdoa(2,:),x_tdoa(3,:),'k+','DisplayName','Sensors')
 hold on;
 stem3(x_tgt(1), x_tgt(2), x_tgt(3),'^','DisplayName','Target');
 set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
-warning('DRAW THE ISOCHRONES');
+for tx_id = 1:n_tdoa-1
+    iso = tdoa.drawIsochrone(x_tdoa(1:2,end),x_tdoa(1:2,tx_id),zeta(tx_id),101,40e3);
+    hdl=plot(iso(1,:),iso(2,:),'--k','DisplayName','Isochrones');
+    if tx_id > 1
+        utils.excludeFromLegend(hdl);
+    end
+end
 
 % Draw the GD
 hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
@@ -98,7 +104,14 @@ set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
-warning('DRAW THE ISOCHRONES');
+for tx_id = 1:n_tdoa-1
+    iso = tdoa.drawIsochrone(x_tdoa2(1:2,end),x_tdoa2(1:2,tx_id),zeta2(tx_id),101,40e3);
+    hdl=plot(iso(1,:),iso(2,:),'--k','DisplayName','Isochrones');
+    if tx_id > 1
+        utils.excludeFromLegend(hdl);
+    end
+end
+
 
 % Draw the GD
 hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
