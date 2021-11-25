@@ -27,7 +27,7 @@ e1sq = utils.constants.first_ecc_sq;
 
 % Parse Inputs
 if nargin < 2 || isempty(is_deg)
-    is_deg = True;
+    is_deg = true;
 end
 
 if is_deg
