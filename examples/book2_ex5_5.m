@@ -93,7 +93,7 @@ hold on;
 scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')
 scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target');
 scatter(x_ml(1), x_ml(2), 's','filled','DisplayName','Estimate (w/o prior)');
-hdl=scatter(x_prior(1), x_prior(2), 'v','filled','DisplayName','Prior');
+scatter(x_prior(1), x_prior(2), 'v','filled','DisplayName','Prior');
 ell = utils.drawErrorEllipse(x_prior(1:2),C_prior(1:2,1:2),101,90);
 plot(ell(1,:),ell(2,:),'-.','Color','w','DisplayName','Prior Confidence (90%)')
 scatter(x_ml_p(1), x_ml_p(2), 'd','filled','DisplayName','Estimate (w/prior)');
