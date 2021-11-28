@@ -1,11 +1,15 @@
 function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref_idx,fdoa_ref_idx)
-% crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad, tdoa_ref_idx,
-%                                                    fdoa_ref_idx)
+% crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad, 
+%                            tdoa_ref_idx, fdoa_ref_idx,if variance_is_toa)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % a combined set of AOA, TDOA, and FDOA measurements.  The covariance
 % matrix C dictates the combined variances across the three measurement
 % types.
+%
+% Note that the covariance matrix entries for FDOA must be in units of
+% range-rate (m^2/s^2), TDOA must be in units of range (m^2), and AOA must
+% be in radians^2.
 %
 % Employs the constrained CRLB, according to equation 5.15.
 %
@@ -34,12 +38,14 @@ function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref
 % 17 November 2021
 
 % Parse inputs
-if nargin < 6 || ~exist('tdoa_ref_idx','var')
-    tdoa_ref_idx = [];
-end
-if nargin < 7 || ~exist('fdoa_ref_idx','var')
+if nargin < 9 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
+
+if nargin < 8 || ~exist('tdoa_ref_idx','var')
+    tdoa_ref_idx = [];
+end
+
 [n_dim,n_source] = size(xs);
 
 % Initialize Jacobian

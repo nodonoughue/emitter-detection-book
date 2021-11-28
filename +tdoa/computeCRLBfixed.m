@@ -1,5 +1,5 @@
-function crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx)
-% crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx)
+function crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx,variance_is_toa)
+% crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx,variance_is_toa)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % sensors at locations in x1 (Ndim x N).  Ctdoa is an Nx1 vector of TOA
@@ -17,6 +17,8 @@ function crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx)
 %               matrix
 %   ref_idx     Scalar index of reference sensor, or nDim x nPair
 %               matrix of sensor pairings
+%   variance_is_toa (Optional) flag indicating whether supplied variance is
+%               in units of time (TRUE) or distance (FALSE). Default=TRUE.
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
@@ -26,6 +28,10 @@ function crlb = computeCRLBfixed(x_tdoa,xs,C,a_grad,ref_idx)
 % 17 November 2021
 
 % Parse inputs
+if nargin < 5 || ~exist('variance_is_toa','var')
+    variance_is_toa = true;
+end
+
 if nargin < 4 || ~exist('ref_idx','var')
     ref_idx = [];
 end
@@ -36,7 +42,9 @@ n_source = size(xs,2);
 J = @(x) tdoa.jacobian(x_tdoa,x,ref_idx);
 
 % Preprocess covariance matrix
-C_out = C*utils.constants.c^2;
+if variance_is_toa
+    C_out = C*utils.constants.c^2;
+end
 
 % Parse sensor pairs
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);

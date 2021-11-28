@@ -7,6 +7,10 @@ function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_re
 % matrix C dictates the combined variances across the three measurement
 % types.
 %
+% Note that the covariance matrix entries for FDOA must be in units of
+% range-rate (m^2/s^2), TDOA must be in units of range (m^2), and AOA must
+% be in radians^2.
+%
 % Inputs:
 %   x_aoa           (Ndim x Na) array of AOA sensor positions
 %   x_tdoa          (Ndim x Nt) array of TDOA sensor positions
