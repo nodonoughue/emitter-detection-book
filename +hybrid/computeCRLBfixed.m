@@ -1,6 +1,6 @@
 function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref_idx,fdoa_ref_idx)
 % crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad, 
-%                            tdoa_ref_idx, fdoa_ref_idx,if variance_is_toa)
+%                            tdoa_ref_idx, fdoa_ref_idx,variance_is_toa)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % a combined set of AOA, TDOA, and FDOA measurements.  The covariance
@@ -10,6 +10,11 @@ function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref
 % Note that the covariance matrix entries for FDOA must be in units of
 % range-rate (m^2/s^2), TDOA must be in units of range (m^2), and AOA must
 % be in radians^2.
+%
+% Supply TDOA and FDOA sensor covariances at the sensor level (one per
+% receiver), rather than the measurement level (one per receiver pair). The
+% reference indices will be used to resample covariance matrices to
+% generate the measurement level covariance matrix.
 %
 % Employs the constrained CRLB, according to equation 5.15.
 %

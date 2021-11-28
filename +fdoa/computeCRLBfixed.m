@@ -29,7 +29,7 @@ function crlb = computeCRLBfixed(x_fdoa,v_fdoa,xs,C,a_grad,ref_idx)
 % 17 November 2021
 
 % Parse inputs
-if nargin < 5 || ~exist('ref_idx','var')
+if nargin < 6 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 [n_dim, n_sensor] = size(x_fdoa);

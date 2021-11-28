@@ -11,6 +11,11 @@ function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_re
 % range-rate (m^2/s^2), TDOA must be in units of range (m^2), and AOA must
 % be in radians^2.
 %
+% Supply TDOA and FDOA sensor covariances at the sensor level (one per
+% receiver), rather than the measurement level (one per receiver pair). The
+% reference indices will be used to resample covariance matrices to
+% generate the measurement level covariance matrix.
+%
 % Inputs:
 %   x_aoa           (Ndim x Na) array of AOA sensor positions
 %   x_tdoa          (Ndim x Nt) array of TDOA sensor positions
@@ -33,10 +38,10 @@ function crlb = computeCRLB(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,tdoa_ref_idx,fdoa_re
 % 1 July 2019
 
 % Parse inputs
-if nargin < 6 || ~exist('tdoa_ref_idx','var')
+if nargin < 7 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
-if nargin < 7 || ~exist('fdoa_ref_idx','var')
+if nargin < 8 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 [n_dim,n_source] = size(xs);
