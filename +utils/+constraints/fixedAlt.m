@@ -19,7 +19,7 @@ switch lower(type)
 
     case 'ellipse'
         a = @(x) fixedAltConstraintEllipse(x, alt);
-        a_grad = @(x) fixedAltGradEllipse(x, alt);
+        a_grad = @(x) fixedAltGradEllipse(x);
 
     otherwise
         error('Invalid case type when calling fixedAlt; must be one of {flat|sphere|ellipse}.');
@@ -61,43 +61,18 @@ end
     end
 
     function [epsilon, x_valid] = fixedAltConstraintEllipse(x, alt)
-        % Implements equation 5.6, with scale term defined in 5.9.
+        % Convert ECEF to LLA
+        [lat, lon, h] = utils.ecef2lla(x(1,:), x(2,:), x(3,:));
 
-        % Load constants
-        e1sq = utils.constants.first_ecc_sq;
+        % Compare altitude to desired
+        epsilon = h - alt;
 
-        % Compute geodetic latitude
-        [lat, ~, ~] = utils.ecef2lla(x(1,:), x(2,:), x(3,:));
-
-        % Compute effective radius
-        eff_rad = utils.effRadiusEarth(lat);
-
-        % Compute geodetic height (desired)
-        ht_geod_desired = eff_rad + alt;
-
-        % Compute Geocentric height (desired)
-        ht_geoc_desired = (1-e1sq) * eff_rad + alt;
-
-        % Loop over points
-        tgt_rad_sq = zeros(1, size(x,2));
-        for idx = 1:size(x,2)
-            % Compute projection P
-            P = diag([1, 1, ht_geod_desired(idx)^2 / ht_geoc_desired(idx)^2]);
-
-            % Compute Projected Target Radius
-            tgt_rad_sq(idx) = x(:,idx)'*P*x(:,idx);
-        end
-
-        epsilon = tgt_rad_sq - ht_geoc_desired.^2;
-
-        % Compute scale
-        scale = ht_geoc_desired./sqrt(tgt_rad_sq);
-
-        % Apply the scale term to get a valid x
-        x_valid = scale * x;
+        % Find the nearest valid x -- replace computed alt with desired
+        [xx, yy, zz] = utils.lla2ecef(lat, lon, alt);
+        x_valid = [xx(:), yy(:), zz(:)]';
     end
 
-    function epsilon_grad = fixedAltGradEllipse(x, alt)
+    function epsilon_grad = fixedAltGradEllipse(x)
         % Implements equations 5.18 through 5.26
 
         % Load constants
@@ -107,15 +82,6 @@ end
         % Compute geodetic latitude
         [lat, ~, ~] = utils.ecef2lla(x(1,:), x(2,:), x(3,:));
         lat_rad = lat*pi/180;
-
-        % Compute effective radius
-        eff_rad = utils.effRadiusEarth(lat_rad, false);
-
-        % Compute geodetic height (desired)
-        ht_geod_desired = eff_rad + alt;
-
-        % Compute Geocentric height (desired)
-        ht_geoc_desired = (1-e1sq) * eff_rad + alt;
 
         % Break position into x/y/z components
         xx = x(1,:);
@@ -141,9 +107,9 @@ end
         dR_dz = a*e1sq*sin_lat.*cos_lat.*dlat_dz./(1-e1sq*sin_lat.^2).^(1.5);
 
         % Compute gradient of constraint (epsilon), equations 5.18-5.20
-        de_dx = 2*xx + 2*ht_geoc_desired.*dR_dx.*(zz_sq*((ht_geod_desired-ht_geoc_desired*(1-e1sq))./ht_geod_desired.^3)-1);
-        de_dy = 2*yy + 2*ht_geoc_desired.*dR_dy.*(zz_sq*((ht_geod_desired-ht_geoc_desired*(1-e1sq))./ht_geod_desired.^3)-1);
-        de_dz = 2*zz.*ht_geoc_desired./ht_geod_desired+2*ht_geoc_desired.*dR_dz.*(zz_sq*(ht_geod_desired-ht_geoc_desired*(1-e1sq))./ht_geod_desired.^3);
+        de_dx = (xx - yy.^2./xx)./(cos_lat.*xy_len)-dR_dx;
+        de_dy = (xx + yy)./(cos_lat.*xy_len)-dR_dy;
+        de_dz = -dR_dz;
 
         epsilon_grad = [de_dx; de_dy; de_dz];
 

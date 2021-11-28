@@ -36,7 +36,7 @@ x_tgt = [e; n; u]; % ENU
 x_prior_g = [95; 10; 10]*1e3;
 [e, n, u] = utils.correctENU(x_prior_g(1), x_prior_g(2), x_prior_g(3));
 x_prior = [e; n; u];
-C_prior = [20, 5, 0; 5, 10, 0; 0, 0, 10]*1e5;
+C_prior = [5, 1, 0; 1, 50, 0; 0, 0, 10]*1e6;
 
 % Note that MVNPDF wants to work on rows, not columns; so let's transpose
 % x and x_prior
@@ -76,12 +76,10 @@ scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target');
 scatter(x_ml(1), x_ml(2), 's','filled','DisplayName','Estimate');
 
 grid on;
-legend();
+legend('Location','NorthWest');
 colorbar;
-caxis([-500 0]);
+caxis([-50 0]);
 colormap(utils.viridis);
-
-utils.setPlotStyle(gca,{'equal','tight'})
 
 xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]);
 xlabel('x [m]');
@@ -96,22 +94,20 @@ scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')
 scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target');
 scatter(x_ml(1), x_ml(2), 's','filled','DisplayName','Estimate (w/o prior)');
 hdl=scatter(x_prior(1), x_prior(2), 'v','filled','DisplayName','Prior');
-ell = utils.drawErrorEllipse(x_prior(1:2),C_prior(1:2,1:2));
-plot(ell(1,:),ell(2,:),'-.','Color','w','DisplayName','Prior Confidence (1\sigma)')
+ell = utils.drawErrorEllipse(x_prior(1:2),C_prior(1:2,1:2),101,90);
+plot(ell(1,:),ell(2,:),'-.','Color','w','DisplayName','Prior Confidence (90%)')
 scatter(x_ml_p(1), x_ml_p(2), 'd','filled','DisplayName','Estimate (w/prior)');
 
 grid on;
-legend();
+legend('Location','NorthWest');
 colorbar;
-caxis([-500 0]);
+caxis([-50 0]);
 colormap(utils.viridis);
 
 xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]);
 xlabel('x [m]');
 ylabel('y [m]');
 title('Likelihood and Estimate with Prior');
-
-utils.setPlotStyle(gca,{'equal','tight'});
 
 %% Collect Figure Handles for Export
 figs = [fig1, fig2];
