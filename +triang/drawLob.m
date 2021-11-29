@@ -53,4 +53,4 @@ y_end = sin(psi(:)).*range*scale; % end points, y coordinate (Mx1)
 xy_end = cat(1,reshape(x_end,1,1,M), reshape(y_end,1,1,M)); % 2x1xM
 xy_start = zeros(2,1,M); % 2x1xM
 xy_lob_centered = cat(2,xy_start,xy_end);
-xy_lob = x_sensor + xy_lob_centered;
+xy_lob = reshape(x_sensor,2,1,M) + xy_lob_centered;
