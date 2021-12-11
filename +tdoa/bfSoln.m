@@ -45,9 +45,14 @@ if nargin < 8 || isempty(pdftype)
     pdftype = [];
 end
 
+% Resample covariance matrix
+n_sensor = size(x_sensor, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
+
 % Generate the PDF
 pdfs = utils.makePDFs(@(x) tdoa.measurement(x_sensor,x,ref_idx), ...
-                     psi,pdftype,C);
+                     psi,pdftype,C_tilde);
 
 % Call the util function
 [x_est,A,x_grid] = utils.bestfix(pdfs,x_ctr,search_size,epsilon);

@@ -13,6 +13,8 @@ function exportPlot(fig,fnm)
 % Nicholas O'Donoughue
 % 1 July 2019
 
-saveas(fig,[fnm '.fig'])
+fig.InvertHardcopy = 'off';
+
+saveas(fig,[fnm '.fig']);
 print(fig,fnm,'-depsc','-r1200','-painters');
 print(fig,fnm,'-dpng','-r1200');

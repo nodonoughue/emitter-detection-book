@@ -11,7 +11,7 @@ function ell = drawErrorEllipse(x,C,numPts,confInterval)
 %   C           Error covariance matrix (2x2)
 %   numPts      Number of points to use to draw the ellipse [default = 100]
 %   confInterval    Desired confidence interval, must be one of:
-%                       1  -- 1 standard deviation (67%)
+%                       1  -- 1 standard deviation (67%) [default]
 %                       50 -- 50 percent
 %                       90 -- 90 percent
 %                       95 -- 95 percent
@@ -21,6 +21,14 @@ function ell = drawErrorEllipse(x,C,numPts,confInterval)
 %
 % Nicholas O'Donoughue
 % 1 July 2019
+
+if nargin < 4 || ~exist('confInterval','var') || isempty(confInterval)
+    confInterval = 1; % 1 std. dev is the default
+end
+
+if nargin < 3 || ~exist('numPts','var') || isempty(numPts)
+    numPts = 100;
+end
 
 % Eigenvector analysis to identify major/minor axes rotation and length
 [V,Lam] = eig(C);

@@ -1,16 +1,16 @@
-function [x,x_full] = lsSoln(x0,v0,rho_dot,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = leastSquareSoln(x0,rho,C,xs_init,epsilon,numIterations,
+function [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = lsSoln(x_fdoa,v_fdoa,rho_dot,C,x_init,epsilon,numIterations,
 %                                 force_full_calc,plot_progress,ref_idx)
 %
 % Computes the least square solution for FDOA processing.
 %
 % Inputs:
 %   
-%   x0                  Sensor positions [m]
-%   v0                  Sensor velocities [m/s]
+%   x_fdoa              Sensor positions [m]
+%   v_fdoa              Sensor velocities [m/s]
 %   rho_dot             Range Rate-Difference Measurements [m/s]
 %   C                   Measurement Error Covariance Matrix [(m/s)^2]
-%   xs_init             Initial estimate of source position [m]
+%   x_init              Initial estimate of source position [m]
 %   epsilon             Desired estimate resolution [m]
 %   max_num_iterations  Maximum number of iterations to perform
 %   force_full_calc     Boolean flag to force all iterations (up to
@@ -51,8 +51,13 @@ if nargin < 5 || ~exist('epsilon','var')
 end
 
 % Initialize measurement error and Jacobian function handles
-y = @(x) rho_dot - fdoa.measurement(x0, v0, x, ref_idx);
-J = @(x) fdoa.jacobian(x0, v0, x, ref_idx);
+y = @(x) rho_dot - fdoa.measurement(x_fdoa, v_fdoa, x, ref_idx);
+J = @(x) fdoa.jacobian(x_fdoa, v_fdoa, x, ref_idx);
+
+% Resample covariance matrix
+n_sensor = size(x_fdoa, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
 
 % Resample covariance matrix

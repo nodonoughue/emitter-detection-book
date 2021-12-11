@@ -27,11 +27,18 @@ function crlb = computeCRLB(x_fdoa,v_fdoa,xs,C,ref_idx)
 if nargin < 5 || ~exist('ref_idx','var')
     ref_idx = [];
 end
-n_dim = size(x_fdoa,1);
+[n_dim, n_sensor] = size(x_fdoa);
 n_source = size(xs,2);
 
 % Define the Jacobian function
 J = @(x) fdoa.jacobian(x_fdoa,v_fdoa,x,ref_idx);
+
+% Resample covariance matrix
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
+
+% Ensure the covariance matrix is invertible
+C_tilde = utils.ensureInvertible(C_tilde);
 
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
@@ -39,10 +46,10 @@ if do_decomp
     % Starging in R2017b, MATLAB released the DECOMPOSITION function,
     % which can decompose matrices for faster computation of left- and
     % right-division in for loops.
-    C_d = decomposition(C,'chol');
+    C_d = decomposition(C_tilde,'chol');
 else
     % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
-    C_inv = pinv(C);
+    C_inv = pinv(C_tilde);
 end
 
 % Initialize output variable

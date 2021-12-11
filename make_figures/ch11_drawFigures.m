@@ -334,8 +334,8 @@ x_sensor = baseline* [ cos(thSensors(1:end-1));sin(thSensors(1:end-1))];
 
 % Define Sensor Performance
 timingError = 1e-7;
-% Ctoa = timingError^2*ones(nSensors,1);
-Ctdoa = timingError^2 * (1 + eye(nSensors-1));
+Ctoa = timingError^2*eye(nSensors); % utilities now resample cov matrix with ref_idx
+% Ctdoa = timingError^2 * (1 + eye(nSensors-1));
 
 % Define source positions
 M = 501;
@@ -346,7 +346,7 @@ x_source = [xx(:) yy(:)]';
 
 % Compute CRLB
 warning('off','MATLAB:nearlySingularMatrix'); % We know the problem is ill-defined, deactivate the warning
-crlb = tdoa.computeCRLB(x_sensor,x_source,Ctdoa); % Ndim x Ndim x M^2
+crlb = tdoa.computeCRLB(x_sensor,x_source,Ctoa); % Ndim x Ndim x M^2
 cep50 = reshape(utils.computeCEP50(crlb),[M,M]);
 warning('on','MATLAB:nearlySingularMatrix'); % Reactivate the singular matrix warning
 
@@ -378,10 +378,10 @@ nSensors = size(x_sensor1,2);
 
 % Adjust Sensor Performance Vector
 timingError = 1e-7;
-% Ctoa = timingError^2*ones(nSensors,1);
-Ctdoa = timingError^2 * (1 + eye(nSensors-1));
+Ctoa = timingError^2*eye(nSensors);
+% Ctdoa = timingError^2 * (1 + eye(nSensors-1));
 
-crlb2 = tdoa.computeCRLB(x_sensor1,x_source,Ctdoa); % Ndim x Ndim x M**2
+crlb2 = tdoa.computeCRLB(x_sensor1,x_source,Ctoa); % Ndim x Ndim x M**2
 cep50 = reshape(utils.computeCEP50(crlb2),[M,M]);
 
 % Draw the figure

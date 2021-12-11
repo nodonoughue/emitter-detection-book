@@ -36,14 +36,39 @@ function [x,x_full] = gdSoln(x_aoa, x_tdoa, x_fdoa, v_fdoa, z,C,x_init,alpha,bet
 % 1 July 2019
 
 % Parse inputs
-if nargin < 14 || ~exist('tdoa_ref_idx','var')
-    tdoa_ref_idx = [];
-end
-
 if nargin < 15 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 
+if nargin < 14 || ~exist('tdoa_ref_idx','var')
+    tdoa_ref_idx = [];
+end
+
+if nargin < 13 || ~exist('plot_progress','var')
+    plot_progress = false;
+end
+
+if nargin < 12 || ~exist('force_full_calc','var')
+    force_full_calc = false;
+end
+
+if nargin < 11 || ~exist('max_num_iterations','var')
+    max_num_iterations = [];
+end
+
+if nargin < 10 || ~exist('epsilon','var')
+    epsilon = [];
+end
+
+if nargin < 9 || ~exist('beta','var')
+    beta = [];
+end
+
+if nargin < 8 || ~exist('alpha','var')
+    alpha = [];
+end
+
+% Initialize measurement error and Jacobian function handles
 y = @(x) z - hybrid.measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x, tdoa_ref_idx, fdoa_ref_idx);
 J = @(x) hybrid.jacobian(x_aoa, x_tdoa, x_fdoa, v_fdoa, x, tdoa_ref_idx, fdoa_ref_idx);
 

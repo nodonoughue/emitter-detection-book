@@ -43,6 +43,7 @@ else
     bgColor = .93*ones(1,3);
 end
 set(groot,'DefaultAxesColor',bgColor);
+set(groot,'DefaultFigureColor',[1 1 1]); % set white for outside the axes
 
 % Grid
 set(groot,'DefaultAxesXGrid','on','DefaultAxesYGrid','on');
@@ -59,3 +60,4 @@ set(groot,'DefaultAxesOuterPosition',posVec);
 set(groot,'DefaultFigurePosition',posVec);
 set(groot,'DefaultFigureUnits','inches');
 %set(groot,'DefaultFigureOuterPosition',posVec);
+

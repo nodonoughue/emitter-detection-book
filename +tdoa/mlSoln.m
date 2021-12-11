@@ -24,7 +24,7 @@ function [x_est,A,x_grid] = mlSoln(x_tdoa,rho,C,x_ctr,search_size,epsilon,ref_id
 % Nicholas O'Donoughue
 % 1 July 2019
 
-if nargin < 8 || ~exist('ref_idx','var')
+if nargin < 7 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 

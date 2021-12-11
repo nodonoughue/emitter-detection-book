@@ -1,4 +1,4 @@
-function rrdoa = measurement(x_sensor, v_sensor, x_source, ref_idx)
+function rrdoa = measurement(x_sensor, v_sensor, x_source, ref_idx, alpha)
 % rrdoa = measurement(x_sensor, v_sensor, x_source, ref_idx)
 %
 % Computed range rate difference measurements, using the
@@ -10,6 +10,7 @@ function rrdoa = measurement(x_sensor, v_sensor, x_source, ref_idx)
 %   x_source    nDim x nSource array of source positions
 %   ref_idx         Scalar index of reference sensor, or nDim x nPair
 %                   matrix of sensor pairings
+%   alpha       nSensor x 1 array of range-rate bias terms
 %
 % OUTPUTS:
 %   rrdoa       nSensor -1 x nSource array of RRDOA measurements [m/s]
@@ -33,12 +34,15 @@ if nargin < 3 || ~exist('ref_idx','var') || isempty(ref_idx)
     ref_idx = nSensor1;
 end
 
-if isscalar(ref_idx)
-    test_idx_vec = setdiff(1:nSensor1,ref_idx);
-    ref_idx_vec = ref_idx;
+% Parse Reference Sensor
+n_sensor = size(x_sensor, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+
+% Parse FDOA Bias
+if nargin < 4 || ~exist('alpha','var')
+    rrdoa_bias = 0;
 else
-    test_idx_vec = ref_idx(1,:);
-    ref_idx_vec = ref_idx(2,:);
+    rrdoa_bias = alpha(test_idx_vec) - alpha(ref_idx_vec);
 end
 
 % Compute distance from each source position to each sensor
@@ -50,4 +54,4 @@ rr = reshape(sum(v_sensor.*dx./R,1),nSensor1,nSource); % nSensor x nSource
 
 % Apply reference sensors to compute range rate difference for each sensor
 % pair
-rrdoa = rr(test_idx_vec,:) - rr(ref_idx_vec,:);
+rrdoa = rr(test_idx_vec,:) - rr(ref_idx_vec,:) + rrdoa_bias;
