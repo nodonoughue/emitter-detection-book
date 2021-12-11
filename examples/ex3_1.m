@@ -35,7 +35,7 @@ Lprop = prop.pathLoss(Rvec,f0,ht,hr,false);
 Lprop_coarse = prop.pathLoss(Rvec_coarse,f0,ht,hr,false);
 
 % Noise Power
-B = 2e6; % channel bandwidth [Hz]
+B = 200e3; % channel bandwidth [Hz]
 NF = 5; % noise figure [dB]
 N0 = utils.constants.boltzmann*utils.constants.T0*10^(NF/10);
 N = 10*log10(N0*B);
