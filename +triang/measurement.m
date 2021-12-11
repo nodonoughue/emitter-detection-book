@@ -26,7 +26,7 @@ if nargin < 3 || isempty(do2DAoA)
     do2DAoA = true;
 end
 
-if nargin < 4
+if nargin < 4 || isempty(alpha)
     alpha_az = 0;
     alpha_el = 0;
 else

@@ -39,7 +39,7 @@ n_sensor = size(x_sensor, 2);
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 
 % Parse FDOA Bias
-if nargin < 4 || ~exist('alpha','var')
+if nargin < 4 || ~exist('alpha','var') || isempty(alpha)
     rrdoa_bias = 0;
 else
     rrdoa_bias = alpha(test_idx_vec) - alpha(ref_idx_vec);

@@ -24,13 +24,13 @@ if nDim1~=nDim2
     error('First dimension of all inputs must match');
 end
 
-if nargin < 3 || ~exist('ref_idx','var')
+if nargin < 3 || ~exist('ref_idx','var') || isempty(ref_idx)
     ref_idx = nSensor;
 end
 
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, nSensor);
 
-if nargin < 4 || ~exist('alpha','var')
+if nargin < 4 || ~exist('alpha','var') || isempty(alpha)
     rdoa_bias = 0;
 else
     % Parse the TDOA bias
