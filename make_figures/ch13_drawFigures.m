@@ -59,16 +59,16 @@ epsang = 5*pi/180;
 
 % Find AOA 
 lob = x_source - x_sensor;
-aoa = atan2(lob(2,:),lob(1,:));
+psi = atan2(lob(2,:),lob(1,:));
 
-xaoa1 = x_sensor(:,1) + [0 cos(aoa(1));0 sin(aoa(1))]*5*r(1);
-xaoap1 = x_sensor(:,1) + [0 cos(aoa(1)+epsang);0 sin(aoa(1)+epsang)]*5*r(1);
-xaoam1 = x_sensor(:,1) + [0 cos(aoa(1)-epsang);0 sin(aoa(1)-epsang)]*5*r(1);
+xaoa1 = x_sensor(:,1) + [0 cos(psi(1));0 sin(psi(1))]*5*r(1);
+xaoap1 = x_sensor(:,1) + [0 cos(psi(1)+epsang);0 sin(psi(1)+epsang)]*5*r(1);
+xaoam1 = x_sensor(:,1) + [0 cos(psi(1)-epsang);0 sin(psi(1)-epsang)]*5*r(1);
 lobFill1 = cat(2,xaoap1,fliplr(xaoam1),xaoap1(:,1));
 
-xaoa2 = x_sensor(:,2) + [0 cos(aoa(2));0 sin(aoa(2))]*5*r(2);
-xaoap2 = x_sensor(:,2) + [0 cos(aoa(2)+epsang);0 sin(aoa(2)+epsang)]*5*r(2);
-xaoam2 = x_sensor(:,2) + [0 cos(aoa(2)-epsang);0 sin(aoa(2)-epsang)]*5*r(2);
+xaoa2 = x_sensor(:,2) + [0 cos(psi(2));0 sin(psi(2))]*5*r(2);
+xaoap2 = x_sensor(:,2) + [0 cos(psi(2)+epsang);0 sin(psi(2)+epsang)]*5*r(2);
+xaoam2 = x_sensor(:,2) + [0 cos(psi(2)-epsang);0 sin(psi(2)-epsang)]*5*r(2);
 lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 
 % LOBs

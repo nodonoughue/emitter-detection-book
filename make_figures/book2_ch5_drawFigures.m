@@ -91,10 +91,10 @@ x = linspace(-10,10,1001);
 y_ctr = 5;
 x_ctr = 0;
 mean_vec = x_ctr - abs(y-y_ctr).^2/4;
-mean = x_ctr - abs(yy-y_ctr).^2/4;
+mean_val = x_ctr - abs(yy-y_ctr).^2/4;
 std_dev = 3;
 
-ell = normpdf(xx,mean,std_dev);
+ell = normpdf(xx,mean_val,std_dev);
 
 fig13a=figure;
 imagesc(x,y,ell)

@@ -70,7 +70,7 @@ n_sensor = size(x_tdoa, 2);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
 % Resample covariance matrix
-n_sensor = size(x_sensor, 2);
+n_sensor = size(x_tdoa, 2);
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 

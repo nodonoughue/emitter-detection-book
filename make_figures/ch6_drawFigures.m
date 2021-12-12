@@ -115,19 +115,19 @@ utils.exportPlot(fig3,[prefix '3']);
 x0 = [0;0];
 xs = [2,1.4];
 % Bearing
-aoa = 40;
+psi_deg = 40;
 std_dev = 8;
 len=5;
-aoa_lower = aoa - std_dev;
-aoa_upper = aoa + std_dev;
+aoa_lower = psi_deg - std_dev;
+aoa_upper = psi_deg + std_dev;
 
 fig4=figure;
 plot(x0(1),x0(2),'o');
 hold on;
-fill(x0(1) + [0 len*cosd(aoa_lower) len*cosd(aoa) len*cosd(aoa_upper) 0],...
-     x0(2) + [0 len*sind(aoa_lower) len*sind(aoa) len*sind(aoa_upper) 0],[.8,.8,.8]);
+fill(x0(1) + [0 len*cosd(aoa_lower) len*cosd(psi_deg) len*cosd(aoa_upper) 0],...
+     x0(2) + [0 len*sind(aoa_lower) len*sind(psi_deg) len*sind(aoa_upper) 0],[.8,.8,.8]);
  
-plot(x0(1)+[0 len*cosd(aoa)],x0(2)+[0 len*sind(aoa)],'k-.');
+plot(x0(1)+[0 len*cosd(psi_deg)],x0(2)+[0 len*sind(psi_deg)],'k-.');
 plot(x0(1) +[0 len*cosd(aoa_lower)],x0(2)+[0 len*sind(aoa_lower)],'k-');
 plot(x0(1) +[0 len*cosd(aoa_upper)],x0(2)+[0 len*sind(aoa_upper)],'k-');
 
@@ -137,7 +137,7 @@ text(.95,.85,'Estimated Bearing','FontSize',10,'Rotation',35);
 text(1.6,1.6,'Confidence Interval','FontSize',10,'BackgroundColor',[.8,.8,.8]);
 %plot([1.45 1.6],[.65 1.1],'k-','LineWidth',.5);
 
-plot(len/5*cosd(linspace(aoa,aoa_upper,10)),len/5*sind(linspace(aoa,aoa_upper,10)),'k-','LineWidth',.5);
+plot(len/5*cosd(linspace(psi_deg,aoa_upper,10)),len/5*sind(linspace(psi_deg,aoa_upper,10)),'k-','LineWidth',.5);
 text(len/5*cosd(aoa_upper)-.2,len/5*sind(aoa_upper)+.1,'RMSE','FontSize',10);
 
 %plot(xs(1),xs(2),'x');
