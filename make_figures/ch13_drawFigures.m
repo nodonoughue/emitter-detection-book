@@ -10,6 +10,11 @@
 % Clear Figures
 close all;
 
+% Flag to force re-execution of long scripts
+if ~exist('force_recalc','var')
+    force_recalc = false;
+end
+
 % Set up directory and filenames for figures
 dirNm = fullfile(pwd,'figures');
 if ~exist(dirNm,'dir')
@@ -59,16 +64,16 @@ epsang = 5*pi/180;
 
 % Find AOA 
 lob = x_source - x_sensor;
-aoa = atan2(lob(2,:),lob(1,:));
+psi = atan2(lob(2,:),lob(1,:));
 
-xaoa1 = x_sensor(:,1) + [0 cos(aoa(1));0 sin(aoa(1))]*5*r(1);
-xaoap1 = x_sensor(:,1) + [0 cos(aoa(1)+epsang);0 sin(aoa(1)+epsang)]*5*r(1);
-xaoam1 = x_sensor(:,1) + [0 cos(aoa(1)-epsang);0 sin(aoa(1)-epsang)]*5*r(1);
+xaoa1 = x_sensor(:,1) + [0 cos(psi(1));0 sin(psi(1))]*5*r(1);
+xaoap1 = x_sensor(:,1) + [0 cos(psi(1)+epsang);0 sin(psi(1)+epsang)]*5*r(1);
+xaoam1 = x_sensor(:,1) + [0 cos(psi(1)-epsang);0 sin(psi(1)-epsang)]*5*r(1);
 lobFill1 = cat(2,xaoap1,fliplr(xaoam1),xaoap1(:,1));
 
-xaoa2 = x_sensor(:,2) + [0 cos(aoa(2));0 sin(aoa(2))]*5*r(2);
-xaoap2 = x_sensor(:,2) + [0 cos(aoa(2)+epsang);0 sin(aoa(2)+epsang)]*5*r(2);
-xaoam2 = x_sensor(:,2) + [0 cos(aoa(2)-epsang);0 sin(aoa(2)-epsang)]*5*r(2);
+xaoa2 = x_sensor(:,2) + [0 cos(psi(2));0 sin(psi(2))]*5*r(2);
+xaoap2 = x_sensor(:,2) + [0 cos(psi(2)+epsang);0 sin(psi(2)+epsang)]*5*r(2);
+xaoam2 = x_sensor(:,2) + [0 cos(psi(2)-epsang);0 sin(psi(2)-epsang)]*5*r(2);
 lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 
 % LOBs
@@ -130,9 +135,9 @@ rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa,C_rroa);
 
 % Compute log likelihood
 ella = hybrid.loglikelihood(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_grid);
@@ -148,9 +153,9 @@ rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa,C_rroa);
 
 % Compute log likelihood
 ellb = hybrid.loglikelihood(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_grid);
@@ -166,9 +171,9 @@ rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa,C_rroa);
 
 % Compute log likelihood
 ellc = hybrid.loglikelihood(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_grid);
@@ -185,9 +190,9 @@ rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa,C_rroa);
 
 % Compute log likelihood
 elld = hybrid.loglikelihood(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_grid);
@@ -329,9 +334,9 @@ rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa,C_rroa);
 
 % Define source positions
 M = 501;
@@ -422,9 +427,9 @@ rng_err = c*time_err; % m
 rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_rdoa,C_rrdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_roa,C_rroa);
 
 % Define source positions
 M = 501;
@@ -513,8 +518,8 @@ rng_err = c*time_err; % m
 
 % Error Covariance Matrices
 C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa);
+C_roa = rng_err^2 * eye(n_sensor);
+C_full = blkdiag(C_psi,C_roa);
 
 % Define source positions
 M = 501;

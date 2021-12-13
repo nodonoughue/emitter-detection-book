@@ -31,19 +31,27 @@ freq_err = 3; % Hz
 rng_rate_err = freq_err * c/f_0; % m/s
 
 % Error Covariance Matrices
-C_psi = (ang_err)^2 * eye(n_sensor);
-C_rdoa = rng_err^2 * (1 + eye(n_sensor-1));
-C_rrdoa = rng_rate_err^2 * (1 + eye(n_sensor-1));
-C_full = blkdiag(C_psi,C_rdoa,C_rrdoa);
+C_aoa = ang_err^2 * eye(n_sensor);
+C_roa = rng_err^2 * eye(n_sensor);
+C_rroa = rng_rate_err^2 * eye(n_sensor);
+C_full = blkdiag(C_aoa, C_roa, C_rroa);
+
+% Build the reference and test vectors
+aoa_test = 1:n_sensor;
+aoa_ref = nan*ones(1,n_sensor);
+tfdoa_ref = n_sensor;
+[tfdoa_test_vec, tfdoa_ref_vec] = utils.parseReferenceSensor(tfdoa_ref, n_sensor);
+test_vec = [aoa_test, n_sensor + tfdoa_test_vec, 2*n_sensor + tfdoa_test_vec];
+ref_vec = [aoa_ref, n_sensor + tfdoa_ref_vec, 2*n_sensor + tfdoa_ref_vec];
+
+% Resample covariance matrix for tdoa/fdoa ref pairs
+C_tilde = utils.resampleCovMtx(C_full, test_vec, ref_vec);
 
 % Error Vectors
-n_MC = 1e3;
-noise_ang = (ang_err) * randn(n_sensor,n_MC);
-noise_r = rng_err * randn(n_sensor,n_MC);
-noise_rdoa = noise_r(1:end-1,:)+noise_r(end,:);
-noise_rr = rng_rate_err * randn(n_sensor,n_MC);
-noise_rrdoa = noise_rr(1:end-1,:)+noise_rr(end,:);
-noise_full = [noise_ang;noise_rdoa;noise_rrdoa];
+warning('Monte Carlo trials were set to 1,000 for the textbook, but 100 appears to be sufficient for stable results.  Lowered to 100 for faster execution.');
+n_MC = 1e2;
+L = chol(C_tilde,'lower'); % Use the Cholesky decomposition to generate the square root
+noise_full = L*randn(size(C_tilde, 1), n_MC);
 
 % Set up optimization parameters
 num_iters = 1000;
@@ -72,7 +80,7 @@ for idx_mc = 1:n_MC
     zeta = z+noise_full(:,idx_mc);
 
     % Least Squares
-    [~,x_full] = hybrid.lsSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,diag(diag(C_full)),x_init,[],num_iters,true,plot_progress);
+    [~,x_full] = hybrid.lsSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,diag(diag(C_full)),x_init,[],num_iters,true,plot_progress, tfdoa_ref, tfdoa_ref);
     if idx_mc==1
         x_ls = x_full;
     end
@@ -83,7 +91,7 @@ for idx_mc = 1:n_MC
         cov_ls = cov_ls + reshape(err,2,1,num_iters).*conj(reshape(err,1,2,num_iters))/n_MC;
     end
 
-    [~,x_full] = hybrid.gdSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_init,alpha,beta,[],num_iters,true,plot_progress);
+    [~,x_full] = hybrid.gdSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_init,alpha,beta,[],num_iters,true,plot_progress, tfdoa_ref, tfdoa_ref);
     if idx_mc==1
         x_grad = x_full;
     end
@@ -94,7 +102,7 @@ for idx_mc = 1:n_MC
         cov_grad = cov_grad + reshape(err,2,1,num_iters).*conj(reshape(err,1,2,num_iters))/n_MC;
     end
     
-    x_full = hybrid.bfSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_init,2*max(x_source(:)),epsilon);
+    x_full = hybrid.bfSoln(x_sensor,x_sensor,x_sensor,v_sensor,zeta,C_full,x_init,2*max(x_source(:)),epsilon, tfdoa_ref, tfdoa_ref);
     if idx_mc==1
         x_bf = x_full;
     end
@@ -118,8 +126,6 @@ plotIndex = [1:10,20:20:100,200:200:num_iters];
 x_ls_plot = x_ls(:,plotIndex,1);
 x_grad_plot = x_grad(:,plotIndex,1);
 
-
-
 % Compute the CEP50 for each iteration
 cep50_ls = zeros(1,num_iters);
 cep50_grad = zeros(1,num_iters);
@@ -130,7 +136,7 @@ end
 cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
-err_crlb = hybrid.computeCRLB(x_sensor,x_sensor,x_sensor,v_sensor,x_source,C_full);
+err_crlb = hybrid.computeCRLB(x_sensor,x_sensor,x_sensor,v_sensor,x_source,C_full,tfdoa_ref,tfdoa_ref);
 crlb_cep50 = utils.computeCEP50(err_crlb)/1e3; % [km]
 crlb_ellipse = utils.drawErrorEllipse(x_source,err_crlb,100,90);
 

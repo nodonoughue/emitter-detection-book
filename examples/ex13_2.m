@@ -31,11 +31,27 @@ time_err = 100e-9; % sec
 rng_err = c*time_err; % m
 freq_err = 3; % Hz
 rng_rate_err = freq_err * c/f_0; % m/s
-C_full = diag([(ang_err)^2,2*rng_err^2,2*rng_rate_err^2]);
+C_aoa = ang_err^2 * eye(n_aoa);
+C_roa = rng_err^2 * eye(n_tf);
+C_rroa = rng_rate_err^2 * eye(n_tf);
+C_full = blkdiag(C_aoa, C_roa, C_rroa);
+
+% Build reference vectors
+aoa_test = 1:n_aoa;
+aoa_ref = nan*ones(1,n_aoa);
+tfdoa_ref = n_tf;
+[tfdoa_test_vec, tfdoa_ref_vec] = utils.parseReferenceSensor(tfdoa_ref, n_tf);
+test_vec = [aoa_test, n_aoa + tfdoa_test_vec, n_aoa + n_tf+ tfdoa_test_vec];
+ref_vec = [aoa_ref, n_aoa + tfdoa_ref_vec, n_aoa + n_tf + tfdoa_ref_vec];
+
+% Resample covariance matrix for tdoa/fdoa ref pairs
+C_tilde = utils.resampleCovMtx(C_full, test_vec, ref_vec);
 
 % Error Vectors
-n_MC = 1e3;
-noise_full = C_full.^(1/2)*randn(n_aoa+2*(n_tf-1),n_MC);
+warning('Monte Carlo trials were set to 1,000 for the textbook, but 100 appears to be sufficient for stable results.  Lowered to 100 for faster execution.');
+n_MC = 1e2; 
+L = chol(C_tilde,'lower'); % Use the Cholesky decomposition to generate the square root
+noise_full = L*randn(n_aoa+2*(n_tf-1),n_MC);
 
 % Set up optimization parameters
 num_iters = 1000;
@@ -62,7 +78,7 @@ for idx_mc = 1:n_MC
     zeta = z+noise_full(:,idx_mc);
 
     % Least Squares
-    [~,x_full] = hybrid.lsSoln(x_aoa,x_tf,x_tf,v_tf,zeta,C_full,x_init,[],num_iters,true,plot_progress);
+    [~,x_full] = hybrid.lsSoln(x_aoa,x_tf,x_tf,v_tf,zeta,C_full,x_init,[],num_iters,true,plot_progress,tfdoa_ref,tfdoa_ref);
     if idx_mc==1
         x_ls = x_full;
     end
@@ -73,7 +89,7 @@ for idx_mc = 1:n_MC
         cov_ls = cov_ls + reshape(err,2,1,num_iters).*conj(reshape(err,1,2,num_iters))/n_MC;
     end
 
-    [~,x_full] = hybrid.gdSoln(x_aoa,x_tf,x_tf,v_tf,zeta,C_full,x_init,alpha,beta,[],num_iters,true,plot_progress);
+    [~,x_full] = hybrid.gdSoln(x_aoa,x_tf,x_tf,v_tf,zeta,C_full,x_init,alpha,beta,[],num_iters,true,plot_progress,tfdoa_ref,tfdoa_ref);
     if idx_mc==1
         x_grad = x_full;
     end
@@ -106,7 +122,7 @@ end
 
 
 % Compute CRLB on RMSE
-err_crlb = hybrid.computeCRLB(x_aoa,x_tf,x_tf,v_tf,x_source,C_full);
+err_crlb = hybrid.computeCRLB(x_aoa,x_tf,x_tf,v_tf,x_source,C_full,tfdoa_ref,tfdoa_ref);
 crlb_cep50 = utils.computeCEP50(err_crlb)/1e3; % [km]
 crlb_ellipse = utils.drawErrorEllipse(x_source,err_crlb,100,90);
 

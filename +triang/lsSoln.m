@@ -1,12 +1,12 @@
-function [x,x_full] = lsSoln(x_sensor,psi,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = lsSoln(x_sensor,psi,C,x_init,epsilon,max_num_iterations,...
+function [x,x_full] = lsSoln(x_aoa,psi,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full] = lsSoln(x_aoa,psi,C,x_init,epsilon,max_num_iterations,...
 %                                           force_full_calc,plot_progress)
 %
 % Computes the least square solution given a set of angle of arrival
 % estimates.
 %
 % Inputs:
-%   x_sensor            Sensor positions [m]
+%   x_aoa               Sensor positions [m]
 %   psi                 Measurement vector [radians]
 %   C                   AOA measurement error covariance [radians^2]
 %   x_init              Initial source position estimate [m]
@@ -44,8 +44,8 @@ if nargin < 5
 end
 
 % Set up function handles
-y = @(x) psi - triang.measurement(x_sensor, x);
-J = @(x) triang.jacobian(x_sensor, x);
+y = @(x) psi - triang.measurement(x_aoa, x);
+J = @(x) triang.jacobian(x_aoa, x);
 
 % Call the generic Least Square solver
 [x,x_full] = utils.lsSoln(y,J,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress);

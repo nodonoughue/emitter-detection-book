@@ -54,9 +54,25 @@ if nargin < 12 || isempty(pdftype)
     pdftype = [];
 end
 
+% Resample the covariance matrix
+n_aoa = size(x_aoa,2);
+n_tdoa = size(x_tdoa,2);
+n_fdoa = size(x_fdoa,2);
+
+% Parse the TDOA and FDOA reference indices together
+[tdoa_test_idx_vec, tdoa_ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
+[fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
+test_idx_vec = cat(2,tdoa_test_idx_vec, n_tdoa + fdoa_test_idx_vec);
+ref_idx_vec = cat(2,tdoa_ref_idx_vec, n_tdoa + fdoa_ref_idx_vec);
+
+% For now, we assume the AOA is independent of TDOA/FDOA
+C_aoa = C(1:n_aoa, 1:n_aoa);
+C_tfdoa = C(n_aoa+1:end, n_aoa+1:end);
+C_tilde = blkdiag(C_aoa, utils.resampleCovMtx(C_tfdoa, test_idx_vec, ref_idx_vec));
+
 % Generate the PDF
 pdfs = utils.makePDFs(@(x) hybrid.measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x, tdoa_ref_idx, fdoa_ref_idx), ...
-                     zeta,pdftype,C);
+                     zeta,pdftype,C_tilde);
 
 % Call the util function
 [x_est,A,x_grid] = utils.bestfix(pdfs,x_ctr,search_size,epsilon);

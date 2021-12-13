@@ -13,7 +13,7 @@ function crlb = computeCRLB(x_aoa,x0,C)
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
-%           TDOA estimator (Ndim x Ndim)
+%           AOA estimator (Ndim x Ndim)
 %
 % Nicholas O'Donoughue
 % 1 July 2019

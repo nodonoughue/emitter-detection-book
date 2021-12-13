@@ -19,8 +19,8 @@ function [fig_geo_a,fig_geo_b,fig_err] = ex11_1()
 
 % Define Sensor Positions
 baseline = 10e3;
-nSensors = 3;
-thSensors = linspace(0,2*pi,nSensors+1) +pi/2; % add an extra sample, will be ignored
+nSensors = 4;
+thSensors = linspace(0,2*pi,nSensors) +pi/2; % add an extra sample, will be ignored
 x_sensor = baseline* [ cos(thSensors(1:end-1));sin(thSensors(1:end-1))];
 
 % Add one at the origin
@@ -30,10 +30,10 @@ x_sensor = cat(2,x_sensor,zeros(2,1));
 timingError = 1e-7;
 c = 3e8;
 rngStdDev = timingError*c;
-C = eye(nSensors)+1; % covariance matrix structure
-Ctoa = timingError^2*ones(nSensors+1,1);
-Ctdoa = timingError^2*C;
-Crdoa = rngStdDev^2*C;
+Ctoa = timingError^2*eye(nSensors);
+Croa = rngStdDev^2*eye(nSensors);
+%Ctdoa = timingError^2*(1+eye(nSensors-1));
+%Crdoa = rngStdDev^2*(1+eye(nSensors-1));
 
 % Initialize Transmitter Position
 th = rand(1)*2*pi;
@@ -45,7 +45,7 @@ dR = tdoa.measurement(x_sensor,x_source);
 
 % Generate Range Measurements
 nMC = 1e3;
-nr = rngStdDev*randn(nSensors+1,nMC); % [m]
+nr = rngStdDev*randn(nSensors,nMC); % [m]
 ndr = nr(1:end-1,:) - nr(end,:); % Generate differential range msmnt noise
 rho = dR + ndr; % Noisy sample vector
 
@@ -88,7 +88,7 @@ for idx = 1:nMC
     end
     
     % Compute solutions
-    [~,x_ls_local] = tdoa.lsSoln(x_sensor,rho(:,idx),diag(diag(Crdoa)),x_init,[],numIters,true,[]);
+    [~,x_ls_local] = tdoa.lsSoln(x_sensor,rho(:,idx),Croa,x_init,[],numIters,true,[]);
     num_iter_ls = size(x_ls_local,2);
     if num_iter_ls > numIters
         x_ls_local = x_ls_local(:,1:numIters);
@@ -99,11 +99,11 @@ for idx = 1:nMC
         thisX_ls(:,num_iter_ls+1:numIters) = x_ls_local(:,end);
     end
     
-    [~,thisX_grad] = tdoa.gdSoln(x_sensor,rho(:,idx),Crdoa,x_init,alpha,beta,[],numIters,true,[]);
+    [~,thisX_grad] = tdoa.gdSoln(x_sensor,rho(:,idx),Croa,x_init,alpha,beta,[],numIters,true,[]);
      
-    thisX_chanHo = tdoa.chanHoSoln(x_sensor,rho(:,idx),Crdoa);
+    thisX_chanHo = tdoa.chanHoSoln(x_sensor,rho(:,idx),Croa);
     
-    thisX_bf = tdoa.bfSoln(x_sensor,rho(:,idx),Crdoa,x_init,5*baseline,epsilon);
+    thisX_bf = tdoa.bfSoln(x_sensor,rho(:,idx),Croa,x_init,5*baseline,epsilon);
     
     % Preserve first iteration for plotting
     if idx==1
@@ -146,7 +146,7 @@ cep50_chanHo = utils.computeCEP50(cov_chanHo)/1e3; % [km]
 cep50_bf = utils.computeCEP50(cov_bf)/1e3; % [km]
 
 % Compute CRLB on RMSE
-err_crlb = tdoa.computeCRLB(x_sensor,x_source,Ctdoa);
+err_crlb = tdoa.computeCRLB(x_sensor,x_source,Ctoa);
 crlb_cep50 = utils.computeCEP50(err_crlb)/1e3; % [km]
 crlb_ellipse = utils.drawErrorEllipse(x_source,err_crlb,100,90);
 

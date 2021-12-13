@@ -28,34 +28,7 @@ function [x_est,A,x_grid] = bestfix(pdfs,x_ctr,search_size,epsilon)
 % Nicholas A. O'Donoughue
 % 29 July 2020
 
-
-nDim = numel(x_ctr);
-if nDim <1 || nDim > 3
-    error('Number of spatial dimensions must be between 1 and 3');
-end
-
-if numel(search_size)==1
-    search_size = search_size*ones(nDim,1);
-end
-
-% Initialize search space
-xx = x_ctr(1) + (-search_size(1):epsilon:search_size(1));
-if nDim > 1
-    yy = x_ctr(2) + (-search_size(2):epsilon:search_size(2));
-    if nDim > 2
-        zz = x_ctr(3) + (-search_size(3):epsilon:search_size(3));
-        [XX,YY,ZZ] = ndgrid(xx,yy,zz);
-        x_set = [XX(:),YY(:),ZZ(:)]';
-        x_grid = {xx,yy,zz};
-    else
-        [XX,YY] = ndgrid(xx,yy);
-        x_set = [XX(:),YY(:)]';
-        x_grid = {xx,yy};
-    end
-else
-    x_set = xx(:)';
-    x_grid = xx;
-end
+[x_set, x_grid] = utils.make_nd_grid(x_ctr, search_size, epsilon);
 
 A = ones(1,size(x_set,2));
 

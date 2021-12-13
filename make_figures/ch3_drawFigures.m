@@ -190,7 +190,7 @@ utils.exportPlot(fig7,[prefix '7']);
 ht = 100;
 hr = 2;
 % Rvec = [1e3:1e3:9e3,10e3:10e3:90e3,100e3:100e3:1000e3];
-Rvec=10e3:10e3:500e3;
+Rvec=10e3:10e3:1000e3;
 f0 = 100e6;
 
 % Compute Losses and Fresnel Zone
@@ -199,7 +199,7 @@ Ltworay = prop.twoRayPathLoss(Rvec,f0,ht,hr,false);
 Lprop = prop.pathLoss(Rvec,f0,ht,hr,false);
 
 % Noise Power
-B = 2e6; % channel bandwidth [Hz]
+B = 2e5; % channel bandwidth [Hz]
 NF = 5; % noise figure [dB]
 N0 = utils.constants.boltzmann*utils.constants.T0*10^(NF/10);
 N = 10*log10(N0*B);

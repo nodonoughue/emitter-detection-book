@@ -32,13 +32,9 @@ if nargin < 4 || ~exist('ref_idx','var') || isempty(ref_idx)
     ref_idx = nSensor;
 end
 
-if isscalar(ref_idx)
-    test_idx_vec = setdiff(1:nSensor,ref_idx);
-    ref_idx_vec = ref_idx;
-else
-    test_idx_vec = ref_idx(1,:);
-    ref_idx_vec = ref_idx(2,:);
-end
+% Parse Reference Sensor
+n_sensor = size(x_sensor, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 
 %% Compute the Offset Vectors
 dx = x_sensor - reshape(x_source,nDim,1,nSource); % nDim x nSensor x nSource

@@ -6,6 +6,15 @@ This repository contains the MATLAB code, released under the MIT License, that g
 
 The textbook can be purchased from **[Artech House](https://us.artechhouse.com/Emitter-Detection-and-Geolocation-for-Electronic-Warfare-P2052.aspx)**.
 
+### Update 20211213 -- Additional Features Coming
+This repository now contains code for several new features, that are to be discussed in an upcoming textbook.  When it is published, I will include details on how to purchase the book.  Until then, consider these new features to be unfinished, but please feel free to send me bug reports if you have any.
+
+A few of the new features include:
++ Scripts for handling 3D coordinate systems (including ENU, ECEF, and Geodetic Lat/Lon)
++ The ability to specify arbitrary test/reference sensor pairs for TDOA and FDOA (as opposed to setting the final sensor to be a common reference), along with code to modify covariance matrices to translate from sensor-level errors (TOA/FOA on each sensor) to measurement-level (covariance of TDOA and FDOA measurements between sensor pairs)
++ Generic solvers for constrained cases
+
+
 ## Installation
 
 Simply open the folder in MATLAB or add the root folder containing this repository to the MATLAB search path.  Clone this repository, or download the latest release from the Mathworks File Exchange.
@@ -30,6 +39,9 @@ The **examples/** folder contains the code to execute each of the examples in th
 
 ## Homework
 The **hw/** folder contains data sets used for two homework problems in Chapter 8.
+
+## Live Scripts
+The **live_scripts/** folder contains MATLAB Live script versions for the examples in **examples/**.  It is currently a work in progress, and more will be added over the coming weeks.  [MATLAB Live scripts](https://www.mathworks.com/help/matlab/matlab_prog/what-is-a-live-script-or-function.html) blend text and code to enable interactive learning.
 
 ## Utilities
 A number of utilities are provided in this repository, under the following namespaces:

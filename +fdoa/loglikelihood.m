@@ -28,16 +28,24 @@ end
 n_source_pos = size(x_source,2);
 ell = zeros(n_source_pos,1);
 
+% Resample covariance matrix
+n_sensor = size(x_fdoa, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
+
+% Ensure the covariance matrix is invertible
+C_tilde = utils.ensureInvertible(C_tilde);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
     % Starging in R2017b, MATLAB released the DECOMPOSITION function,
     % which can decompose matrices for faster computation of left- and
     % right-division in for loops.
-    C_d = decomposition(C,'chol');
+    C_d = decomposition(C_tilde,'chol');
 else
     % If DECOMPOSITION is unavailable, let's precompute the pseudo-inverse.
-    C_inv = pinv(C);
+    C_inv = pinv(C_tilde);
 end
 
 for idx_source = 1:n_source_pos

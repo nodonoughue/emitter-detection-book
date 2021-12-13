@@ -27,7 +27,13 @@ function [epsilon,x_vec,y_vec] = tdoaErr(x_sensor,C,x_source,x_max,numPts)
 r = tdoa.measurement(x_sensor,x_source);
 
 % Preprocess covariance matrix inverses
-C_out = C(1:end-1,1:end-1) + C(end,end);
+ref_idx = size(x_sensor, 2);
+test_idx = 1:ref_idx-1;
+C_out = utils.resampleCovMtx(C, test_idx, ref_idx);
+
+% For now, we assume the AOA is independent of TDOA/FDOA
+C_out = utils.ensureInvertible(C_out);
+
 % Pre-compute covariance matrix inverses
 do_decomp = ~verLessThan('MATLAB','9.3');
 if do_decomp
@@ -52,7 +58,7 @@ for idx_pt = 1:numel(XX)
     x_i = x_plot(:,idx_pt);
     
     % Evaluate the measurement at x_i
-    r_i = tdoa.measurement(x_sensor,x_i);
+    r_i = tdoa.measurement(x_sensor, x_i, ref_idx);
 
     % Compute the measurement error
     err = r-r_i;

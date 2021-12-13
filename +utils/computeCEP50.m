@@ -61,13 +61,12 @@ lam = diag(Lam); % Pull eigenvalue vector from diagonal matrix Lam
 [lamSort,~] = sort(lam,'descend'); % Sort the eigenvalues
 
 % Dominant eigenvalue
-lamMax = lamSort(1);
+lamMax = abs(lamSort(1));
 %vMax = V(:,iSort(1)); 
 
 % Secondary eigenvalue
-lamMin = lamSort(2); % Change to second eigenvalue; CEP50 is now automatically computed along two largest principal dimensions
-%lamMin = lamSort(end);
-%vMin = V(:,iSort(end));
+lamMin = abs(lamSort(2)); % Change to second eigenvalue; CEP50 is now automatically computed along two largest principal dimensions
+%vMin = V(:,iSort(2));
 
 % Ratio of dominant to secondary eigenvalues
 ratio = sqrt(lamMin/lamMax);

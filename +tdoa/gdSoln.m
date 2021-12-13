@@ -1,12 +1,12 @@
-function [x,x_full] = gdSoln(x_sensor,rho,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
-% [x,x_full] = gdSoln(x_sensor,rho,C,x_init,alpha,beta,epsilon,...
+function [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress,ref_idx)
+% [x,x_full] = gdSoln(x_tdoa,rho,C,x_init,alpha,beta,epsilon,...
 %               max_num_iterations,force_full_calc,plot_progress,ref_idx)
 %
 % Computes the gradient descent solution for TDOA processing.
 %
 % Inputs:
 %   
-%   x_sensor            TDOA sensor positions [m]
+%   x_tdoa              TDOA sensor positions [m]
 %   rho                 Measurement vector
 %   C                   Combined error covariance matrix
 %   x_init              Initial estimate of source position [m]
@@ -61,14 +61,13 @@ if nargin < 5 || ~exist('alpha','var')
 end
 
 % Set up measurement error and Jacobian functions
-y = @(x) rho- tdoa.measurement(x_sensor, x, ref_idx);
-J = @(x) tdoa.jacobian(x_sensor, x, ref_idx);
+y = @(x) rho- tdoa.measurement(x_tdoa, x, ref_idx);
+J = @(x) tdoa.jacobian(x_tdoa, x, ref_idx);
 
-% % Resample covariance matrix
-% n_sensor = size(x_sensor, 2);
-% [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
-% C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
-C_tilde = C; % the reference sensor utilities are not yet imported from the public book repo...comment out until they are.
+% Resample covariance matrix
+n_sensor = size(x_tdoa, 2);
+[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
+C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
 % Call generic Gradient Descent solver
 [x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);
