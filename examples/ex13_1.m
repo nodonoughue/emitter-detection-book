@@ -48,7 +48,8 @@ ref_vec = [aoa_ref, n_sensor + tfdoa_ref_vec, 2*n_sensor + tfdoa_ref_vec];
 C_tilde = utils.resampleCovMtx(C_full, test_vec, ref_vec);
 
 % Error Vectors
-n_MC = 1e2; warning('number of MC trials reduced from 1,000 to 100');
+warning('Monte Carlo trials were set to 1,000 for the textbook, but 100 appears to be sufficient for stable results.  Lowered to 100 for faster execution.');
+n_MC = 1e2;
 L = chol(C_tilde,'lower'); % Use the Cholesky decomposition to generate the square root
 noise_full = L*randn(size(C_tilde, 1), n_MC);
 
