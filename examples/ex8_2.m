@@ -118,7 +118,7 @@ secs = tElapsed - 60*mins - 3600*hrs;
 fprintf('Elapsed time: %d hours, %d minutes, %.2f seconds\n',hrs,mins,secs);
 
 % Plot results
-figure;
+fig=figure;
 loglog(R/1e3,RMSE_th,'k--','DisplayName','CRLB (det.)');
 hold on;
 loglog(R/1e3,RMSE_th_stoch,'k-.','DisplayName','CRLB (stoch.)');

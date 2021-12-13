@@ -28,7 +28,7 @@ function [x_est,A,x_grid] = bestfix(pdfs,x_ctr,search_size,epsilon)
 % Nicholas A. O'Donoughue
 % 29 July 2020
 
-[x_set, x_grid] = utils.make_nd_search_space(x_ctr, search_size, epsilon);
+[x_set, x_grid] = utils.make_nd_grid(x_ctr, search_size, epsilon);
 
 A = ones(1,size(x_set,2));
 
