@@ -69,10 +69,5 @@ n_sensor = size(x_tdoa, 2);
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
-% Resample covariance matrix
-n_sensor = size(x_tdoa, 2);
-[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
-C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
-
 % Call generic Gradient Descent solver
 [x,x_full] = utils.gdSoln(y,J,C_tilde,x_init,alpha,beta,epsilon,max_num_iterations,force_full_calc,plot_progress);

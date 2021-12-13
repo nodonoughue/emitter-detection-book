@@ -1,6 +1,6 @@
 function crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad,tdoa_ref_idx,fdoa_ref_idx)
 % crlb = computeCRLBfixed(x_aoa,x_tdoa,x_fdoa,v_fdoa,xs,C,a_grad, 
-%                            tdoa_ref_idx, fdoa_ref_idx,variance_is_toa)
+%                            tdoa_ref_idx, fdoa_ref_idx)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % a combined set of AOA, TDOA, and FDOA measurements.  The covariance
