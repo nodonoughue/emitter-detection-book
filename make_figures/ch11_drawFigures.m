@@ -9,6 +9,11 @@
 % Clear Figures
 close all;
 
+% Flag to force re-execution of long scripts
+if ~exist('force_recalc','var')
+    force_recalc = false;
+end
+
 % Set up directory and filename for figures
 dirNm = fullfile(pwd,'figures');
 if ~exist(dirNm,'dir')
