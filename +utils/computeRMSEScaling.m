@@ -27,4 +27,8 @@ if confInterval <= 0 || confInterval >= 1
 end
 
 % Compute Gamma
-gamma = norminv(.5 + confInterval/2);
+if license('test','Statistics_Toolbox')
+    gamma = norminv(.5 + confInterval/2);
+else
+    gamma = utils.norminv(.5 + confInterval/2);
+end
