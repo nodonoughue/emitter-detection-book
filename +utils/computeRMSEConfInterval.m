@@ -19,4 +19,8 @@ function confInterval = computeRMSEConfInterval(gamma)
 % Nicholas O'Donoughue
 % 1 July 2019
 
-confInterval = normcdf(gamma) - normcdf(-gamma);
+if license('test','Statistics_Toolbox')
+    confInterval = normcdf(gamma) - normcdf(-gamma);
+else
+    confInterval = utils.normcdf(gamma) - utils.normcdf(-gamma);
+end

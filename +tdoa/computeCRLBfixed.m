@@ -53,6 +53,8 @@ J = @(x) tdoa.jacobian(x_tdoa,x,ref_idx);
 % Preprocess covariance matrix
 if variance_is_toa
     C_out = C*utils.constants.c^2;
+else
+    C_out = C;
 end
 
 % Parse sensor pairs

@@ -48,6 +48,8 @@ J = @(x) tdoa.jacobian(x_tdoa,x,ref_idx);
 % Preprocess covariance matrix
 if variance_is_toa
     C_out = C*utils.constants.c^2;
+else
+    C_out = C;
 end
 
 % Parse sensor pairs
@@ -74,7 +76,7 @@ end
 % Initialize output variable
 crlb = zeros([n_dim,n_dim,n_source]);
 
-warning('on','MATLAB:nearlySingularMatrix')
+warning('off','MATLAB:nearlySingularMatrix')
         
 % Repeat CRLB for each of the n_source test positions
 for idx =1:n_source
@@ -111,4 +113,4 @@ for idx =1:n_source
     end
 end
 
-warning('off','MATLAB:nearlySingularMatrix');
+warning('on','MATLAB:nearlySingularMatrix');
