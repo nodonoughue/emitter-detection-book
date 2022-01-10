@@ -1,5 +1,5 @@
 function [x_pred, x_est, P_pred, P_est] = runKalmanStep(x_pred, P_pred, z, F, H, Q, R, update_type, msmt_type, f_jacob, h_jacob)
-% [x_pred, x_est, P_pred, P_est] = runKalmanStep(x_pred, P_pred, z, F, H, Q, R)
+% [x_pred, x_est, P_pred, P_est] = runKalmanStep(x_pred, P_pred, z, F, H, Q, R, update_type, msmt_type, f_jacob, h_jacob)
 %
 %   Simplified Kalman Filter loop iteration; assumes a strict KF
 %   implementation (linear system), or an extended KF.
@@ -71,8 +71,12 @@ if ~do_coast
     assert(strcmpi(msmt_type,'ekf')==1 || (size(H,1)==M && size(H,2)==N),'Dimension mismatch for measurement matrix.');
 end
 
-
-
+if strcmpi(update_type,'ekf')
+    assert(nargin > 9 && ~isempty(f_jacob), 'If update type is EKF, then f_jacob is required.');
+end
+if strcmpi(msmt_type,'ekf')
+    assert(nargin > 10 && ~isempty(h_jacob), 'If measurement type is EKF, then h_jacob is required.');
+end
 
 %% State Estimation Step
 if do_coast
@@ -91,7 +95,7 @@ else
             z_pred = H*x_pred;
         case 'ekf'
             % H is a function handle, use it directly for z_pred, then
-            % use the jacobian to compute H
+            % use the jacobian to compute a linearized H
             z_pred = H(x_pred);
             H = h_jacob(x_pred);
     end
@@ -122,7 +126,7 @@ switch lower(update_type)
         x_pred = F*x_est;
     case 'ekf'
         % F is a function handle, use it directly for x_pred, then
-        % use the jacobian to compute H
+        % use the jacobian to compute a linearized F
         x_pred = F(x_est);
         F = f_jacob(x_est);
 end
