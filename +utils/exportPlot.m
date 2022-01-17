@@ -16,5 +16,5 @@ function exportPlot(fig,fnm)
 fig.InvertHardcopy = 'off';
 
 saveas(fig,[fnm '.fig']);
-print(fig,fnm,'-depsc','-r1200','-painters');
+print(fig,fnm,'-depsc','-r1200');
 print(fig,fnm,'-dpng','-r1200');
