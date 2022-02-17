@@ -1,5 +1,5 @@
-function crlb = computeCRLBfixed(x_aoa,x0,C,a_grad)
-% crlb = computeCRLBfixed(x_aoa,xs,C,a_grad)
+function crlb = computeCRLBfixed(x_aoa,x0,C,a_grad,do2DAoA)
+% crlb = computeCRLBfixed(x_aoa,xs,C,a_grad,do2DAoA)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % sensors at locations in x_aoa (Ndim x N).  C is an NxN matrix of TOA
@@ -15,6 +15,8 @@ function crlb = computeCRLBfixed(x_aoa,x0,C,a_grad)
 %   a_grad          Function handle that returns the gradient of the
 %                   equality constraints a(x) as an nDim x nConstraint 
 %                   matrix
+%   do2DAoA         Boolean flag indicating whether 2D AOA (azimuth and
+%                   elevation) is to be used
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
@@ -27,8 +29,12 @@ function crlb = computeCRLBfixed(x_aoa,x0,C,a_grad)
 n_dim = size(x_aoa,1);
 n_source = size(x0,2);
 
+if nargin < 5 || isempty(do2DAoA)
+    do2DAoA = ~(size(C,1)==size(x_aoa,2)); % If the cov mtx is 1 per sensor, then it's not a 2D AOA problem 
+end
+
 % Set up Jacobian function
-J = @(x) triang.jacobian(x_aoa,x);
+J = @(x) triang.jacobian(x_aoa,x,do2DAoA);
 
 % Ensure the covariance matrix is invertible
 C = utils.ensureInvertible(C);
@@ -79,6 +85,9 @@ for idx =1:n_source
         % Build the constraint effect matrix
         F_const_inv = F_inv * A_i / (A_i'*F_inv*A_i) * A_i'*F_inv;
 
+        % Error checking -- any nans should be zeros
+        F_const_inv(isnan(F_const_inv))=0;
+        
         % CRLB is the inverse of the Fisher minus the constraint effect
         crlb(:,:,idx) = F_inv - F_const_inv;
     end
