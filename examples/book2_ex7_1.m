@@ -32,7 +32,7 @@ crlb = triang.computeCRLB(x_aoa, x_tgt, C);
 fprintf('CEP50: %.2f km\n',utils.computeCEP50(crlb)/1e3);
 
 % Iterate over number of samples
-num_samples = 9500:10500;
+num_samples = [1,100:100:1000,2000:1000:9000,9500:10500,11000:1000:20000];
 sigma_theta_vec = [5, 10, 30];
 
 cep_vec = zeros(numel(num_samples), numel(sigma_theta_vec));
@@ -78,11 +78,13 @@ y_vec = linspace(1e3,5e3,n_pts);
 x_aor = [xx(:), yy(:)]';
 
 aor_dims = size(xx);
-n_aor = size(x_aor,2);
+% n_aor = size(x_aor,2);
 
 k_vec = [10, 1000];
 
-figs = [fig];
+clear figs;
+figs(numel(k_vec)+1) = fig;
+figs(1) = fig;
 for idx_k = 1:numel(k_vec)
     this_k = k_vec(idx_k);
 
@@ -90,7 +92,7 @@ for idx_k = 1:numel(k_vec)
     cep = reshape(utils.computeCEP50(this_crlb), aor_dims);
 
     this_fig = figure;
-    figs = [figs this_fig];
+    figs(idx_k+1) = this_fig;
     imagesc(x_vec/1e3, y_vec/1e3, cep/1e3);
     hold on;
     [Ch,h] = contour(x_vec/1e3, y_vec/1e3, cep/1e3,'k-.');
