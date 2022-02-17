@@ -1,17 +1,8 @@
-function figs = book2_ex5_2()
-% fig=book2_ex5_2()
-%
-% Executes Example 5.2 from Practical Geolocation for Electronic Warfare
-% with MATLAB.
-%
-% INPUTS
-%   none
-%
-% OUTPUTS
-%   fig         figure handle
+% Executes a modified version of Example 5.2 from Practical Geolocation 
+% for Electronic Warfare with MATLAB, used in Video 5.2.
 %
 % Nicholas O'Donoughue
-% 16 November 2021
+% 8 February 2022
 
 %% Set up sensors
 alt1 = 1e3;
@@ -84,8 +75,9 @@ zlabel('z [m]');
 
 
 %% Retry with better elevation support
-alt2=2*alt1;
-x_tdoa2 = [-15e3, -5e3, 5e3, 15e3; 0, 0, 0, 0; alt1, alt2, alt1, alt2];
+alt2=.5*alt1;
+alt3=0*alt1;
+x_tdoa2 = [-15e3, -5e3, 5e3, 15e3; 0, 5e3, 0, 5e3; alt2, alt1, alt3, alt2];
 
 % Measurement and Noise
 z2 = tdoa.measurement(x_tdoa2, x_tgt, []);

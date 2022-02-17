@@ -21,6 +21,11 @@ doFullColor=true;
 utils.initPlotSettings;
 colors=get(groot,'DefaultAxesColorOrder');
 
+% Flag to force re-execution of long scripts
+if ~exist('force_recalc','var')
+    force_recalc = false;
+end
+
 % Reset the random number generator, to ensure reproducability
 rng('default') ; 
 
@@ -35,6 +40,11 @@ utils.exportPlot(fig, [prefix '1']);
 fig = book2_ex6_2;
 
 utils.exportPlot(fig, [prefix '2']);
+
+%% Figure 6.2a, Example 6.3
+fig = book2_ex6_3;
+
+utils.exportPlot(fig, [prefix '2a']);
 
 %% Figures 6.3a and 6.3b, Impact of Sensor Position Errors
 
@@ -100,6 +110,16 @@ ylim([0 11]);
 
 utils.setPlotStyle(gca,{'tight','clean','equal'});
 utils.exportPlot(fig3b,[prefix '3b']);
+
+%% Figures 6.7a, 6.7b, and 6.8, Example 6.4
+if force_recalc
+    figs = book2_ex6_4;
+
+    utils.exportPlot(figs(1), [prefix '7a']);
+    utils.exportPlot(figs(2), [prefix '7b']);
+    utils.exportPlot(figs(3), [prefix '8a']);
+    utils.exportPlot(figs(4), [prefix '8b']);
+end
 
 %% Cleanup
 

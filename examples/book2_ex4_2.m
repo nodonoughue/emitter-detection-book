@@ -61,10 +61,10 @@ ref_fdoa = n_fdoa;
 % 1:n_aoa are AOA sensors
 % n_aoa + (1:n_tdoa) are TDOA sensors
 % n_aoa + n_tdoa + (1:n_fdoa) are FDOA sensors
-[tdoa_ref_vec, tdoa_test_vec] = utils.parseReferenceSensor(ref_tdoa, n_tdoa);
-[fdoa_ref_vec, fdoa_test_vec] = utils.parseReferenceSensor(ref_fdoa, n_fdoa);
-ref_idx =  [1:2*n_aoa,      2*n_aoa + tdoa_ref_vec,  2*n_aoa + n_tdoa + fdoa_ref_vec];
-test_idx = [nan(1,2*n_aoa), 2*n_aoa + tdoa_test_vec, 2*n_aoa + n_tdoa + fdoa_test_vec];
+% [tdoa_ref_vec, tdoa_test_vec] = utils.parseReferenceSensor(ref_tdoa, n_tdoa);
+% [fdoa_ref_vec, fdoa_test_vec] = utils.parseReferenceSensor(ref_fdoa, n_fdoa);
+% ref_idx =  [1:2*n_aoa,      2*n_aoa + tdoa_ref_vec,  2*n_aoa + n_tdoa + fdoa_ref_vec];
+% test_idx = [nan(1,2*n_aoa), 2*n_aoa + tdoa_test_vec, 2*n_aoa + n_tdoa + fdoa_test_vec];
 
 %% Error Covariance Matrix
 cov_psi = (err_aoa_deg*pi/180)^2*eye(2*n_aoa); % rad^2
