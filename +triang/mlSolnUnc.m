@@ -1,7 +1,6 @@
-function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,tdoa_ref_idx,fdoa_ref_idx)
-% [x_est, alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,...
-%       x_fdoa,v_fdoa,zeta,C,x_ctr, search_size,epsilon,tdoa_ref_idx,...
-%       fdoa_ref_idx)
+function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,zeta,C,x_ctr,search_size,epsilon)
+% [x_est, alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,zeta,C,...
+%                   x_ctr,search_size,epsilon)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -10,47 +9,29 @@ function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v
 %
 % INPUTS:
 %   x_aoa           AOA sensor positions [m]
-%   x_tdoa          TDOA sensor positions [m]
-%   x_fdoa          FDOA sensor positions [m]
-%   v_fdoa          FDOA sensor velocities [m/s]
 %   zeta            Combined measurement vector
 %   C               Combined measurement error covariance matrix
 %   x_ctr           Center of search grid [m]
 %   search_size     Vector of search grid sizes [m]
 %   epsilon         Desired resolution of search grid [m]
-%   tdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
-%                   matrix of sensor pairings for TDOA
-%   fdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
-%                   matrix of sensor pairings for FDOA
 %
 % OUTPUTS:
 %   x_est           Estimated source position [m]
-%   alpha_est       Cell array with bias estimates for AOA, TDOA, FDOA
-%   beta_est        Cell array with estimated sensor positions (and, for
-%                   FDOA, sensor velocities).
+%   alpha_est       Array with bias estimates
+%   beta_est        Array with estimated sensor positions
 %   A               Likelihood computed across the entire set of candidate
 %                   source positions
 %   x_grid          Candidate source positions
 %
 % Nicholas O'Donoughue
-% 22 Feb 2022
+% 16 Feb 2022
 
-% Parse inputs
-if nargin < 10 || ~exist('tdoa_ref_idx','var')
-    tdoa_ref_idx = [];
-end
-
-if nargin < 11 || ~exist('fdoa_ref_idx','var')
-    fdoa_ref_idx = [];
-end
 
 % Parse inputs sizes
 n_dim = size(x_aoa,1);
 n_aoa = size(x_aoa,2);
-n_tdoa = size(x_tdoa,2);
-n_fdoa = size(x_fdoa,2);
 
-assert(size(C,1) == n_aoa + n_tdoa + n_fdoa || size(C,1) == 2*n_aoa + n_tdoa + n_fdoa,'Unable to determine if AOA measurements are 1D or 2D');
+assert(size(C,1) == n_aoa || size(C,1) == 2*n_aoa,'Unable to determine if AOA measurements are 1D or 2D');
 do2DAoA = size(C,1) == 2*n_aoa + n_tdoa + n_fdoa;
 if do2DAoA
     m_aoa = 2*n_aoa;
@@ -62,36 +43,29 @@ end
 % theta vector contains x, alpha, and beta.  Let's define the
 % indices
 x_ind = 1:n_dim;
-a_a_ind = n_dim + (1:m_aoa);
-a_t_ind = a_a_ind(end) + (1:n_tdoa);
-a_f_ind = a_t_ind(end) + (1:n_fdoa);
-b_a_ind = a_f_ind(end) + 1:(n_dim*n_aoa);
-b_t_ind = b_a_ind(end) + 1:(n_dim*n_tdoa);
-b_f_ind = b_t_ind(end) + 1:(n_dim*n_fdoa);
-b_fv_ind = b_f_ind(end) + 1:(n_dim*n_fdoa);
+a_ind = n_dim + (1:m_aoa);
+b_ind = a_ind(end) + 1:(n_dim*n_aoa);
 
 % Set up function handle
 % We must take care to ensure that it can handle an n_th x N matrix of
 % inputs; for compatibility with how utils.mlSoln will call it.
-ell = @(theta) hybrid.loglikelihoodUnc(x_aoa, x_tdoa, x_fdoa, v_fdoa, ...            % reported positions
-                                       zeta, C, theta, ...
-                                       tdoa_ref_idx, fdoa_ref_idx);
+ell = @(theta) triang.loglikelihoodUnc(x_aoa, zeta, C, theta);
         
 %% Define center of search space
-n_th = n_dim + m_aoa + n_tdoa + n_fdoa + n_dim * (n_aoa + n_tdoa + 2*n_fdoa);
+n_th = n_dim + m_aoa + n_dim * n_aoa;
 if isempty(x_ctr) || isscalar(x_ctr)
     % x_ctr is empty, use the origin
 
     th_ctr = [zeros(n_dim,1);
-              zeros(m_aoa + n_tdoa + n_fdoa,1); % alpha
-              x_aoa(:); x_tdoa(:); x_fdoa(:); v_fdoa(:)]; % beta
+              zeros(m_aoa,1); % alpha
+              x_aoa(:)]; % beta
 elseif numel(x_ctr) == n_dim
     % x_ctr is just the center of the target position
     
     % build th_ctr manually
     th_ctr = [x_ctr; 
-              zeros(m_aoa + n_tdoa + n_fdoa,1); % alpha
-              x_aoa(:); x_tdoa(:); x_fdoa(:); v_fdoa(:)]; % beta
+              zeros(m_aoa,1); % alpha
+              x_aoa(:)]; % beta
 elseif numel(x_ctr) == n_th
     % the user already specified x_ctr to include alpha and beta
     th_ctr = x_ctr;
@@ -104,31 +78,18 @@ if isempty(search_size) || isscalar(search_size)
     % search_size is empty, use default of
     % 10 km for target dimensions
     % 1 deg for angle bias
-    % 10 m for range bias
-    % 10 m/s for range-rate bias
     % 25 m for sensor positions
-    % 10 m/s for sensor velocities
 
     search_size = [10e3 * ones(1, n_dim), ...      % x [m]
                    pi/180 * ones(1, m_aoa), ...    % alpha_aoa [rad]
-                   10 * ones(1, n_tdoa), ...       % alpha_tdoa [m]
-                   10 * ones(1, n_fdoa), ...       % alpha_fdoa [m/s]
-                   25 * ones(1, n_aoa*n_dim), ...  % x_aoa [m]
-                   25 * ones(1, n_tdoa*n_dim), ... % x_tdoa [m]
-                   25 * ones(1, n_fdoa*n_dim), ... % x_fdoa [m]
-                   10 * ones(1, n_fdoa*n_dim)];    % v_fdoa [m/s]           
+                   25 * ones(1, n_aoa*n_dim)];     % x_aoa [m]
 elseif numel(search_size) == n_dim
     % search_size is just defined for the target position
     
     % build th_ctr manually
     search_size = [search_size(:)', ...            % x [m]
                    pi/180 * ones(1, m_aoa), ...    % alpha_aoa [rad]
-                   10 * ones(1, n_tdoa), ...       % alpha_tdoa [m]
-                   10 * ones(1, n_fdoa), ...       % alpha_fdoa [m/s]
-                   25 * ones(1, n_aoa*n_dim), ...  % x_aoa [m]
-                   25 * ones(1, n_tdoa*n_dim), ... % x_tdoa [m]
-                   25 * ones(1, n_fdoa*n_dim), ... % x_fdoa [m]
-                   10 * ones(1, n_fdoa*n_dim)];    % v_fdoa [m/s]      
+                   25 * ones(1, n_aoa*n_dim)];     % x_aoa [m]
 elseif numel(search_size) == n_th
     % the user already specified search_size to include alpha and beta,
     % do nothing.
@@ -142,8 +103,8 @@ if isempty(epsilon) || isscalar(epsilon)
     % points per dimension for target position, and 11 for bias and sensor
     % position/velocity.
     n_elements = [101 * ones(1, n_dim), ...
-                  11 * ones(1, m_aoa + n_tdoa + n_fdoa), ...
-                  11 * ones(1, n_dim * (n_aoa + n_tdoa + 2*n_fdoa))];
+                  11 * ones(1, m_aoa), ...
+                  11 * ones(1, n_dim * n_aoa )];
 
     epsilon = 2*search_size ./ (n_elements-1);
 
@@ -153,8 +114,8 @@ elseif numel(epsilon) == n_dim
     % computer number of elements for each dimension.
     % default is 11 per dimension for bias and sensor position/velocity.
     n_elements = [1 + 2*search_size(x_ind)./epsilon, ...
-                  11 * ones(1, m_aoa + n_tdoa + n_fdoa), ...
-                  11 * ones(1, n_dim * (n_aoa + n_tdoa + 2*n_fdoa))];
+                  11 * ones(1, m_aoa), ...
+                  11 * ones(1, n_dim * n_aoa)];
    
     % re-compute grid spacing
     epsilon = 2*search_size ./ (n_elements-1);
@@ -170,13 +131,5 @@ end
 [th_est,A,x_grid] = utils.mlSoln(ell,th_ctr,search_size,epsilon);
 
 x_est = th_est(x_ind);
-alpha_a_est = th_est(a_a_ind);
-alpha_t_est = th_est(a_t_ind);
-alpha_f_est = th_est(a_f_ind);
-alpha_est = {alpha_a_est, alpha_t_est, alpha_f_est};
-
-beta_a_est = th_est(b_a_ind);
-beta_t_est = th_est(b_t_ind);
-beta_f_est = th_est(b_f_ind);
-beta_fv_est = th_est(b_fv_ind);
-beta_est = {beta_a_est,beta_t_est, beta_f_est, beta_fv_est};
+alpha_est = th_est(a_ind);
+beta_est = th_est(b_ind);

@@ -1,4 +1,4 @@
-function z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, fdoa_ref_idxm, do2Daoa, alpha_aoa, alpha_tdoa, alpha_fdoa)
+function z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, fdoa_ref_idx, do2Daoa, alpha_aoa, alpha_tdoa, alpha_fdoa)
 % z = measurement(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_source, tdoa_ref_idx, 
 %                                                fdoa_ref_idx, do2Daoa)
 %
