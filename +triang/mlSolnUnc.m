@@ -32,7 +32,7 @@ n_dim = size(x_aoa,1);
 n_aoa = size(x_aoa,2);
 
 assert(size(C,1) == n_aoa || size(C,1) == 2*n_aoa,'Unable to determine if AOA measurements are 1D or 2D');
-do2DAoA = size(C,1) == 2*n_aoa + n_tdoa + n_fdoa;
+do2DAoA = size(C,1) == 2*n_aoa;
 if do2DAoA
     m_aoa = 2*n_aoa;
 else

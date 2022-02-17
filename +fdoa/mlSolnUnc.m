@@ -1,4 +1,4 @@
-function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,fdoa_ref_idx)
+function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_fdoa,v_fdoa,zeta,C,C_beta,x_ctr,search_size,epsilon,fdoa_ref_idx)
 % [x_est, alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_fdoa,v_fdoa,...
 %           zeta,C,x_ctr, search_size,epsilon,fdoa_ref_idx)
 %
@@ -12,6 +12,8 @@ function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_fdoa,v_fdoa,zeta,C,
 %   v_fdoa          FDOA sensor velocities [m/s]
 %   zeta            Combined measurement vector
 %   C               Combined measurement error covariance matrix
+%   C_beta      nDim x (nAOA + nTDOA + 2*nFDOA) sensor pos/vel error
+%               covariance matrix
 %   x_ctr           Center of search grid [m]
 %   search_size     Vector of search grid sizes [m]
 %   epsilon         Desired resolution of search grid [m]
@@ -31,7 +33,7 @@ function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_fdoa,v_fdoa,zeta,C,
 % 22 Feb 2022
 
 % Parse inputs
-if nargin < 8 || ~exist('fdoa_ref_idx','var')
+if nargin < 9 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 
@@ -43,14 +45,13 @@ n_fdoa = size(x_fdoa,2);
 % theta vector contains x, alpha, and beta.  Let's define the
 % indices
 x_ind = 1:n_dim;
-a_ind = n_dim + (1:n_fdoa);
-b_ind = a_ind(end) + 1:(n_dim*n_fdoa);
-b_v_ind = b_ind(end) + 1:(n_dim*n_fdoa);
+alpha_ind = n_dim + (1:n_fdoa);
+beta_ind = alpha_ind(end) + 1:(2*n_dim*n_fdoa);
 
 % Set up function handle
 % We must take care to ensure that it can handle an n_th x N matrix of
 % inputs; for compatibility with how utils.mlSoln will call it.
-ell = @(theta) fdoa.loglikelihoodUnc(x_fdoa, v_fdoa, zeta, C, theta, ...            % reported positions
+ell = @(theta) fdoa.loglikelihoodUnc(x_fdoa, v_fdoa, zeta, C, C_beta,theta, ...            % reported positions
                                      fdoa_ref_idx);
         
 %% Define center of search space
@@ -136,8 +137,5 @@ end
 [th_est,A,x_grid] = utils.mlSoln(ell,th_ctr,search_size,epsilon);
 
 x_est = th_est(x_ind);
-alpha_est = th_est(a_ind);
-
-beta_f_est = th_est(b_ind);
-beta_fv_est = th_est(b_v_ind);
-beta_est = {beta_f_est, beta_fv_est};
+alpha_est = th_est(alpha_ind);
+beta_est = th_est(beta_ind);

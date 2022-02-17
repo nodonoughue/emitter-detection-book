@@ -1,4 +1,4 @@
-function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,tdoa_ref_idx,fdoa_ref_idx)
+function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,C_beta,x_ctr,search_size,epsilon,tdoa_ref_idx,fdoa_ref_idx)
 % [x_est, alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,...
 %       x_fdoa,v_fdoa,zeta,C,x_ctr, search_size,epsilon,tdoa_ref_idx,...
 %       fdoa_ref_idx)
@@ -15,6 +15,8 @@ function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v
 %   v_fdoa          FDOA sensor velocities [m/s]
 %   zeta            Combined measurement vector
 %   C               Combined measurement error covariance matrix
+%   C_beta      nDim x (nAOA + nTDOA + 2*nFDOA) sensor pos/vel error
+%               covariance matrix
 %   x_ctr           Center of search grid [m]
 %   search_size     Vector of search grid sizes [m]
 %   epsilon         Desired resolution of search grid [m]
@@ -36,11 +38,11 @@ function [x_est,alpha_est, beta_est, A,x_grid] = mlSolnUnc(x_aoa,x_tdoa,x_fdoa,v
 % 22 Feb 2022
 
 % Parse inputs
-if nargin < 10 || ~exist('tdoa_ref_idx','var')
+if nargin < 11 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
 
-if nargin < 11 || ~exist('fdoa_ref_idx','var')
+if nargin < 12 || ~exist('fdoa_ref_idx','var')
     fdoa_ref_idx = [];
 end
 
@@ -62,19 +64,14 @@ end
 % theta vector contains x, alpha, and beta.  Let's define the
 % indices
 x_ind = 1:n_dim;
-a_a_ind = n_dim + (1:m_aoa);
-a_t_ind = a_a_ind(end) + (1:n_tdoa);
-a_f_ind = a_t_ind(end) + (1:n_fdoa);
-b_a_ind = a_f_ind(end) + 1:(n_dim*n_aoa);
-b_t_ind = b_a_ind(end) + 1:(n_dim*n_tdoa);
-b_f_ind = b_t_ind(end) + 1:(n_dim*n_fdoa);
-b_fv_ind = b_f_ind(end) + 1:(n_dim*n_fdoa);
+alpha_ind = n_dim + 1:(m_aoa + n_tdoa + n_fdoa);
+beta_ind = alpha_ind(end) + 1:(n_dim*(n_aoa + n_tdoa + 2*n_fdoa));
 
 % Set up function handle
 % We must take care to ensure that it can handle an n_th x N matrix of
 % inputs; for compatibility with how utils.mlSoln will call it.
 ell = @(theta) hybrid.loglikelihoodUnc(x_aoa, x_tdoa, x_fdoa, v_fdoa, ...            % reported positions
-                                       zeta, C, theta, ...
+                                       zeta, C, C_beta, theta, ...
                                        tdoa_ref_idx, fdoa_ref_idx);
         
 %% Define center of search space
@@ -170,13 +167,5 @@ end
 [th_est,A,x_grid] = utils.mlSoln(ell,th_ctr,search_size,epsilon);
 
 x_est = th_est(x_ind);
-alpha_a_est = th_est(a_a_ind);
-alpha_t_est = th_est(a_t_ind);
-alpha_f_est = th_est(a_f_ind);
-alpha_est = {alpha_a_est, alpha_t_est, alpha_f_est};
-
-beta_a_est = th_est(b_a_ind);
-beta_t_est = th_est(b_t_ind);
-beta_f_est = th_est(b_f_ind);
-beta_fv_est = th_est(b_fv_ind);
-beta_est = {beta_a_est,beta_t_est, beta_f_est, beta_fv_est};
+alpha_est = th_est(alpha_ind);
+beta_est = th_est(beta_ind);

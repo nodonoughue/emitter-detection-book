@@ -12,6 +12,8 @@ function [x_est,alpha_est,beta_est,A,x_grid] = mlSolnUnc(x_tdoa,zeta,C,C_beta,x_
 %   x_tdoa          TDOA sensor positions [m]
 %   zeta            Combined measurement vector
 %   C               Combined measurement error covariance matrix
+%   C_beta      nDim x (nAOA + nTDOA + 2*nFDOA) sensor pos/vel error
+%               covariance matrix
 %   x_ctr           Center of search grid [m]
 %   search_size     Vector of search grid sizes [m]
 %   epsilon         Desired resolution of search grid [m]
@@ -30,7 +32,7 @@ function [x_est,alpha_est,beta_est,A,x_grid] = mlSolnUnc(x_tdoa,zeta,C,C_beta,x_
 % 22 Feb 2022
 
 % Parse inputs
-if nargin < 7 || ~exist('tdoa_ref_idx','var')
+if nargin < 8 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
 
