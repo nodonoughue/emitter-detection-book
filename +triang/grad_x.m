@@ -1,4 +1,4 @@
-function J = grad_x(x_aoa, x_source, ~)
+function J = grad_x(x_aoa, x_source, do2DAoA, ~)
 % J = grad_x(x_aoa, x_source, do2DAoA, alpha_aoa)
 %
 % Returns the gradient of hybrid measurements, with sensor uncertainties,
@@ -10,8 +10,6 @@ function J = grad_x(x_aoa, x_source, ~)
 %   x_source        Candidate source positions
 %   do2DAoA
 %   alpha_aoa
-%   alpha_tdoa
-%   alpha_fdoa
 %
 % OUTPUTS:
 %   J               nDim x nMeasurement x nSource matrix of Jacobians,

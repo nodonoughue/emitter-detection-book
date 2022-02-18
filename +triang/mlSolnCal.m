@@ -132,8 +132,7 @@ end
 theta_a = @(alpha) cat(1,x_cal(:),alpha,x_aoa(:));
 ell_a = @(alpha) triang.loglikelihoodUnc(x_aoa, zeta_cal, C, C_beta, theta_a(alpha));
 
-th_est = utils.mlSoln(ell_a,alpha_ctr,alpha_srch,eps_a);
-alpha_est = th_est(a_ind);
+alpha_est = utils.mlSoln(ell_a,alpha_ctr,alpha_srch,eps_a);
 
 %% Estimate Source Positions
 %  Assume target position is known (xt=x_cal(:))
@@ -142,8 +141,7 @@ alpha_est = th_est(a_ind);
 theta_b = @(beta) cat(1,x_cal(:),alpha_est,beta);
 ell_b = @(beta) triang.loglikelihoodUnc(x_aoa, zeta_cal, C, C_beta, theta_b(beta));
 
-th_est = utils.mlSoln(ell_b,beta_ctr,beta_srch,eps_b);
-beta_est = th_est(b_ind);
+beta_est = utils.mlSoln(ell_b,beta_ctr,beta_srch,eps_b);
 
 %% Estimate Target Positions
 %  This time, we assume that we know both alpha and beta, so we only need
