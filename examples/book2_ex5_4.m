@@ -41,10 +41,10 @@ b = utils.constraints.boundedAlt(alt_low, alt_high, 'ellipse');
 % Error
 err_aoa = 3*pi/180; % 1 deg
 C_aoa = err_aoa^2*eye(2*n_aoa);
-U = chol(C_aoa,'upper');
+L = chol(C_aoa,'lower');
 
 z = triang.measurement(x_aoa, x_tgt);
-n = U*randn(2*n_aoa,1);
+n = L*randn(2*n_aoa,1);
 zeta = z+n;
 
 %% Solvers

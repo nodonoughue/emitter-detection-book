@@ -26,11 +26,11 @@ x_init = [0;10e3;alt1];
 % Sensor Accuracy
 time_err = 1e-7;
 Croa = (utils.constants.c*time_err)^2 * eye(n_tdoa);
-U = chol(Croa,'upper');
+L = chol(Croa,'lower');
 
 % Measurement and Noise
 z = tdoa.measurement(x_tdoa, x_tgt, []);
-noise = U*randn(n_tdoa,1); % generate sensor-level noise
+noise = L*randn(n_tdoa,1); % generate sensor-level noise
 noise_z = utils.resampleNoise(noise, []); % generate measurement-level noise
 zeta = z + noise_z;
 

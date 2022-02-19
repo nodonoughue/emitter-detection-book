@@ -41,7 +41,7 @@ C_beta_single = .1*eye(num_dims);
 C_beta = kron(C_pos_1d,C_beta_single);
 
 % Generate a random set of AOA and TDOA positions
-% U=chol(C_beta,'upper'); -- This will fail, because C_beta is not positive
+% L=chol(C_beta,'lower'); -- This will fail, because C_beta is not positive
 % definite (it has some eigenvalues that are zero)
 [U,S,~] = svd(C_beta);
 epsilon = reshape(U*sqrt(S)*randn(num_dims*(n_aoa+n_tdoa),1),num_dims,n_aoa+n_tdoa);

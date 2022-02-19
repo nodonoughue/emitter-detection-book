@@ -18,10 +18,10 @@ x_tdoa = [0, 2, 0; 2, -2, 0]; % avg position (reported)
 n_tdoa = size(x_tdoa,2);
 
 C_pos_full = .1*eye(2*n_tdoa); % position covar; all are IID
-U = chol(C_pos_full,'upper');
+L = chol(C_pos_full,'lower');
 
 % Generate a random set of TDOA positions
-beta = x_tdoa + reshape(U*randn(2*n_tdoa,1),2,n_tdoa);
+beta = x_tdoa + reshape(L*randn(2*n_tdoa,1),2,n_tdoa);
 
 %% Generate Measurements
 x_tgt = [6; 3];
