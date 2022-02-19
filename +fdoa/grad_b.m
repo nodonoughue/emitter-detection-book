@@ -1,4 +1,4 @@
-function J = grad_b(x_fdoa, ~, x_source, fdoa_ref_idx, ~)
+function J = grad_b(x_fdoa, v_fdoa, x_source, fdoa_ref_idx, ~)
 % J = grad_b(x_fdoa, v_fdoa, x_source, fdoa_ref_idx, alpha_fdoa)
 %
 % Returns the gradient of hybrid measurements, with sensor uncertainties,
@@ -33,13 +33,15 @@ if nargin < 4 || ~exist('fdoa_ref_idx','var')
 end
 
 % Compute Pointing Vectors
-dx = x_tdoa - reshape(x_source,n_dim,1,n_source); % nDim x nSensor x nSource
+dx = x_fdoa - reshape(x_source,n_dim,1,n_source); % nDim x nSensor x nSource
 Rn = sqrt(sum(abs(dx).^2,1)); % Euclidean norm for each offset vector
 dx_norm = dx ./ Rn;
 
+Px = reshape(dx_norm,n_dim,1,n_fdoa,n_source).*reshape(conj(dx_norm),1,n_dim,n_fdoa,n_source);
+
 %% Compute the gradient of R_n
-nabla_Rn = squeeze(sum((eye(nDim) - Px) ...
-                .* reshape(v_sensor./Rn,1,nDim,nSensor),2));
+nabla_Rn = squeeze(sum((eye(n_dim) - Px) ...
+                .* reshape(v_fdoa./Rn,1,n_dim,n_fdoa,n_source),2));
       % nDim x nSensor x nSource
 
 %% Parse reference index vector

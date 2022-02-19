@@ -62,8 +62,8 @@ y_a = @(alpha) reshape(z_cal - tdoa.measurement(x_tdoa,x_cal,tdoa_ref_idx,alpha)
     % Response will be n_msmt x n_cal, reshape to n_msmt*n_cal x 1
 
 J_a = @(alpha) reshape(tdoa.grad_a(x_tdoa, x_cal, tdoa_ref_idx, alpha),...
-                                   n_dim,m_tdoa*n_cal);
-    % Response will be n_dim x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
+                                   n_tdoa,m_tdoa*n_cal);
+    % Response will be n_alpha x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
 
 % Build the initial theta vector
 alpha_init = zeros(n_tdoa,1);
@@ -82,7 +82,7 @@ y_b = @(beta) reshape(z_cal - tdoa.measurement(reshape(beta,n_dim,n_tdoa), ...  
 J_b = @(beta) reshape(tdoa.grad_b(reshape(beta,n_dim,n_tdoa), ...  % x_tdoa
                                   x_cal, tdoa_ref_idx, ...
                                   alpha_est), ...
-                                  n_dim,m_tdoa*n_cal);
+                                  n_dim*n_tdoa,m_tdoa*n_cal);
 
 % Build the initial vector
 beta_init = x_tdoa(:);

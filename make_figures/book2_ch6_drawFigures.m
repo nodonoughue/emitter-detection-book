@@ -121,6 +121,11 @@ if force_recalc
     utils.exportPlot(figs(4), [prefix '8b']);
 end
 
+%% Figure 6.10, Example 6.5
+figs = book2_ex6_5;
+
+utils.exportPlot(figs(1), [prefix '10']);
+
 %% Cleanup
 
 % Restore plot settings

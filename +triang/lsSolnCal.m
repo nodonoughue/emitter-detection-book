@@ -56,8 +56,8 @@ y_a = @(alpha) reshape(z_cal - triang.measurement(x_aoa,x_cal,do2DAoA,alpha),...
     % Response will be n_msmt x n_cal, reshape to n_msmt*n_cal x 1
 
 J_a = @(alpha) reshape(triang.grad_a(x_aoa, x_cal, do2DAoA, alpha), ...
-                                     n_dim,(m_aoa+m_tdoa+m_fdoa)*n_cal);
-    % Response will be n_dim x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
+                                     m_aoa,m_aoa*n_cal);
+    % Response will be n_alpha x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
 
 % Build the initial theta vector
 alpha_init = zeros(m_aoa,1);
@@ -74,7 +74,7 @@ y_b = @(beta) reshape(z_cal - triang.measurement(reshape(beta,n_dim,n_aoa), ... 
 
 J_b = @(beta) reshape(triang.grad_b(reshape(beta,n_dim,n_aoa), ...   % x_aoa
                                     x_cal, do2DAoA, alpha_est),...
-                                    n_dim,m_aoa*n_cal);
+                                    n_dim*n_aoa,m_aoa*n_cal);
 
 % Build the initial vector
 beta_init = x_aoa(:);

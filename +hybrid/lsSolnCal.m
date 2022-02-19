@@ -49,11 +49,21 @@ if nargin < 15 || ~exist('fdoa_ref_idx','var')
 end
 
 % Parse inputs sizes
-n_dim = size(x_aoa,1);
-n_aoa = size(x_aoa,2);
-n_tdoa = size(x_tdoa,2);
-n_fdoa = size(x_fdoa,2);
-n_cal = size(x_cal,2);
+[n_dim_a,n_aoa] = size(x_aoa);
+[n_dim_t,n_tdoa] = size(x_tdoa);
+[n_dim_f,n_fdoa] = size(x_fdoa);
+[n_dim_c,n_cal] = size(x_cal);
+
+if n_aoa > 0
+    n_dim = n_dim_a;
+elseif n_tdoa > 0
+    n_dim = n_dim_t;
+elseif n_fdoa > 0
+    n_dim = n_dim_f;
+else
+    error('At least one set of sensors required (AOA, TDOA, or FDOA)');
+end
+assert(n_dim_c == n_dim,'Error parsing input dimensions.');
 
 assert(size(C,1) == n_aoa + n_tdoa + n_fdoa || size(C,1) == 2*n_aoa + n_tdoa + n_fdoa,'Unable to determine if AOA measurements are 1D or 2D');
 do2DAoA = size(C,1) == 2*n_aoa;
@@ -86,8 +96,8 @@ C_cal = kron(eye(n_cal),C_tilde);
 %  Assume provided sensor positions are accurate
 %  Use known calibration emitter positions
 alpha_a_ind = 1:m_aoa;
-alpha_t_ind = alpha_a_ind(end) + 1:n_tdoa;
-alpha_f_ind = alpha_t_ind(end) + 1:n_fdoa;
+alpha_t_ind = m_aoa + 1:n_tdoa;
+alpha_f_ind = m_aoa + (n_tdoa + 1:n_fdoa);
 
 y_a = @(alpha) reshape(z_cal - hybrid.measurement(x_aoa,x_tdoa,x_fdoa,v_fdoa,...
                                                   x_cal,tdoa_ref_idx,fdoa_ref_idx,do2DAoA,...
@@ -102,8 +112,8 @@ J_a = @(alpha) reshape(hybrid.grad_a(x_aoa, x_tdoa, x_fdoa, v_fdoa, x_cal, ...
                                      alpha(alpha_a_ind), ...
                                      alpha(alpha_t_ind), ...
                                      alpha(alpha_f_ind)),...
-                                     n_dim,(m_aoa+m_tdoa+m_fdoa)*n_cal);
-    % Response will be n_dim x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
+                                     m_aoa+n_tdoa+n_fdoa,(m_aoa+m_tdoa+m_fdoa)*n_cal);
+    % Response will be n_alpha x n_msmt x n_cal, reshape to n_dim x n_msmt*n_cal
 
 % Build the initial theta vector
 alpha_init = zeros(m_aoa + n_tdoa + n_fdoa,1);
@@ -118,9 +128,9 @@ alpha_fdoa_est = alpha_est(alpha_f_ind);
 %  Use estimated alpha, and known cal positions
 %  Estimate sensor positions
 beta_a_ind = 1:n_dim*n_aoa;
-beta_t_ind = beta_a_ind(end) + (1:n_dim*n_tdoa);
-beta_fx_ind = beta_t_ind(end) + (1:n_dim*n_fdoa);
-beta_fv_ind = beta_fx_ind(end)+ (1:n_dim*n_fdoa);
+beta_t_ind = n_dim*n_aoa + (1:n_dim*n_tdoa);
+beta_fx_ind = n_dim*(n_aoa+n_tdoa) + (1:n_dim*n_fdoa);
+beta_fv_ind = n_dim*(n_aoa+n_tdoa+n_fdoa) + (1:n_dim*n_fdoa);
 y_b = @(beta) reshape(z_cal - hybrid.measurement(reshape(beta(beta_a_ind),n_dim,n_aoa), ...   % x_aoa
                                                  reshape(beta(beta_t_ind),n_dim,n_tdoa), ...  % x_tdoa
                                                  reshape(beta(beta_fx_ind),n_dim,n_fdoa), ... % x_fdoa
@@ -137,10 +147,10 @@ J_b = @(beta) reshape(hybrid.grad_b(reshape(beta(beta_a_ind),n_dim,n_aoa), ...  
                                     x_cal, ...            % x
                                     tdoa_ref_idx, fdoa_ref_idx, do2DAoA, ...
                                     alpha_aoa_est, alpha_tdoa_est, alpha_fdoa_est), ...
-                                    n_dim,(m_aoa+m_tdoa+m_fdoa)*n_cal);
+                                    n_dim*(n_aoa+n_tdoa+2*n_fdoa),(m_aoa+m_tdoa+m_fdoa)*n_cal);
 
 % Build the initial vector
-beta_init = [x_aoa(:); x_tdoa(:), x_fdoa(:); v_fdoa(:)];
+beta_init = [x_aoa(:); x_tdoa(:); x_fdoa(:); v_fdoa(:)];
 
 beta_est = utils.lsSoln(y_b,J_b,C_cal,beta_init,epsilon,max_num_iterations,force_full_calc,plot_progress);
 x_aoa_est = reshape(beta_est(beta_a_ind),n_dim,n_aoa);
