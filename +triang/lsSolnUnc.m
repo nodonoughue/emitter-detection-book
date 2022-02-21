@@ -1,5 +1,5 @@
-function [x,x_full] = lsSolnUnc(x_aoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
-% [x,x_full] = lsSolnUnc(x_aoa, z,C,x_init,
+function [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_aoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress)
+% [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_aoa, z,C,x_init,
 %                        epsilon,max_num_iterations,force_full_calc,
 %                        plot_progress)
 %
@@ -23,6 +23,8 @@ function [x,x_full] = lsSolnUnc(x_aoa, z,C,x_init,epsilon,max_num_iterations,for
 % Outputs:
 %   x               Estimated source position
 %   x_full          Iteration-by-iteration estimated source positions
+%   alpha_est       Array with bias estimates
+%   beta_est        Array with estimated sensor positions
 %
 % Nicholas O'Donoughue
 % 17 Feb 2022
@@ -65,4 +67,5 @@ th_init = [x_init; zeros(m_aoa,1); x_aoa(:)];
 % Grab the x coordinates
 x = th(x_ind);
 x_full = th_full(x_ind,:);
-
+alpha_est = th(alpha_ind);
+beta_est = th(beta_ind);

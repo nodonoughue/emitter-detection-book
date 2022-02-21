@@ -1,5 +1,5 @@
-function [x,x_full] = lsSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,max_num_iterations, force_full_calc, plot_progress, tdoa_ref_idx, fdoa_ref_idx)
-% [x,x_full] = lsSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,
+function [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,max_num_iterations, force_full_calc, plot_progress, tdoa_ref_idx, fdoa_ref_idx)
+% [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,
 %                        max_num_iterations, force_full_calc, 
 %                        plot_progress, tdoa_ref_idx, fdoa_ref_idx)
 %
@@ -30,6 +30,8 @@ function [x,x_full] = lsSolnUnc(x_aoa,x_tdoa,x_fdoa,v_fdoa,z,C,x_init,epsilon,ma
 % Outputs:
 %   x               Estimated source position
 %   x_full          Iteration-by-iteration estimated source positions
+%   alpha_est       Array with bias estimates
+%   beta_est        Array with estimated sensor positions
 %
 % Nicholas O'Donoughue
 % 17 Feb 2022
@@ -61,9 +63,6 @@ end
 [tdoa_test_idx_vec, tdoa_ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
 [fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
 
-m_tdoa = numel(tdoa_test_idx_vec);
-m_fdoa = numel(fdoa_test_idx_vec);
-
 % Initialize measurement error and Jacobian function handles
 % theta vector contains x, alpha, and beta.  Let's define the
 % indices
@@ -71,10 +70,12 @@ x_ind = 1:n_dim;
 alpha_a_ind = x_ind(end) + (1:m_aoa);
 alpha_t_ind = alpha_a_ind(end) + (1:n_tdoa);
 alpha_f_ind = alpha_t_ind(end) + (1:n_fdoa);
+alpha_ind = [alpha_a_ind, alpha_t_ind, alpha_f_ind];
 beta_a_ind = alpha_f_ind(end) + (1:n_dim*n_aoa);
 beta_t_ind = beta_a_ind(end) + (1:n_dim*n_tdoa);
 beta_fx_ind = beta_t_ind(end) + (1:n_dim*n_fdoa);
 beta_fv_ind = beta_fx_ind(end)+ (1:n_dim*n_fdoa);
+beta_ind = [beta_a_ind, beta_t_ind, beta_fx_ind, beta_fv_ind];
 
 y = @(theta) z - hybrid.measurement(reshape(theta(beta_a_ind),n_dim,m_aoa), ...   % x_aoa
                                     reshape(theta(beta_t_ind),n_dim,n_tdoa), ...  % x_tdoa
@@ -114,3 +115,5 @@ th_init = [x_init; zeros(m_aoa+n_tdoa+n_fdoa,1); x_aoa(:); x_tdoa(:); x_fdoa(:);
 % Grab the x coordinates
 x = th(x_ind);
 x_full = th_full(x_ind,:);
+alpha_est = th(alpha_ind);
+beta_est = th(beta_ind);

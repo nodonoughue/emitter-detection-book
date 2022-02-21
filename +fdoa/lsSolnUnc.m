@@ -1,5 +1,5 @@
-function [x,x_full] = lsSolnUnc(x_fdoa, v_fdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,fdoa_ref_idx)
-% [x,x_full] = lsSolnUnc(x_fdoa, v_fdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,
+function [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_fdoa, v_fdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,fdoa_ref_idx)
+% [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_fdoa, v_fdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,
 %                        plot_progress,fdoa_ref_idx)
 %
 % Computes the least square solution for hybrid FDOA processing.
@@ -25,6 +25,8 @@ function [x,x_full] = lsSolnUnc(x_fdoa, v_fdoa, z,C,x_init,epsilon,max_num_itera
 % Outputs:
 %   x               Estimated source position
 %   x_full          Iteration-by-iteration estimated source positions
+%   alpha_est       Array with bias estimates
+%   beta_est        Array with estimated sensor positions
 %
 % Nicholas O'Donoughue
 % 1 Nov 2021
@@ -40,8 +42,6 @@ n_fdoa = size(x_fdoa,2);
 
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
 
-m_fdoa = numel(test_idx_vec);
-
 % Initialize measurement error and Jacobian function handles
 % theta vector contains x, alpha, and beta.  Let's define the
 % indices
@@ -49,6 +49,7 @@ x_ind = 1:n_dim;
 alpha_ind = x_ind(end) + (1:n_fdoa);
 beta_fx_ind = alpha_ind(end) + (1:n_dim*n_fdoa);
 beta_fv_ind = beta_fx_ind(end)+ (1:n_dim*n_fdoa);
+beta_ind = [beta_fx_ind,beta_fv_ind];
 
 y = @(theta) z - fdoa.measurement(reshape(theta(beta_fx_ind),n_dim,n_fdoa), ... % x_fdoa
                                   reshape(theta(beta_fv_ind),n_dim,n_fdoa), ... % v_fdoa
@@ -73,4 +74,5 @@ th_init = [x_init; zeros(n_fdoa,1); x_fdoa(:); v_fdoa(:)];
 % Grab the x coordinates
 x = th(x_ind);
 x_full = th_full(x_ind,:);
-
+alpha_est = th(alpha_ind);
+beta_est = th(beta_ind);

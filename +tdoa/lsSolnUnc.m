@@ -1,5 +1,5 @@
-function [x,x_full] = lsSolnUnc(x_tdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,tdoa_ref_idx)
-% [x,x_full] = lsSolnUnc(x_tdoa, z,C,x_init,epsilon,max_num_iterations,
+function [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_tdoa, z,C,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress,tdoa_ref_idx)
+% [x,x_full,alpha_est,beta_est] = lsSolnUnc(x_tdoa, z,C,x_init,epsilon,max_num_iterations,
 %                   force_full_calc, plot_progress,tdoa_ref_idx)
 %
 % Computes the gradient descent solution for TDOA processing.
@@ -24,6 +24,8 @@ function [x,x_full] = lsSolnUnc(x_tdoa, z,C,x_init,epsilon,max_num_iterations,fo
 % Outputs:
 %   x               Estimated source position
 %   x_full          Iteration-by-iteration estimated source positions
+%   alpha_est       Array with bias estimates
+%   beta_est        Array with estimated sensor positions
 %
 % Nicholas O'Donoughue
 % 17 Feb 2022
@@ -38,8 +40,6 @@ n_dim = size(x_tdoa,1);
 n_tdoa = size(x_tdoa,2);
 
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
-
-m_tdoa = numel(test_idx_vec);
 
 % Initialize measurement error and Jacobian function handles
 % theta vector contains x, alpha, and beta.  Let's define the
@@ -69,4 +69,6 @@ th_init = [x_init; zeros(n_tdoa,1); x_tdoa(:)];
 % Grab the x coordinates
 x = th(x_ind);
 x_full = th_full(x_ind,:);
+alpha_est = th(alpha_ind);
+beta_est = th(beta_ind);
 
