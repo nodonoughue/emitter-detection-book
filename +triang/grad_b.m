@@ -19,7 +19,7 @@ function J = grad_b(x_aoa, x_source, do2DAoA, alpha_aoa)
 % 31 October 2021
 
 if nargin < 3 || ~exist('do2DAoA','var')
-    do2DAoA = [];
+    do2DAoA = size(x_source,1)==3;
 end
 
 if nargin < 4 || ~exist('alpha_aoa','var')
@@ -37,7 +37,7 @@ n_source = size(x_source,2);
 J_x = triang.grad_x(x_aoa, x_source, do2DAoA, alpha_aoa);
         % Result is 3 x n_aoa or 3 x (2*n_aoa)
 
-J = zeros(3*n_aoa, n_aoa, n_source);
+J = zeros(n_dim*n_aoa, n_aoa, n_source);
 for idx=1:n_aoa
     J((1:n_dim)+n_dim*(idx-1),idx,:) = J_x(:,idx,:);
 end
