@@ -1,5 +1,6 @@
 doFullColor = true;
 utils.initPlotSettings;
+colors=get(groot,'DefaultAxesColorOrder');
 
 %% Figures 6.3a and 6.3b, Impact of Sensor Position Errors
 

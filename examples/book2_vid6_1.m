@@ -1,5 +1,6 @@
 doFullColor = true;
 utils.initPlotSettings;
+colors=get(groot,'DefaultAxesColorOrder');
 
 %% Figures 6.3a and 6.3b, Impact of Sensor Position Errors
 
@@ -10,7 +11,7 @@ x_err_offaxis = [0;1];
 
 x_aoa_un = x_aoa + x_err;
 x_aoa_nonun = x_aoa + x_err*[-1 1];
-x_aoa_offaxis = x_aoa + x_err_offaxis*[1 1];
+x_aoa_offaxis = x_aoa + x_err_offaxis*[-1 1];
 
 % Solve True LOBs and AOAs
 lob = x_target - x_aoa;
@@ -50,7 +51,6 @@ ylim([0 11]);
 legend('Location','NorthWest');
 
 utils.setPlotStyle(gca,{'tight','clean','equal'});
-utils.exportPlot(fig3a,[prefix '3a']);
 
 % Draw Non-Uniform Offset case
 fig3b=figure;
@@ -71,7 +71,7 @@ utils.setPlotStyle(gca,{'tight','clean','equal'});
 
 
 % Draw Vertical Offset case
-fig3b=figure;
+fig3c=figure;
 plot(squeeze(lob_true(1,:,:))',...
      squeeze(lob_true(2,:,:))','-','Color',colors(1,:),'DisplayName','True LOB');
 hold on;
