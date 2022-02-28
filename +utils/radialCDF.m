@@ -43,7 +43,8 @@ end
 [n_dim1, n_dim2, n_matrices] = size(cov);
 n_radii = numel(rad);
 
-assert(n_dim1 == 2 && n_dim2 == 2, 'First two dimensions of cov must have size 2.');
+% assert(n_dim1 == 2 && n_dim2 == 2, 'First two dimensions of cov must have size 2.');
+assert(n_dim1 == n_dim2, 'First two dimensions of cov must match.');
 
 %% Process Covariance Matrices
 var_x = zeros(n_matrices, 1);
@@ -54,23 +55,39 @@ for idx_m = 1:n_matrices
 
     if this_cov(1,2) == 0 && this_cov(2,1) == 0
         % Already diagonalized
-        var_x(idx_m) = this_cov(1,1);
-        var_y(idx_m) = this_cov(2,2);
+        var_x(idx_m) = min(this_cov(1,1),this_cov(2,2));
+        var_y(idx_m) = max(this_cov(1,1),this_cov(2,2));
     else
         % Use eigendecomposition
         lam = eig(this_cov);
 
-        var_x(idx_m) = lam(1);
-        var_y(idx_m) = lam(2);
+        % Sort the eigenvalues
+        lamSort = sort(lam,'descend');
+
+        var_x(idx_m) = lamSort(2);
+        var_y(idx_m) = lamSort(1);
     end
 end
 
 sigma_x = sqrt(var_x);
 sigma_y = sqrt(var_y);
 
+%% Check for Unstable Conditions
+ratio = var_y./var_x;
+
+mask_1drows = ratio > 1e10;
+mask_infrows = isinf(ratio) || isnan(ratio);
+mask_validrows = ~mask_1drows & ~mask_infrows;
+
+% num_validrows = sum(mask_validrows);
+
 %% Precompute Constants and Define PDF
 a = (var_y + var_x)./(4 * var_x .* var_y);
 b = (var_y - var_x)./(4 * var_x .* var_y);
+
+% Restrict the a/b columns to rows that required the full calculation
+a = a(mask_validrows);
+b = b(mask_validrows);
 
 % This is a slightly different form that was defined in Chew and Boyce,
 % because numerical computation of the Modified Bessel Function runs into 
@@ -86,14 +103,19 @@ fr = @(r) r .* exp((b-a).*r.^2) .* besseli(0, b.*r.^2, 1) ./ (sigma_x.*sigma_y);
 % Also, if sigma_x / sigma_y >> 1, we can start to approximate as a 1D
 % problem.
 dr = max(rad)/(n_int_pts-1);
-r_vec = 0:dr:rad;
+r_vec = 0:dr:max(rad);
 
 % Be careful to ensure that r_vec is a row vector, since a and b are column
 % vectors (one entry for each of the provided covariance matrices).
-pdf = fr(r_vec); % n_matrices x n_int_points
+pdf = fr(r_vec); % num_validrows x n_int_points
 
 z = zeros(n_matrices, n_radii);
 for idx_r = 1:n_radii
     out_idx = find(r_vec > rad(idx_r),1,'first') - 1;
-    z(:, idx_r) = sum(pdf(:,1:out_idx),2)*dr;
+    z(valid_mask, idx_r) = sum(pdf(:,1:out_idx),2)*dr;
 end
+
+%% Handle the invalid rows
+z(mask_1drows,:) =  utils.normcdf(rad,0,sigma_y(mask_1drows)) ...
+                   -utils.normcdf(-rad,0,sigma_y(mask_1drows));
+z(mask_infrows,:) = 0;
