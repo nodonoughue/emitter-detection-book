@@ -6,6 +6,8 @@ This repository contains the MATLAB code, released under the MIT License, that g
 
 The textbook can be purchased from **[Artech House](https://us.artechhouse.com/Emitter-Detection-and-Geolocation-for-Electronic-Warfare-P2052.aspx)**.
 
+A python port is in progress, check the **[git repository](https://github.com/nodonoughue/emitter-detection-python)**.
+
 ### Update 20211213 -- Additional Features Coming
 This repository now contains code for several new features, that are to be discussed in an upcoming textbook.  When it is published, I will include details on how to purchase the book.  Until then, consider these new features to be unfinished, but please feel free to send me bug reports if you have any.
 
