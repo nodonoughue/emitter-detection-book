@@ -31,7 +31,7 @@ v_tgt_full = [-20;0;0] + cumsum(a_tgt_full*t_inc,2);
 x_tgt_full = [50e3;50e3;0] + cumsum(v_tgt_full*t_inc,2);
 
 %% Measurement Statistics
-sigma_theta = 1; % deg
+sigma_theta = .2; % deg
 sigma_psi = sigma_theta*pi/180; % rad
 num_msmt=2; % az/el
 R = sigma_psi^2*eye(num_msmt); % measurement error covariance
@@ -102,6 +102,7 @@ for idx=1:num_time
     
     % Update msmt function
     this_x_aoa = x_aoa_full(1:num_dims,idx);
+    this_x_tgt = x_tgt_full(1:num_dims,idx);
 
     [z_fun, h_fun] = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],state_space);
 
@@ -141,9 +142,9 @@ for idx=1:num_time
     zeta_plus = this_zeta + sigma_psi;
     zeta_minus = this_zeta - sigma_psi;
 
-    lob = triang.drawLob(this_x_aoa(1:2), this_zeta(1), x_tgt(1:2),5);
-    lob_plus = triang.drawLob(this_x_aoa(1:2), zeta_plus(1), x_tgt(1:2),5);
-    lob_minus = triang.drawLob(this_x_aoa(1:2), zeta_minus(1), x_tgt(1:2),5);
+    lob = triang.drawLob(this_x_aoa(1:2), this_zeta(1), this_x_tgt(1:2),5);
+    lob_plus = triang.drawLob(this_x_aoa(1:2), zeta_plus(1), this_x_tgt(1:2),5);
+    lob_minus = triang.drawLob(this_x_aoa(1:2), zeta_minus(1), this_x_tgt(1:2),5);
 
     lob_fill = cat(2,lob_minus, fliplr(lob_plus), lob_minus(:,1,:));
     lobs{idx} = struct('lob',lob,'lob_fill',lob_fill);
@@ -166,7 +167,7 @@ fig1.WindowState='maximized';
 
 % Measurements
 subplot(221);
-hdl_msmt=plot(t_vec,zeta,'DisplayName','Measurements');
+hdl_msmt=plot(t_vec,zeta*180/pi,'DisplayName','Measurements');
 hold on;
 hdl_marker_msmt=scatter(t_vec(1),zeta(:,1)*180/pi,'ko','filled');
 grid on;
@@ -273,7 +274,7 @@ for idx_frame = 1:num_frames
     % Update Measurement Marker
     for idx=1:num_msmt
         hdl_marker_msmt(idx).XData = this_time;
-        hdl_marker_msmt(idx).YData = this_zeta(idx);
+        hdl_marker_msmt(idx).YData = this_zeta(idx)*180/pi;
     end
 
     % Update Error Marker

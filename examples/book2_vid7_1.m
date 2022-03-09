@@ -25,7 +25,7 @@ x_tgt = [2e3;
 % Define sensor accuracy
 n_dim = size(x_aoa,1);
 n_aoa = size(x_aoa,2);
-sigma_theta = 45;
+sigma_theta = 10;
 sigma_psi = sigma_theta * pi/180;
 C = sigma_psi^2 * eye(n_aoa);
 
@@ -34,7 +34,7 @@ crlb = triang.computeCRLB(x_aoa, x_tgt, C);
 cep = utils.computeCEP50(crlb)/1e3;
 
 %% Initialize Variables
-total_num_samples = 10000;
+total_num_samples = 1000;
 
 psi = triang.measurement(x_aoa,x_tgt);
 noise = sqrt(C)*randn(n_aoa,total_num_samples);
@@ -48,12 +48,12 @@ crlb_ellipses = arrayfun(@(k) utils.drawErrorEllipse(x_tgt, crlb/k,101),1:total_
 
 %% Solve Each One
 x_prior = [0;1e3];
-x_est_full = zeros(n_dim,num_frames);
+x_est_full = zeros(n_dim,total_num_samples);
 
 for k=1:total_num_samples
     x_est = triang.lsSoln(x_aoa,zeta_avg(:,k),C,x_prior,[],[],false,false);
     x_est_full(:,k) = x_est;
-    % x_prior = x_est;
+%     x_prior = x_est;
 end
 
 %% Establish figure
@@ -69,15 +69,17 @@ xlabel('Sample [K]');
 ylabel('\theta [deg]');
 grid on;
 msmt_hdls = plot(1:total_num_samples,zeta*180/pi,'DisplayName','Measurements');
-for ii=1:numel(hdls)
+for ii=1:numel(msmt_hdls)
     msmt_hdls(ii).Color = [msmt_hdls(ii).Color .5];
 end
-plot(1:total_num_samples,zeta_avg*180/pi,'k','LineWidth',2,'DisplayName','Running Average');
+utils.excludeFromLegend(msmt_hdls(2:end));
+avg_hdls=plot(1:total_num_samples,zeta_avg*180/pi,'k','LineWidth',2,'DisplayName','Running Average');
+utils.excludeFromLegend(avg_hdls(2:end));
 curr_msmt_markers = scatter(ones(2,1),zeta(:,1),'ko','filled');
 utils.excludeFromLegend(curr_msmt_markers);
 curr_avg_markers = scatter(ones(2,1),zeta_avg(:,1),'ko','filled');
 utils.excludeFromLegend(curr_avg_markers);
-legend('Location','NorthEast');
+legend('Location','NorthWest');
 xlim([1,total_num_samples]);
 grid on;
 set(gca,'xscale','log');
@@ -105,12 +107,15 @@ this_ell = crlb_ellipses{num_tail};
 hdl_ell = plot(this_ell(1,:)/1e3, this_ell(2,:)/1e3,'-.','DisplayName','CRLB');
 
 %% Plot Frame by Frame
-samples_per_frame = 10; % new frame every x samples
+samples_per_frame = 1; % new frame every x samples
 num_frames = 1+ceil((total_num_samples-num_tail)/samples_per_frame);
 
-zoom_specs = struct('K',{1,200,5000,1000,2000},...
-                     'x',{[-5,5],[-1,4], [1,3],[1.5,2.5],[1.8,2.2]},...
-                     'y',{[0,5],[1,5],[3,5],[3.6,4.4],[3.8,4.2]});
+% zoom_specs = struct('K',{1,200,5000,1000,2000},...
+%                      'x',{[-5,5],[-1,4], [1,3],[1.5,2.5],[1.8,2.2]},...
+%                      'y',{[0,5],[1,5],[3,5],[3.6,4.4],[3.8,4.2]});
+zoom_specs = struct('K',{1,30,60,100,200,400},...
+                     'x',{[-5,5],[1,3],[1.5,2.5],[1.8,2.2],[1.9,2.1],[1.95,2.05]},...
+                     'y',{[0,5],[3,5],[3.6,4.4],[3.8,4.2],[3.9,4.1],[3.95,4.05]});
 
 for idx_frame = 1:num_frames
     % Find the current sample

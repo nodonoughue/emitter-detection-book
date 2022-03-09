@@ -18,14 +18,14 @@ fprintf('Example 7.4...\n');
 x_aoa = [-5e3, 5e3;
          0, 0];
 v_aoa = [0, 0;
-         200, 200];
+         1000, 1000];
 x_tgt = [ 3e3;
          25e3];
 
 % Define sensor accuracy
 num_dims = size(x_aoa,1);
 num_sensors = size(x_aoa,2);
-sigma_theta = 2;
+sigma_theta = 10;
 sigma_psi = sigma_theta*pi/180;
 C_df = sigma_psi^2*eye(num_sensors);
 L = chol(C_df,'lower');
@@ -236,12 +236,10 @@ for idx_frame = 1:num_frames
     hdl_est_zoom.YData = this_x_est(2,:)/1e3;
 
     % Update error ellipse
-    this_ell = ellipses{K};
-
     hdl_ell.XData = this_ell(1,:)/1e3;
     hdl_ell.YData = this_ell(2,:)/1e3;
     hdl_ell_zoom.XData = this_ell(1,:)/1e3;
-    hdl_ell_zoom.XData = this_ell(2,:)/1e3;
+    hdl_ell_zoom.YData = this_ell(2,:)/1e3;
 
     % Redraw
     drawnow;

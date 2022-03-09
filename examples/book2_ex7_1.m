@@ -23,16 +23,21 @@ x_tgt = [2e3;
 
 % Define sensor accuracy
 n_sensors = size(x_aoa,2);
-sigma_theta = 30;
+sigma_theta = 5;
 sigma_psi = sigma_theta * pi/180;
 C = sigma_psi^2 * eye(n_sensors);
 
 % Compute CRLB
 crlb = triang.computeCRLB(x_aoa, x_tgt, C);
-fprintf('CEP50: %.2f km\n',utils.computeCEP50(crlb)/1e3);
+cep50=utils.computeCEP50(crlb);
+fprintf('CEP50: %.2f km\n',cep50/1e3);
+
+cep50_desired = 100;
+est_k_min = ceil((cep50/cep50_desired).^2);
+fprintf('Estimate %d samples required.\n',est_k_min);
 
 % Iterate over number of samples
-num_samples = [1,100:100:1000,2000:1000:9000,9500:10500,11000:1000:20000];
+num_samples = [1:1000,2000:1000:10000];
 sigma_theta_vec = [5, 10, 30];
 
 cep_vec = zeros(numel(num_samples), numel(sigma_theta_vec));
@@ -53,17 +58,18 @@ for idx_s = 1:numel(sigma_theta_vec)
              sprintf('\\sigma_\\theta=%d^\\circ',sigma_theta_vec(idx_s)));
     hold on;
 end
-plot(num_samples, 100*ones(size(num_samples)), 'k-.', 'DisplayName','100 m');
+plot(num_samples, 100*ones(size(num_samples)), 'k--', 'DisplayName','CEP=100 m');
+plot(est_k_min*[1,1],[1e1,1e4],'k--','DisplayName',sprintf('K=%d',est_k_min));
 ylim([10, 10e3]);
 xlabel('Number of Samples [K]');
 ylabel('$CEP_{50}$ [m]');
 grid on;
-legend('Location','NorthEast')
+legend('Location','SouthWest');
 utils.setPlotStyle(gca,{'widescreen'});
 
 % Determine when CEP50 crosses below 100 m
 desired_cep = 100;
-first_good_sample = find(cep_vec(:,end) <= desired_cep, 1, 'first');
+first_good_sample = find(cep_vec(:,1) <= desired_cep, 1, 'first');
 if isempty(first_good_sample)
     fprintf('More than %d samples required to achieve %.2f m CEP50.\n', max(num_samples), desired_cep);
 else
@@ -80,7 +86,8 @@ x_aor = [xx(:), yy(:)]';
 aor_dims = size(xx);
 % n_aor = size(x_aor,2);
 
-k_vec = [10, 1000];
+k_vec = [10, 100];
+cmap_lim = [0, 5];
 
 clear figs;
 figs(numel(k_vec)+1) = fig;
@@ -101,6 +108,7 @@ for idx_k = 1:numel(k_vec)
     ylabel('y [km]');
     colorbar;
     colormap(flipud(utils.viridis));
+    caxis(cmap_lim);
     plot(x_aoa(1,:)/1e3, x_aoa(2,:)/1e3,'k^','DisplayName','Sensors');
     set(gca,'ydir','normal');
     ylim([-.5 5.5]);

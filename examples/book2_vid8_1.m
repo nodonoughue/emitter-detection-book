@@ -67,7 +67,7 @@ zeta = z + noise;
 % rmse_crlb = sqrt(arrayfun(@(i) trace(crlb(:,:,i)), 1:size(crlb,3)));
 
 %% Set Up Tracker
-sigma_a = 1; % Try .1 and 10, to compare results
+sigma_a = 10; % Try .1 and 10, to compare results
 
 [f_fun, q_fun, state_space] = tracker.makeKinematicModel('cv',num_dims,sigma_a^2);
 num_states = state_space.num_states;

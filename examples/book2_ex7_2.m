@@ -29,19 +29,14 @@ ref_idx = []; % use default reference sensor
 
 % Define pulse timing
 pri = 1e-3;
-T = 1; % observation period
-num_pulses = floor(T/pri)+1;
 
 % Compute CRLB
 crlb_single_sample = tdoa.computeCRLB(x_tdoa, x_tgt, C_toa, ref_idx);
-crlb_sample_mean = tdoa.computeCRLB(x_tdoa, x_tgt, C_toa/num_pulses, ref_idx);
 cep_single_sample = utils.computeCEP50(crlb_single_sample);
-cep_sample_mean = utils.computeCEP50(crlb_sample_mean);
 fprintf('CEP50 for a single sample: %.2f km\n',cep_single_sample/1e3)
-fprintf('CEP50 for the sample mean: %.2f km\n',cep_sample_mean/1e3);
 
 % Iterate over observation interval
-time_vec = 1:.1:100; % seconds
+time_vec = [.1:.1:100, 125:25:1000]; % seconds
 sigma_t_vec = [.1e-6, 1e-6, 10e-6];
 cep_vec = zeros(numel(time_vec), numel(sigma_t_vec));
 for idx_t = 1:numel(time_vec)
@@ -79,6 +74,15 @@ if isempty(first_good_sample)
 else
     fprintf('%.2f s required to achieve %.2f m CEP50.\n', time_vec(first_good_sample), desired_cep);
 end
+
+T = time_vec(first_good_sample);
+num_pulses = floor(T/pri)+1;
+
+% Compute CRLB
+crlb_sample_mean = tdoa.computeCRLB(x_tdoa, x_tgt, C_toa/num_pulses, ref_idx);
+cep_sample_mean = utils.computeCEP50(crlb_sample_mean);
+fprintf('CEP50 for the sample mean: %.2f km\n',cep_sample_mean/1e3);
+
 
 %% Demonstrate geolocation
 z = tdoa.measurement(x_tdoa, x_tgt, ref_idx);
