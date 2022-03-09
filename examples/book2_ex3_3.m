@@ -41,8 +41,8 @@ fig1=figure;
 plot(x_sensor(1,:), x_sensor(2,:), 'o', 'DisplayName','Sensors');
 hold on;
 for idx_sensor=1:n_sensors
-    utils.drawArrow(x_sensor(1,idx_sensor) + [0 v_sensor(1,idx_sensor)]*5e1, ...
-                    x_sensor(2,idx_sensor) + [0 v_sensor(2,idx_sensor)]*5e1);
+    utils.drawArrow(x_sensor(1,idx_sensor) + [0 v_sensor(1,idx_sensor)]*1e3, ...
+                    x_sensor(2,idx_sensor) + [0 v_sensor(2,idx_sensor)]*1e3);
 end
 ylim([-10e3 10e3])
 legend('Location','NorthWest');

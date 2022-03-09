@@ -23,7 +23,6 @@ utils.initPlotSettings;
 % Reset the random number generator, to ensure reproducability
 rng('default') ; 
 
-
 %% Figure 1, TDOA Geometry -- non-redundant set
 
 x_source = [2; 3];

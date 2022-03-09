@@ -57,11 +57,11 @@ xaoa2 = x2 + [0 cos(aoa2);0 sin(aoa2)]*5*r2;
 fig1 = figure();hold on;
 
 % LOBs
-h=plot(xaoa0(1,:),xaoa0(2,:),'k-','DisplayName','Line of Bearing');
-h=plot(xaoa1(1,:),xaoa1(2,:),'k-');
-utils.excludeFromLegend(h);
-h=plot(xaoa2(1,:),xaoa2(2,:),'k-');
-utils.excludeFromLegend(h);
+hdl1=plot(xaoa0(1,:),xaoa0(2,:),'DisplayName','Lines of Bearing');
+hdl2=plot(xaoa1(1,:),xaoa1(2,:));
+utils.excludeFromLegend(hdl2);
+hdl3=plot(xaoa2(1,:),xaoa2(2,:));
+utils.excludeFromLegend(hdl3);
 
 % Angle Markers
 angle_rad = .1;
@@ -80,8 +80,13 @@ text(x2(1)+2*angle_rad,x2(2)+angle_rad,'$\psi_2$');
 utils.excludeFromLegend([h0,h1,h2,h3,h4,h5]);
 
 % Position Markers
-plot([x0(1),x1(1),x2(1)],[x0(2),x1(2),x2(2)],'ko','DisplayName','Sensors');
-plot(x_source(1),x_source(2),'k^','MarkerSize',8,'DisplayName','Transmitter');
+scatter(x0(1),x0(2),'^','filled','MarkerFaceColor',hdl1.Color,'DisplayName','Sensors');
+hdl_s = scatter(x1(1),x1(2),'^','filled','MarkerFaceColor',hdl2.Color);
+utils.excludeFromLegend(hdl_s);
+hdl_s = scatter(x2(1),x2(2),'^','filled','MarkerFaceColor',hdl3.Color);
+utils.excludeFromLegend(hdl_s);
+% plot([x0(1),x1(1),x2(1)],[x0(2),x1(2),x2(2)],'ko','DisplayName','Sensors');
+scatter(x_source(1),x_source(2),'ks','filled','DisplayName','Transmitter');
 
 % Position Labels
 text(x0(1)+.05,x0(2)-.1,'$(x_0,y_0)$');
@@ -117,8 +122,8 @@ xiso2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,r3-r2,1000,3);
 fig2 = figure();hold on;
 
 % Isochrones
-plot(xiso1(1,:),xiso1(2,:),'k:','DisplayName','Isochrone');
-hiso2=plot(xiso2(1,:),xiso2(2,:),'k:');
+plot(xiso1(1,:),xiso1(2,:),':','DisplayName','Isochrone');
+hiso2=plot(xiso2(1,:),xiso2(2,:),':');
 utils.excludeFromLegend(hiso2);
 
 % Isochrone Labels
@@ -126,10 +131,14 @@ text(mean([x_sensor1(1),x_sensor2(1)]),mean([x_sensor1(2),x_sensor2(2)])-.2,'$TD
 text(mean([x_sensor2(1),x_sensor3(1)])+.3,mean([x_sensor2(2),x_sensor3(2)]),'$TDOA_{2,3}$');
 
 % Position Markers
-hiso2=plot([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'k-','LineWidth',1);
-utils.excludeFromLegend(hiso2);
-plot([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'ko','DisplayName','Sensors');
-plot(x_source(1),x_source(2),'k^','MarkerSize',8,'DisplayName','Transmitter');
+%hiso2=scatter([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'k-','LineWidth',1);
+%utils.excludeFromLegend(hiso2);
+scatter([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'^','filled','DisplayName','Sensors');
+% hdl=scatter(x_sensor2(1),x_sensor2(2),'^','filled');
+% utils.excludeFromLegend(hdl);
+% hdl=scatter(x_sensor3(1),x_sensor3(2),'^','filled');
+% utils.excludeFromLegend(hdl);
+scatter(x_source(1),x_source(2),'s','filled','DisplayName','Transmitter');
 
 % Position Labels
 text(x_sensor1(1)+.05,x_sensor1(2)-.1,'$S_1$');
@@ -158,9 +167,9 @@ v_sensor = [1,1;
 
 % Draw Geometry
 fig3=figure;
-plot(x_source(1),x_source(2),'k^','DisplayName','Transmitter');
+scatter(x_source(1),x_source(2),'s','filled','DisplayName','Transmitter');
 hold on;
-plot(x_sensor(1,:),x_sensor(2,:),'ko','DisplayName','Sensors');
+scatter(x_sensor(1,:),x_sensor(2,:),'^','filled','DisplayName','Sensors');
 text(x_sensor(1,1)-.2,x_sensor(2,1)-.2,'$S_1$','FontSize',10);
 text(x_sensor(1,2)-.2,x_sensor(2,2)-.2,'$S_2$','FontSize',10);
 text(x_sensor(1,3)-.2,x_sensor(2,3)-.2,'$S_3$','FontSize',10);
@@ -173,13 +182,13 @@ utils.drawArrow(x_sensor(1,3)+[0 v_sensor(1,3)]/4,x_sensor(2,3)+[0 v_sensor(2,3)
 % Draw isodoppler line S12
 vdiff12 = utils.dopDiff(x_source,[0 0]',x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),3e8);
 x_isodop12 = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff12,1000,5);
-plot(x_isodop12(1,:),x_isodop12(2,:),'k-.','DisplayName','Line of Constant FDOA');
+plot(x_isodop12(1,:),x_isodop12(2,:),'-.','DisplayName','Line of Constant FDOA');
 text(-1,2.7,'$S_{12}$ Solution','FontSize',10);
 
 % Draw isodoppler line S23
 vdiff23 = utils.dopDiff(x_source,[0 0]',x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),3e8);
 x_isodop23 = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),vdiff23,1000,5);
-hh=plot(x_isodop23(1,:),x_isodop23(2,:),'k-.');
+hh=plot(x_isodop23(1,:),x_isodop23(2,:),'-.');
 utils.excludeFromLegend(hh);
 text(1.5,.85,'$S_{23}$ Solution','FontSize',10);
 xlim([-2 3]);
@@ -231,8 +240,8 @@ lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 
 % LOBs
 plot(xaoa1(1,:),xaoa1(2,:),'k-','DisplayName','Line of Bearing');
-h=plot(xaoa2(1,:),xaoa2(2,:),'k-');
-utils.excludeFromLegend(h);
+hdl2=plot(xaoa2(1,:),xaoa2(2,:),'k-');
+utils.excludeFromLegend(hdl2);
 
 % -- Time Difference of Arrival
 % Initialize Detector/Source Locations

@@ -46,7 +46,7 @@ prior = @(x) mvnpdf(x', x_prior', C_prior);
 z = tdoa.measurement(x_tdoa, x_tgt);
 C_rdoa = utils.resampleCovMtx(C_roa,[]);
 L = chol(C_rdoa,'lower');
-n = U*randn(size(z));
+n = L*randn(size(z));
 
 zeta = z+n;
 
