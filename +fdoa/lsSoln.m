@@ -59,11 +59,5 @@ n_sensor = size(x_fdoa, 2);
 [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
 C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
 
-
-% Resample covariance matrix
-n_sensor = size(x_fdoa, 2);
-[test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
-C_tilde = utils.resampleCovMtx(C, test_idx_vec, ref_idx_vec);
-
 % Call the generic Least Square solver
 [x,x_full] = utils.lsSoln(y,J,C_tilde,x_init,epsilon,max_num_iterations,force_full_calc,plot_progress);
