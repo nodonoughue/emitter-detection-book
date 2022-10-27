@@ -45,3 +45,6 @@ book2_ch2_drawFigures;
 book2_ch3_drawFigures;
 book2_ch4_drawFigures;
 book2_ch5_drawFigures;
+book2_ch6_drawFigures;
+book2_ch7_drawFigures;
+book2_ch8_drawFigures;
