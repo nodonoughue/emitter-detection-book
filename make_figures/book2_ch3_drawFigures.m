@@ -127,18 +127,19 @@ for idx = 2:numel(figs)
 end
 
 %% Figures 8a and 8b
-
-figs = book2_ex3_4();
-
-for idx = 1:numel(figs)
-    figure(figs(idx));
-    utils.setPlotStyle(gca,{'widescreen','tight'});
-    utils.exportPlot(figs(idx), [prefix '8' char('a' + idx-1)]);
+if force_recalc
+    figs = book2_ex3_4();
+    
+    for idx = 1:numel(figs)
+        figure(figs(idx));
+        utils.setPlotStyle(gca,{'widescreen','tight'});
+        utils.exportPlot(figs(idx), [prefix '8' char('a' + idx-1)]);
+    end
+    
+    xlim([1600,4400]);
+    ylim([3200,4800]);
+    utils.exportPlot(figs(end), [prefix '8b_zoom']);
 end
-
-xlim([1600,4400]);
-ylim([3200,4800]);
-utils.exportPlot(figs(end), [prefix '8b_zoom']);
 
 %% Cleanup
 

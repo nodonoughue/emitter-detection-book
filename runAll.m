@@ -15,7 +15,7 @@ addpath('make_figures');
 
 % Set this to true to run all of the Monte Carlo
 % examples, although this may take several days to run.
-force_recalc=false;
+force_recalc=false; %#ok<NASGU> 
 
 ch1_drawFigures;
 ch2_drawFigures;
