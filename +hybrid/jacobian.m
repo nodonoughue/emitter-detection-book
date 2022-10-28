@@ -78,7 +78,9 @@ end
 J = [J_aoa, J_tdoa, J_fdoa];
 
 if do_vel_jacobian
-    Jv = cat(2,zeros(size(J_aoa), zeros(size(J_tdoa), J_fdoa_v)));
+    num_rows = size(J_fdoa_v,1);
+    num_zero_cols = size(J_aoa,2) + size(J_tdoa,2);
+    Jv = cat(2,zeros(num_rows, num_zero_cols), J_fdoa_v);
 else
     Jv = [];
 end
