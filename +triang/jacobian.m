@@ -56,4 +56,7 @@ if do2DAoA && nDim1 == 3
     % measurements, so the Jacobian is concatenated in the second (nSensor)
     % dimension
     J = cat(2, J, J_el);
+elseif nDim1 == 3
+    % It's a 3D/az-only problem
+    J = cat(1,J, zeros(1,size(J,2)));
 end

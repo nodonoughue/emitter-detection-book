@@ -1,5 +1,6 @@
 function ell = loglikelihoodUnc(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, C, C_beta, theta, tdoa_ref_idx, fdoa_ref_idx)
-% function ell = loglikelihoodUnc(theta, zeta, C, C_beta, n_dim, n_aoa, n_tdoa, n_fdoa, is2DAoA, tdoa_ref_idx, fdoa_ref_idx)
+% function ell = loglikelihoodUnc(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, ...
+%                           C, C_beta, theta, tdoa_ref_idx, fdoa_ref_idx)
 %
 % Computes the Log Likelihood for Hybrid sensor measurement (AOA, TDOA, and
 % FDOA), given the received measurement vector zeta, covariance matrix C, 
@@ -26,7 +27,7 @@ function ell = loglikelihoodUnc(x_aoa, x_tdoa, x_fdoa, v_fdoa, zeta, C, C_beta, 
 %   ell         Log-likelihood evaluated at each position x_source.
 %
 % Nicholas O'Donoughue
-% 7 November 2019
+% 22 Feb 2022
 
 % Parse inputs
 if nargin < 8 || ~exist('tdoa_ref_idx','var')
@@ -58,8 +59,6 @@ end
 % Determine how many TDOA/FDOA measurements there are
 [tdoa_test_idx_vec, tdoa_ref_idx_vec] = utils.parseReferenceSensor(tdoa_ref_idx,n_tdoa);
 [fdoa_test_idx_vec, fdoa_ref_idx_vec] = utils.parseReferenceSensor(fdoa_ref_idx,n_fdoa);
-m_tdoa = numel(tdoa_test_idx_vec);
-m_fdoa = numel(fdoa_test_idx_vec);
 
 % Assemble mean value for beta; given by the reported sensor positions and
 % velocities
@@ -70,8 +69,8 @@ beta0 = [x_aoa(:); x_tdoa(:); x_fdoa(:); v_fdoa(:)];
 % indices
 x_ind = 1:n_dim;
 alpha_a_ind = x_ind(end) + (1:m_aoa);
-alpha_t_ind = alpha_a_ind(end) + (1:m_tdoa);
-alpha_f_ind = alpha_t_ind(end) + (1:m_fdoa);
+alpha_t_ind = alpha_a_ind(end) + (1:n_tdoa);
+alpha_f_ind = alpha_t_ind(end) + (1:n_fdoa);
 beta_a_ind = alpha_f_ind(end) + (1:n_dim*n_aoa);
 beta_t_ind = beta_a_ind(end) + (1:n_dim*n_tdoa);
 beta_fx_ind = beta_t_ind(end) + (1:n_dim*n_fdoa);

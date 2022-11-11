@@ -1,5 +1,5 @@
-function crlb = computeCRLBpriors(x_aoa,x0,C,fim_prior)
-% crlb = computeCRLBpriors(x_aoa,xs,C,fim_prior)
+function crlb = computeCRLBpriors(x_aoa,x0,C,fim_prior,do2DAoA)
+% crlb = computeCRLBpriors(x_aoa,xs,C,fim_prior,do2DAoA)
 %
 % Computes the CRLB on position accuracy for source at location xs and
 % sensors at locations in x_aoa (Ndim x N).  C is an NxN matrix of TOA
@@ -17,6 +17,8 @@ function crlb = computeCRLBpriors(x_aoa,x0,C,fim_prior)
 %   C               AOA covariance matrix (radians^2)
 %   fim_prior   Function handle that computes the Fisher Information Matrix
 %               for the statistical prior
+%   do2DAoA         Boolean flag indicating whether 2D AOA (az/el) should
+%                   be assumed
 %
 % Outputs:
 %   crlb    Lower bound on the error covariance matrix for an unbiased
@@ -29,8 +31,12 @@ function crlb = computeCRLBpriors(x_aoa,x0,C,fim_prior)
 n_dim = size(x_aoa,1);
 n_source = size(x0,2);
 
+if nargin < 5 || isempty(do2DAoA)
+    do2DAoA = ~(size(C,1)==size(x_aoa,2)); % If the cov mtx is 1 per sensor, then it's not a 2D AOA problem 
+end
+
 % Set up Jacobian function
-J = @(x) triang.jacobian(x_aoa,x);
+J = @(x) triang.jacobian(x_aoa,x,do2DAoA);
 
 % Ensure the covariance matrix is invertible
 C = utils.ensureInvertible(C);

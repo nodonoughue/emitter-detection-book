@@ -26,21 +26,21 @@ rng('default') ;
 addpath('examples');
 
 %% Figures 9 and 10, Example 4.1
-
-figs = book2_ex4_1();
-
-fig9=figs(1);
-figure(fig9);
-utils.setPlotStyle(gca,{'widescreen', 'tight'});
-utils.exportPlot(fig9,[prefix '9']);
-
-fig10=figs(2);
-figure(fig10);
-utils.setPlotStyle(gca,{'tight'});
-utils.exportPlot(fig10,[prefix '10']);
+if force_recalc
+    figs = book2_ex4_1();
+    
+    fig9=figs(1);
+    figure(fig9);
+    utils.setPlotStyle(gca,{'widescreen', 'tight'});
+    utils.exportPlot(fig9,[prefix '9']);
+    
+    fig10=figs(2);
+    figure(fig10);
+    utils.setPlotStyle(gca,{'tight'});
+    utils.exportPlot(fig10,[prefix '10']);
+end
 
 %% Figures 11 and 12, Example 4.2 
-
 fig11 = book2_ex4_2();
 
 utils.setPlotStyle(gca,{'tight','equal'});

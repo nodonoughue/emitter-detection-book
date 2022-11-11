@@ -1,4 +1,4 @@
-% Draw Figures - Chapter 5
+    % Draw Figures - Chapter 5
 %
 % This script generates all of the figures that appear in
 % Chapter 4 of the textbook.

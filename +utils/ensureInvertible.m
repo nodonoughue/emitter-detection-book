@@ -24,7 +24,7 @@ function cov_out = ensureInvertible(cov, epsilon)
 
 % Check for epsilon input
 if nargin < 2 || isempty(epsilon)
-    epsilon = 1e-10;
+    epsilon = 1e-20;
 end
 
 % Check input dimensions

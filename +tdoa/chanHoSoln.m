@@ -1,5 +1,5 @@
-function x = chanHoSoln(x0,rho,C)
-% x = chanHoSoln(x0,rho,C)
+function x = chanHoSoln(x0,rho,C,ref_idx)
+% x = chanHoSoln(x0,rho,C,ref_idx)
 %
 % Computes the Chan-Ho solution for TDOA processing.
 %
@@ -9,6 +9,7 @@ function x = chanHoSoln(x0,rho,C)
 %   rho             Range-Difference Measurements [m]
 %   C               Error covariance matrix for Range-Difference
 %                   measurements [m^2]
+%   ref_idx         Reference sensor index
 %
 % Outputs:
 %   x               Estimated source position [m]
@@ -20,11 +21,15 @@ function x = chanHoSoln(x0,rho,C)
 % Nicholas O'Donoughue
 % 1 July 2019
 
+[num_dims,num_sensors] = size(x0);
+if nargin < 4 || isempty(ref_idx)
+    ref_idx = num_sensors;
+end
+
 %% Stage 0: Parse Covariance Matrix
 % The Chan-Ho solution implicitly uses the final sensor as a common
 % reference
-ref_idx = size(x0, 2);
-test_idx = 1:ref_idx-1;
+test_idx = setdiff(1:num_sensors,ref_idx);
 C = utils.resampleCovMtx(C, test_idx, ref_idx);
 
 %% Stage 1: Initial Position Estimate
@@ -33,13 +38,11 @@ C = utils.resampleCovMtx(C, test_idx, ref_idx);
 
 % Compute shifted measurement vector overline(y) according to 13.24
 R = sqrt(sum(abs(x0).^2,1))';
-[Ndims,M] = size(x0);
-
-y1 = (rho.^2-R(1:end-1).^2+R(end)^2);
-G1 = -2*[(x0(:,1:end-1) - x0(:,end))',rho];
+y1 = (rho.^2-R(test_idx).^2+R(ref_idx)^2);
+G1 = -2*[(x0(:,test_idx) - x0(:,ref_idx))',rho];
 
 % Compute initial position estimate overline(theta) according to 13.25
-B = eye(M-1);
+B = eye(num_sensors-1);
 W1 = (B*C*B');
 th1 = ((G1'/W1)*G1)\(G1'/W1)*y1;
 
@@ -51,13 +54,13 @@ for j=1:3
     th1 = ((G1'/W1)*G1)\(G1'/W1)*y1;
 end
 
-th1p = th1 - [x0(:,end);0];
+th1p = th1 - [x0(:,ref_idx);0];
 
 
 %% Stage 2: Account for Parameter Dependence
 
 y2 = th1.^2;
-G2 = cat(1,eye(Ndims),ones(1,Ndims));
+G2 = cat(1,eye(num_dims),ones(1,num_dims));
 
 B2 = 2*diag(th1p);
 
@@ -77,4 +80,4 @@ th2 = (G2'*W2*G2)\G2'*W2*y2;
 % else
 %     x = x_prime2;
 % end
-x = sign(diag(th1(1:end-1)))*sqrt(th2)+x0(:,end);
+x = sign(diag(th1(1:end-1)))*sqrt(th2)+x0(:,ref_idx);

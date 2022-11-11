@@ -180,7 +180,7 @@ xy_isodop12 = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor
 
 xy_isodop12p = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff12*1.1,1000,5);
 xy_isodop12m = fdoa.drawIsodop(x_sensor(:,1),v_sensor(:,1),x_sensor(:,2),v_sensor(:,2),vdiff12*0.9,1000,5);
-fill12=cat(2,xy_isodop12p,fliplr(xy_isodop12m),xy_isodop12p(:,1));
+fill12=cat(2,xy_isodop12p(:,1:end-1),fliplr(xy_isodop12m(:,1:end-1)),xy_isodop12p(:,1));
 
 % Solve isodoppler line S23
 vdiff23 = utils.dopDiff(x_source,[0 0]',x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),3e8);
@@ -188,7 +188,7 @@ xy_isodop23 = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor
 
 xy_isodop23p = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),vdiff23*1.1,1000,5);
 xy_isodop23m = fdoa.drawIsodop(x_sensor(:,2),v_sensor(:,2),x_sensor(:,3),v_sensor(:,3),vdiff23*0.9,1000,5);
-fill23=cat(2,xy_isodop23p,fliplr(xy_isodop23m),xy_isodop23p(:,1));
+fill23=cat(2,xy_isodop23p(:,1:end-1),fliplr(xy_isodop23m(:,1:end-1)),xy_isodop23p(:,1));
 
 fill(fill12(1,:),fill12(2,:),.2,'FaceAlpha',.1,'EdgeColor','k','LineStyle','--','DisplayName','UncertaintyInterval');
 h = fill(fill23(1,:),fill23(2,:),.2,'FaceAlpha',.1,'EdgeColor','k','LineStyle','--');

@@ -52,26 +52,30 @@ if nargin < 11 || ~exist('alpha_fdoa','var')
     alpha_fdoa = [];
 end
 
+n_aoa = size(x_aoa,2);
+n_tdoa = size(x_tdoa,2);
+n_fdoa = size(x_fdoa,2);
+
 % Compute Jacobian for AOA measurements
-if ~isempty(x_aoa)
+if n_aoa>0
     J_aoa = triang.grad_x(x_aoa, x_source, do2DAoA, alpha_aoa);
 else
     J_aoa = [];
 end
 
 % Compute Jacobian for TDOA measurements
-if ~isempty(x_tdoa)
+if n_tdoa>0
     J_tdoa= tdoa.grad_x(x_tdoa, x_source, tdoa_ref_idx, alpha_tdoa);
 else
     J_tdoa = [];
 end
 
 % Compute Jacobian for FDOA measurements
-if ~isempty(x_fdoa) && ~isempty(v_fdoa)
+if n_fdoa>0
     J_fdoa= fdoa.grad_x(x_fdoa, v_fdoa, x_source, fdoa_ref_idx, alpha_fdoa);
 else
     J_fdoa = [];
 end
 
 % Combine component Jacobians
-J = [J_aoa, J_tdoa, J_fdoa];
+J = cat(2,J_aoa, J_tdoa, J_fdoa);

@@ -13,6 +13,9 @@ function figs = book2_ex3_4()
 % Nicholas O'Donoughue
 % 4 June 2021
 
+% Turn off ill conditioned matrix warnings
+warning('off','MATLAB:nearlySingularMatrix');
+
 % Set up sensor and target coordinates
 num_mc = 1000;
 x_source_ctr = [3; 4]*1e3;
@@ -178,6 +181,9 @@ caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
 utils.setPlotStyle(gca,{'widescreen'});
+
+%% Turn on ill conditioned matrix warnings
+warning('on','MATLAB:nearlySingularMatrix');
 
 %% Parse Outputs
 figs = [fig1, fig2];

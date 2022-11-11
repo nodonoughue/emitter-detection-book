@@ -26,11 +26,11 @@ x_init = [0;10e3;alt1];
 % Sensor Accuracy
 time_err = 1e-7;
 Croa = (utils.constants.c*time_err)^2 * eye(n_tdoa);
-U = chol(Croa,'upper');
+L = chol(Croa,'lower');
 
 % Measurement and Noise
 z = tdoa.measurement(x_tdoa, x_tgt, []);
-noise = U*randn(n_tdoa,1); % generate sensor-level noise
+noise = L*randn(n_tdoa,1); % generate sensor-level noise
 noise_z = utils.resampleNoise(noise, []); % generate measurement-level noise
 zeta = z + noise_z;
 
@@ -137,6 +137,6 @@ ylabel('y [m]');
 zlabel('z [m]');
 
 fprintf('Unconstrained Solution (alt config):   %.2f km E, %.2f km N, %.2f km U\n',...
-        x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, x_gd_alt(3)/1e3);
+        x_gd2(1)/1e3, x_gd2(2)/1e3, x_gd2(3)/1e3);
 %% Collect Figure Handles for Export
 figs = [fig1, fig2];

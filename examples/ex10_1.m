@@ -24,10 +24,10 @@ x_source = [15,45]';
 psi_act = triang.measurement(x_sensor,x_source);
 C_psi = (2*pi/180)^2*eye(N);
 psi = psi_act + sqrt(C_psi)*randn(N,1);
-r = 0:(1.2*max(utils.rng(x_source,x_sensor)));
+% r = 0:(1.2*max(utils.rng(x_source,x_sensor))); -- unused
 
 % Compute Ranges
-r0 = utils.rng(x_sensor(:,1),x_source);
+% r0 = utils.rng(x_sensor(:,1),x_source); -- unused
 r1 = utils.rng(x_sensor(:,2),x_source);
 r2 = utils.rng(x_sensor(:,3),x_source);
 
@@ -35,40 +35,37 @@ r2 = utils.rng(x_sensor(:,3),x_source);
 epsang = 3*sqrt(diag(C_psi));
 
 % Find AOA 
-lob0 = x_source - x_sensor(:,1);
-xaoa0 = x_sensor(:,1) + [0 cos(psi(1));0 sin(psi(1))]*5*r1;
+% lob0 = x_source - x_sensor(:,1); -- unused
+% xaoa0 = x_sensor(:,1) + [0 cos(psi(1));0 sin(psi(1))]*5*r1; -- unused
 xaoap0 = x_sensor(:,1) + [0 cos(psi(1)+epsang(1));0 sin(psi(1)+epsang(1))]*5*r1;
 xaoam0 = x_sensor(:,1) + [0 cos(psi(1)-epsang(1));0 sin(psi(1)-epsang(1))]*5*r1;
 lobFill0 = cat(2,xaoap0,fliplr(xaoam0),xaoap0(:,1));
 
-lob1 = x_source - x_sensor(:,2);
-xaoa1 = x_sensor(:,2) + [0 cos(psi(2));0 sin(psi(2))]*5*r1;
+% lob1 = x_source - x_sensor(:,2); -- unused
+% xaoa1 = x_sensor(:,2) + [0 cos(psi(2));0 sin(psi(2))]*5*r1; -- unused
 xaoap1 = x_sensor(:,2) + [0 cos(psi(2)+epsang(2));0 sin(psi(2)+epsang(2))]*5*r1;
 xaoam1 = x_sensor(:,2) + [0 cos(psi(2)-epsang(2));0 sin(psi(2)-epsang(2))]*5*r1;
 lobFill1 = cat(2,xaoap1,fliplr(xaoam1),xaoap1(:,1));
 
-lob2 = x_source - x_sensor(:,3);
-xaoa2 = x_sensor(:,3) + [0 cos(psi(3));0 sin(psi(3))]*5*r2;
+% lob2 = x_source - x_sensor(:,3); -- unused
+% xaoa2 = x_sensor(:,3) + [0 cos(psi(3));0 sin(psi(3))]*5*r2; -- unused
 xaoap2 = x_sensor(:,3) + [0 cos(psi(3)+epsang(3));0 sin(psi(3)+epsang(3))]*5*r2;
 xaoam2 = x_sensor(:,3) + [0 cos(psi(3)-epsang(3));0 sin(psi(3)-epsang(3))]*5*r2;
 lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 
-% % Geometric Solutions
+% Geometric Solutions
 % x_centroid = triang.centroid(x_sensor,psi);
 % x_incenter = triang.angle_bisector(x_sensor,psi);
 
 % Iterative Methods
-epsilon = .01;
+% epsilon = .01; % Stopping condition -- unused
 nMC = 1e3;
 numIters=100;
-alpha=.3;
-beta=.6;
+% alpha=.3;  % Gradient Descent Line Search parameter -- unused
+% beta=.6;   % Gradient Descent Line Search parameter -- unused
 % C_psi = eye(N);
 psi = cat(2,psi,psi_act + sqrt(C_psi)*randn(N,nMC-1)); % preserve prior estimate
-                                                       % so that geometric
-                                                       % and iterative
-                                                       % solutions use same
-                                                       % inputs for plot
+    % so that geometric and iterative solutions use same inputs for plot
 
 x_ml = zeros(2,nMC);          
 x_bf = zeros(2,nMC);

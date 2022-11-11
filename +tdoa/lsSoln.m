@@ -8,7 +8,7 @@ function [x,x_full] = lsSoln(x_tdoa,rho,C,x_init,epsilon,max_num_iterations,forc
 %   
 %   x_tdoa              Sensor positions [m]
 %   rho                 Range-Difference Measurements [m]
-%   C                   Range-Difference Error Covariance Matrix [m^2]
+%   C                   Range Error Covariance Matrix [m^2]
 %   x_init              Initial source position estimate [m]
 %   epsilon             Desired estimate resolution [m]
 %   max_num_iterations  Maximum number of iterations to perform

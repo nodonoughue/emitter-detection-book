@@ -63,7 +63,7 @@ dims = arrayfun(@(x,x_mx,n) x + x_mx * linspace(-1,1,n),  ctr(:), max_offset(:),
 
 % Use meshgrid expansion; each element of dims_full is now a full n_dim 
 % dimensioned grid for one of the elements of x
-[x_grid{1:numel(dims)}] = meshgrid(dims{:}); %use comma-separated list expansion on both sides
+[x_grid{1:numel(dims)}] = ndgrid(dims{:}); %use comma-separated list expansion on both sides
 
 % Rearrange to an n_dim x N matrix
 x_grid_vec = cellfun(@(A) reshape(A,1,[]), x_grid, 'UniformOutput',false);

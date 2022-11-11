@@ -29,9 +29,10 @@ CRLB = triang.computeCRLB(x_sensor*1e3,x0*1e3,C_psi);
 cep50 = reshape(utils.computeCEP50(CRLB),size(X)); % m
 
 good_point = cep50 <= 25e3;
-rng_val = sqrt(sum(abs(x0).^2,1));
+rng_val = sqrt(sum(abs(x0).^2,1)); % km
 
-max_range = min(rng_val(~good_point));
+max_range = min(rng_val(~good_point)); % km
+fprintf('Max range that satisfies CEP < 25 km regardless of AOA is: %.2f\n',max_range);
 
 
 % Plot

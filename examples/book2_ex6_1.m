@@ -14,7 +14,7 @@ function fig = book2_ex6_1()
 % 28 November 2021
 
 %% Set up sensors
-x_aoa = [1, 1, 0; 1, -1, 0];
+x_aoa = [2, 2, 0; 2, -1, 0];
 n_aoa = size(x_aoa,2);
 
 x_tgt = [5; 3];
@@ -44,6 +44,7 @@ for idx=1:n_aoa
     end
 end
 
+clr_idx=2;
 xy_lob_bias = triang.drawLob(x_aoa, psi_bias, x_tgt, 1.5);
 for idx=1:n_aoa
     set(gca,'ColorOrderIndex',clr_idx); % reset to the same point; so the lobs have repeated colors

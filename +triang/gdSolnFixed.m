@@ -63,9 +63,16 @@ if nargin < 6
     tol = [];
 end
 
+% Determine if measurement should be 2D (az/el) or 1D (az only)
+if numel(psi) == size(x_aoa,2)
+    do2DAoA = false;
+else
+    do2DAoA = true;
+end
+
 % Initialize measurement error and Jacobian functions
-y = @(x) psi - triang.measurement(x_aoa, x);
-J = @(x) triang.jacobian(x_aoa,x);
+y = @(x) psi - triang.measurement(x_aoa, x,do2DAoA);
+J = @(x) triang.jacobian(x_aoa,x,do2DAoA);
 
 % Call the generic Gradient Descent solver
 [x,x_full] = utils.constraints.gdSolnFixed(y,J,C,x_init,a,tol,...

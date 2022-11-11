@@ -19,14 +19,16 @@ x_aoa = [-2, 2; 0, 0];
 
 % Define received signals and covariance matrix
 psi = [80; 87]*pi/180;
-C = eye(n_aoa); % Make it 1 degree std. dev.
+% C = eye(n_aoa); % Make it 1 degree std. dev.
+C = diag([.1, 1]);
 x_init = [0;1]; % initial guess
 
 %% Plot the scenario
 fig1 = figure;
-plot(x_aoa(1,:),x_aoa(2,:),'+','DisplayName','Sensors')
+hdl1=scatter(x_aoa(1,1),x_aoa(2,1),'^','filled','DisplayName','Sensors');
 hold on;
-set(gca,'ColorOrderIndex',1);
+hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
+utils.excludeFromLegend(hdl2);
 grid on;
 
 % Draw the LOBs
@@ -34,8 +36,9 @@ lob_len = 35;
 lob = lob_len * [cos(psi), sin(psi)]';
 x_lob = x_aoa(1,:) + [zeros(1,n_aoa); lob(1,:)];
 y_lob = x_aoa(2,:) + [zeros(1,n_aoa); lob(2,:)];
-hdl=plot(x_lob,y_lob,'k-','DisplayName','LOBs');
-utils.excludeFromLegend(hdl(2:end));
+plot(x_lob(:,1),y_lob(:,1),'Color',hdl1.CData,'DisplayName','LOBs');
+hdl2=plot(x_lob(:,2),y_lob(:,2),'Color',hdl2.CData);
+utils.excludeFromLegend(hdl2);
 utils.setPlotStyle(gca,'widescreen');
 
 %% Gradient Descent Solution (unconstrained)
@@ -52,8 +55,10 @@ fprintf('Constrained Solution:   (%.2f, %.2f)\n', x_gd_const(1), x_gd_const(2));
 
 %% Plot with Solutions
 fig2 = figure;
-plot(x_aoa(1,:),x_aoa(2,:),'k+','DisplayName','Sensors')
+hdl1=scatter(x_aoa(1,1),x_aoa(2,1),'^','filled','DisplayName','Sensors');
 hold on;
+hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
+utils.excludeFromLegend(hdl2);
 set(gca,'ColorOrderIndex',1);
 grid on;
 
@@ -62,8 +67,9 @@ lob_len = 35;
 lob = lob_len * [cos(psi), sin(psi)]';
 x_lob = x_aoa(1,:) + [zeros(1,n_aoa); lob(1,:)];
 y_lob = x_aoa(2,:) + [zeros(1,n_aoa); lob(2,:)];
-hdl=plot(x_lob,y_lob,'k-','DisplayName','LOBs');
-utils.excludeFromLegend(hdl(2:end));
+plot(x_lob(:,1),y_lob(:,1),'Color',hdl1.CData,'DisplayName','LOBs');
+hdl2=plot(x_lob(:,2),y_lob(:,2),'Color',hdl2.CData);
+utils.excludeFromLegend(hdl2);
 
 % Unconstrained Solution
 hdl=plot(x_gd_full(1,:),x_gd_full(2,:),'--',...
@@ -84,10 +90,15 @@ utils.setPlotStyle(gca,'widescreen');
 [x_ls, x_ls_full] = triang.lsSoln(x_aoa, psi, C, x_init);
 [x_ls_const,x_ls_full_const] = triang.lsSolnFixed(x_aoa, psi, C, x_init, a);
 
+fprintf('Unconstrained LS Solution: (%.2f, %.2f)\n', x_ls(1), x_ls(2));
+fprintf('Constrained LS Solution:   (%.2f, %.2f)\n', x_ls_const(1), x_ls_const(2));
+
 %% Plot with Solutions
 fig3 = figure;
-plot(x_aoa(1,:),x_aoa(2,:),'+','DisplayName','Sensors')
+hdl1=scatter(x_aoa(1,1),x_aoa(2,1),'^','filled','DisplayName','Sensors');
 hold on;
+hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
+utils.excludeFromLegend(hdl2);
 set(gca,'ColorOrderIndex',1);
 grid on;
 
@@ -96,8 +107,9 @@ lob_len = 35;
 lob = lob_len * [cos(psi), sin(psi)]';
 x_lob = x_aoa(1,:) + [zeros(1,n_aoa); lob(1,:)];
 y_lob = x_aoa(2,:) + [zeros(1,n_aoa); lob(2,:)];
-hdl=plot(x_lob,y_lob,'k-','DisplayName','LOBs');
-utils.excludeFromLegend(hdl(2:end));
+plot(x_lob(:,1),y_lob(:,1),'Color',hdl1.CData,'DisplayName','LOBs');
+hdl2=plot(x_lob(:,2),y_lob(:,2),'Color',hdl2.CData);
+utils.excludeFromLegend(hdl2);
 
 % Unconstrained Solution
 hdl=plot(x_gd_full(1,:),x_gd_full(2,:),'--',...
