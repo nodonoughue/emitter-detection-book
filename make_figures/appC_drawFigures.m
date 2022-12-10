@@ -159,7 +159,7 @@ legend(legend_entries);
 
 xlabel('Frequency [GHz]');
 legend('Location','NorthWest');
-ylabel('Zenith Attenuation [dB]');
+ylabel('Zenith Attenuation [linear]');
 grid on;
 xlim([1 350])
 
