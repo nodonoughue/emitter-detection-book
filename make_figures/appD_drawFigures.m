@@ -44,9 +44,9 @@ utils.exportPlot(fig1,[prefix '1']);
 % Plot cosmic noise [dB] as a function of frequency for a fixed bandwidth
 % (a) without solar/lunar gain
 % (b) with solar gain = 0 dBi
-% (c) with solar gain = 10 dBi
+% (c) with solar gain = 30 dBi
 % (d) with lunar gain = 0 dBi
-% (e) with lunar gain = 10 dBi
+% (e) with lunar gain = 30 dBi
 
 freq = 100e6:100e6:1e10;
 T_a = noise.cosmic_noise_temp(freq,0,.95);
