@@ -24,6 +24,9 @@ function rmse = computeRMSE(cov)
 c_dims = size(cov);
 if numel(c_dims) > 2
     out_dims = c_dims(3:end);
+    if numel(out_dims) == 1
+        out_dims = [out_dims, 1];
+    end
     n_cases = prod(out_dims);
 else
     out_dims = [1, 1];

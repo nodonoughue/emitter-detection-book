@@ -34,6 +34,9 @@ if sum(size(C)>1)>2
 
     % Determine the output dimension and number of test cases input
     outDims = fullDims(3:end);
+    if numel(outDims)==1
+        outDims = [outDims, 1];
+    end
     nIters = prod(outDims);
 
     % Reshape the covariance matrix input
