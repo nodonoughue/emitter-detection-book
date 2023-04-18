@@ -1,4 +1,4 @@
-function [P_handoff, C_proj] = probHandoff( C_track, psi_max, rng_max, el_min, el_max, bng_min, bng_max )
+function P_handoff = probHandoff( C_track, psi_max, rng_max, el_min, el_max, bng_min, bng_max )
 %PROBHANDOFF Summary of this function goes here
 %   Compute probability of seeker handoff, given a track error covariance
 %   specified by C_track.
@@ -34,7 +34,7 @@ assert((nargin >= 6 && ~isempty(bng_min)) || (nargin >= 7 && ~isempty(bng_max)),
         'At least one bearing angle for seeker approach must be defined.');
 
 %% Process Cone Angle and Distance
-max_radius = tand(psi_max)*rng_max;
+max_radius = tan(psi_max)*rng_max;
 
 %% Build Vectors
 if isempty(el_max)
@@ -46,7 +46,7 @@ else
 end
 N_el = numel(el_vec);
 
-if nargin < 7 || isempty(bng_max)
+if isempty(bng_max)
     bng_vec = bng_min;
 elseif isempty(bng_min)
     bng_vec = bng_max;
@@ -57,16 +57,9 @@ N_bng = numel(bng_vec);
 
 %% Loop over Covariance matrices
 P_handoff = zeros(M,1);
-C_proj = zeros(3, 3, M);
-
 for m=1:M
     this_C = squeeze(C_track(:,:,m));
     
-    if any(isnan(this_C))
-        warning('Track error covariance has NaN values, unable to compute Probability of Handoff.');
-        P_handoff(m) = NaN;
-        continue;
-    end
     % Loop over az/el settings
     this_P = zeros(N_el,N_bng);
     for i_bng = 1:N_bng
@@ -85,17 +78,37 @@ for m=1:M
                                    sin_el_i];
             
              % Project Error
-             this_C_proj = utils.projectError(this_C,[0;0;0],x_seeker);
+             C_proj = utils.projectError(this_C,[0;0;0],x_seeker);
              
-             % Ellipse CDF
-             this_P(i_el,i_bng) = utils.ellipseCDF(this_C_proj, max_radius);
+             % Compute principal eigenvalues
+             [~,lam] = eig(C_proj);
+             lamSort = sort(lam,'descend');
+             sigma2 = lamSort(1:2); % Variance of the two principal components
              
-             if isnan(this_P(i_el, i_bng))
-                 warning('NaN probability encountered');
-             end
-            if i_bng == 1 && i_el==1
-                C_proj(:,:,m) = this_C_proj;
-            end
+             % Compute probability that a random draw with these variances
+             % will have radius < max_radius.
+             %
+             % The radius of error follows a Hoyt distribution (special
+             % case of Nakagami distribution)
+             % https://reference.wolfram.com/language/ref/HoytDistribution.html
+             %
+             % Formulated differently, the square of the radius of error is
+             % the weighted sum of two chi-squared random variables with
+             % one degree of freedom (k=1), and weights given by sigma.
+             % See https://arxiv.org/pdf/1208.2691.pdf, Corollary 1
+             %
+             % In the meantime, let us approximate:
+             %   1. Find the volume of an ellipse such that the radius of
+             %      the larger axis = max_radius.  This will be a lower
+             %      bound on P{Handoff}
+             %   2. Find the volume of an ellipse such that the radius of
+             %      the smaller axis = max_radius. This will be a lower
+             %      bound on P{Handoff}
+             %   3. Average the two results
+             
+             gamma = max_radius^2 ./ sigma2; % Scale factor to make each component's variation = the max acceptable error
+             prob_handoff_bounds = utils.computeRMSEConfInterval(gamma);
+             this_P(i_el,i_bng) = mean(prob_handoff_bounds);
         end
     end
     

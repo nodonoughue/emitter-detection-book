@@ -38,8 +38,6 @@ if nargin < 5 || ~exist('max_num_iterations','var') || isempty(max_num_iteration
     max_num_iterations = 100;
 end
 
-isOctave = exist('OCTAVE_VERSION','builtin')~=0;
-
 %% Initialize P
 P = eye(size(Q));
 dist = inf;
@@ -52,8 +50,6 @@ HRH = (H' / R) * H;
 while iter < max_num_iterations && abs(dist) > epsilon
     % Update estimate
     P_prev = P;
-    
-    % Pre-invert P_prev, using knowledge that it's a symmetric matrix
     P = Q + (F / (pinv(P_prev) + HRH)) * F';
     
     % Increment the convergence counters

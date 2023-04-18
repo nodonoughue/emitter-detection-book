@@ -33,11 +33,7 @@ if nargin < 5 || isempty(dist_units)
 end
 
 % Get scale factors
-if strcmpi(angle_units,'rad')==1
-    angle_mult = 1;
-else
-    angle_mult = pi/180;
-end
+angle_mult = unitsratio('rad', angle_units);
 dist_mult = unitsratio('m', dist_units);
 
 % Lookup Earth Constants

@@ -40,7 +40,8 @@ proj = u*u';
 proj_ortho = eye(n_dim) - proj;
 
 %% Project Errors
-err_proj = zeros(n_dim, n_dim, n_case);
-for idx=1:n_case
-    err_proj(:,:,idx) = proj_ortho*squeeze(err(1:n_dim,1:n_dim,idx))*proj_ortho;
-end
+err_cell = arrayfun(@(n) proj_ortho*squeeze(err(1:n_dim,1:n_dim,n))*proj_ortho, 1:n_case,'UniformOutput',false);
+    % Project each of the N matrices orthogonally to u
+    % Result is a cell-array of n_dim x n_dim matrices.
+
+err_proj = cell2mat(reshape(err_cell,1,1,n_case));

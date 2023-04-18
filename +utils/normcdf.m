@@ -17,12 +17,4 @@ function p = normcdf(x,mu,sigma)
 % Nicholas O'Donoughue
 % 14 December 2021
 
-if nargin < 2 || isempty(mu)
-    mu = 0;
-end
-
-if nargin < 3 || isempty(sigma)
-    sigma = 1;
-end
-
 p = .5 * erfc(-(x-mu)./(sqrt(2)*sigma));
