@@ -9,8 +9,8 @@ function err_proj = projectError(err, x_pt, x_obs)
 % INPUTS:
 %   err         3 x 3 x N datacube of covariance matrices for 
 %               N different test cases.
-%   x_pt        3 x 1 or 3 x N position vector for the target
-%   x_obs       3 x 1 or 3 x N position vector for the observer
+%   x_pt        3 x 1 position vector for the target
+%   x_obs       3 x 1 position vector for the observer
 %
 % OUTPUTS:
 %   err_proj    3 x 3 x N datacube of projected covariance
@@ -20,20 +20,16 @@ function err_proj = projectError(err, x_pt, x_obs)
 % 8 Nov 2021
 
 %% Parse Inputs
-[n_dim, n_case_pt] = size(x_pt);
-[n_dim_obs,n_case_obs] = size(x_obs);
-[n_dim_cov,n_dim2_cov,n_case] = size(err);
+n_dim = size(x_pt,1);
+n_dim_cov = size(err,1);
+n_case = size(err,3);
 
-assert(n_dim_cov == n_dim2_cov, 'Error covariance mismatch.');
-assert((n_case_pt == 1 || n_case_pt == n_case) && ...
-       (n_case_obs == 1 || n_case_obs == n_case), 'Unequal number of test cases.');
-   
-assert(n_dim == n_dim_obs,'Error: target and observation vector must have matching size.');
+assert(size(x_pt,1) == size(x_obs,1),'Error: target and observation vector must have matching size.');
+ 
 assert(n_dim_cov == n_dim, 'Error: covariance matrix dimensions must match target position.');
 
-
 %% Define LOS Vector and Projection Matrix
-dx = x_pt - x_obs;  % 3 x 1 or 3 x N
+dx = x_pt - x_obs;
 u  = dx / norm(dx); % unit vector
 
 proj = u*u';
