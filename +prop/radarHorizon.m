@@ -17,7 +17,7 @@ function Rh = radarHorizon(h1,h2)
 % Nicholas O'Donoughue
 % 1 July 2019
 
-R1 = sqrt(2*h1*utils.constants.Re+h1.^2);
-R2 = sqrt(2*h2*utils.constants.Re+h2.^2);
+R1 = sqrt(2*h1*utils.constant.Re+h1.^2);
+R2 = sqrt(2*h2*utils.constant.Re+h2.^2);
 
 Rh = bsxfun(@plus,R1,R2);

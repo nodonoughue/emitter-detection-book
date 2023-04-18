@@ -18,7 +18,7 @@ function Q = makeCAProcessNoise(maxG, num_states, heading, pitch, T, type)
 %       be in any dimension (x/y/z).
 %
 % INPUTS:
-%   maxG        Maximum load factor (in G's)
+%   maxG        Maximum divert force (in G's)
 %   heading     Heading (degrees CCW from +x axis)
 %   pitch       Degrees above or below horizontal of target trajectory
 %   T           Update rate (seconds)
@@ -31,30 +31,27 @@ function Q = makeCAProcessNoise(maxG, num_states, heading, pitch, T, type)
 % 11 Nov 2021
 
 
-% convert load factor to lateral acceleration term for level flight
-accel_std_dev = 9.81*tan(acos(1./maxG)); % m/s^2
-
 switch lower(type)
     case 'lateral-only'
         % No vertical acceleration, use heading along for lateral divert
 
         % 9x9 Process Noise Matrix
-        qq_xyz = (accel_std_dev)^2/3 * [cosd(heading)^2 -cosd(heading)*sind(heading) 0;
-                                       -cosd(heading)*sind(heading) sind(heading)^2 0;
-                                        0 0 0];
+        qq_xyz = (9.81*maxG)^2/3 * [cosd(heading)^2 -cosd(heading)*sind(heading) 0;
+                                -cosd(heading)*sind(heading) sind(heading)^2 0;
+                                0 0 0];
     case '3d-divert'
         % No thrusting, only divert (in 3D)
         % Good for maneuvering aircraft under constant velocity
         u = [cosd(heading)*cosd(pitch), sind(heading)*cosd(pitch), sind(pitch)];
         P = eye(3) - u(:)*u(:)';
-        qq_xyz = accel_std_dev^2/3 * P;
-%        qq_xyz = accel_std_dev^2/3 * [cosd(heading)^2*cosd(pitch)^2, -cosd(heading)*sind(heading)*cosd(pitch)^2, cosd(heading)*sind(pitch)*cosd(pitch);
+        qq_xyz = (9.81*maxG)^2/3 * P;
+%        qq_xyz = (9.81*maxG)^2/3 * [cosd(heading)^2*cosd(pitch)^2, -cosd(heading)*sind(heading)*cosd(pitch)^2, cosd(heading)*sind(pitch)*cosd(pitch);
 %                                -cosd(heading)*sind(heading)*cosd(pitch)^2, sind(heading)^2*cosd(pitch)^2, sind(heading)*cosd(pitch)*sind(pitch);
 %                                cosd(heading)*cosd(pitch)*sind(pitch), sind(heading)*cosd(pitch)*sind(pitch), sind(pitch)^2];
     case 'mostly-lateral'
         % Allow 10% of divert in vertical (z) dimension, 90% in lateral
         % 9x9 Process Noise Matrix
-        qq_xyz = accel_std_dev^2/3 * [cosd(heading)^2 -cosd(heading)*sind(heading) 0;
+        qq_xyz = (9.81*maxG)^2/3 * [cosd(heading)^2 -cosd(heading)*sind(heading) 0;
                                 -cosd(heading)*sind(heading) sind(heading)^2 0;
                                 0 0 0];
                             warning('mostly lateral case not properly defined');
