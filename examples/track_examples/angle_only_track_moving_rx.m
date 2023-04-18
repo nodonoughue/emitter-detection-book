@@ -7,7 +7,7 @@ vt = [10,0,0]';
 
 %% Sensor position
 xs_init = [0,0,0; 0, 10,20; 30, 30,20]*1e3; % m
-vs = [0,40,0]'; % m/s
+vs = [0,20,0]'; % m/s
 n_sensor=size(xs_init,2);
 
 %% Sensor performance -- assume 2D DOA
@@ -16,8 +16,8 @@ good_init_rmse = 10e3;
 
 % test_case = 'df_state_space';
 % test_case = 'df_msmt_space';
-% test_case = 'df_singlerx_msmt_space';
-test_case = 'tdoa_msmt_space';
+test_case = 'df_singlerx_msmt_space';
+% test_case = 'tdoa_msmt_space';
 switch lower(test_case)        
     case 'df_state_space'
 %         2D DF -- state space
@@ -175,7 +175,7 @@ for ii = 1:num_frames
     
    % Initialize tracker from DF geolocation, if first frame
    if ii==1
-       if ~do_good_init && ~any(isnan(x_msmt_full(:,ii))) % Insufficient info to re-initialize
+       if ~do_good_init && ~any(isnan(x_msmt_full)) % Insufficient info to re-initialize
            x_pred(pos_mask) = x_msmt_full(:,ii);
            P_pred(pos_mask,pos_mask) = msmt_cov_model(xs,x_pred(pos_mask));
        end
@@ -238,8 +238,8 @@ for ii=1:num_frames
     rmse_est(ii) = norm(err_est)/1e3;
     rmse_est_xy(ii) = norm(err_est(1:2))/1e3;
     
-    rmse_P_pred(ii) = sqrt(sum(diag(P_pred_full(:,:,ii))))/1e3;
-    rmse_P_est(ii) = sqrt(sum(diag(P_est_full(:,:,ii))))/1e3;
+    rmse_P_pred(ii) = sqrt(sum(diag(P_pred)))/1e3;
+    rmse_P_est(ii) = sqrt(sum(diag(P_est)))/1e3;
     
     err_msmt = x_msmt_full(:,ii) - x_true_full(:,ii);
     rmse_msmt(ii) = norm(err_msmt)/1e3;
@@ -277,7 +277,7 @@ xlabel('Cross-Track [km]');
 ylabel('Along-Track [km]');
 zlabel('Altitude [km]');
 xlim([0,2]*max(x_init(1))/1e3);
-ylim([-1,1]*max(max(abs(x_sensor_full(2,:,:))))/1e3);
+ylim([-1,1]*max(abs(abs(x_sensor_full(2,:,:))))/1e3);
 zlim([0, max(xs_init(3,:))]/1e3);
 
 figure;
