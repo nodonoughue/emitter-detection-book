@@ -40,7 +40,7 @@ C_prior = [5, 1, 0; 1, 50, 0; 0, 0, 10]*1e6;
 
 % Note that MVNPDF wants to work on rows, not columns; so let's transpose
 % x and x_prior
-prior = @(x) mvnpdf(x', x_prior', C_prior);
+prior = @(x) utils.mvnpdf(x', x_prior', C_prior);
 
 %% Measurement
 z = tdoa.measurement(x_tdoa, x_tgt);
@@ -68,7 +68,7 @@ x_vec = x_grid{1};
 y_vec = x_grid{2};
 
 fig1=figure;
-imagesc(x_vec, y_vec, reshape(A,numel(x_vec),numel(y_vec)));
+imagesc(x_vec, y_vec, reshape(A,numel(x_vec),numel(y_vec))');
 set(gca,'ydir','normal');
 hold on;
 scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')
@@ -87,7 +87,7 @@ ylabel('y [m]');
 title('Likelihood and Estimate without Prior');
 
 fig2=figure;
-imagesc(x_vec, y_vec, reshape(A_p, numel(x_vec), numel(y_vec)));
+imagesc(x_vec, y_vec, reshape(A_p, numel(x_vec), numel(y_vec))');
 set(gca,'ydir','normal');
 hold on;
 scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')

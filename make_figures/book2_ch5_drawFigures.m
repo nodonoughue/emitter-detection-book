@@ -112,7 +112,7 @@ utils.exportPlot(fig13a,[prefix '15a']);
 
 % A priori pdf
 
-prior = reshape(mvnpdf([xx(:), yy(:)], [x_ctr, y_ctr], [20, 2]),size(xx));
+prior = reshape(utils.mvnpdf([xx(:), yy(:)], [x_ctr, y_ctr], [20, 2]),size(xx));
 
 fig13b=figure;
 imagesc(x,y,prior);

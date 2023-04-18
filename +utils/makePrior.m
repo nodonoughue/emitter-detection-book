@@ -30,7 +30,7 @@ switch lower(type)
 
         mu = varargin{1};
         sigma = varargin{2};
-        prior = @(x) mvnpdf(x', mu', sigma);
+        prior = @(x) utils.mvnpdf(x', mu', sigma);
 
         warning('fim_prior not yet implemented...DERIVE!');
         fim_prior = sigma;
