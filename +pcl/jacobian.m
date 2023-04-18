@@ -46,7 +46,7 @@ Jt = dxt./Rt; % Tx-tgt component of jacobian
 
 % Compute Rx-Tgt Ranges
 dxr = reshape(x_tgt,nDim,1,nTgt) - reshape(x_rx,nDim,nRx);
-Rr = max(sqrt(sum(abs(dxr).^2,1)),epsilon); % 1 x nRx x nTgt
+Rr = max(sqrt(squm(abs(dxr).^2,1)),epsilon); % 1 x nRx x nTgt
 Jr = dxr./Rr; % Rx-Tgt component of jacobian
 
 % Parse Tx/Rx pairing indices
