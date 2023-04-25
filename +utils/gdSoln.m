@@ -70,10 +70,12 @@ x_prev = x_init;
 x_full(:,1) = x_prev;
 
 % Ensure the covariance matrix is invertible
-C = utils.ensureInvertible(C);
+if exist('+utils/ensureInvertible.m','file')
+    C = utils.ensureInvertible(C);
+end
 
 % Pre-compute covariance matrix inverses
-do_decomp = ~verLessThan('MATLAB','9.3');
+do_decomp = exist('OCTAVE_VERSION','builtin')==0 && ~verLessThan('MATLAB','9.3');
 if do_decomp
     % Starging in R2017b, MATLAB released the DECOMPOSITION function,
     % which can decompose matrices for faster computation of left- and

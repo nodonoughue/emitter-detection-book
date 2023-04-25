@@ -34,19 +34,17 @@ if sum(size(C)>1)>2
 
     % Determine the output dimension and number of test cases input
     outDims = fullDims(3:end);
-    if numel(outDims)==1
-        outDims = [outDims, 1];
+    if isscalar(outDims)
+        outDims = [outDims,1];
     end
     nIters = prod(outDims);
 
     % Reshape the covariance matrix input
     C = reshape(C,[fullDims(1:2),nIters]);
-    cep = zeros(outDims,1);
     
     % Call the function on each individual iteration
-    for ii=1:nIters
-        cep(ii) = utils.computeCEP50(squeeze(C(:,:,ii)));
-    end
+    cep = reshape(arrayfun(@(ii) utils.computeCEP50(squeeze(C(:,:,ii))),1:nIters),outDims);
+    
     return;
 end
 
@@ -67,7 +65,7 @@ lamMax = abs(lamSort(1));
 %vMax = V(:,iSort(1)); 
 
 % Secondary eigenvalue
-lamMin = abs(lamSort(2));
+lamMin = abs(lamSort(2)); % Change to second eigenvalue; CEP50 is now automatically computed along two largest principal dimensions
 %vMin = V(:,iSort(2));
 
 % Ratio of dominant to secondary eigenvalues

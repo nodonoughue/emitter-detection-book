@@ -56,6 +56,8 @@ end
 if resample_covariance
     [test_idx_vec, ref_idx_vec] = utils.parseReferenceSensor(ref_idx, n_sensor);
     C_tilde = utils.resampleCovMtx(C_out, test_idx_vec, ref_idx_vec);
+else
+    C_tilde = C_out;
 end
 
 % Ensure the covariance matrix is invertible

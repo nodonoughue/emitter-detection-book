@@ -33,26 +33,26 @@ utils.exportPlot(figs(1),[prefix '5']);
 utils.exportPlot(figs(2),[prefix '6']);
 utils.exportPlot(figs(3),[prefix '6b']);
 
-%% Figure 7, Example 5.2
+%% Figure 8, Example 5.2
 fprintf('Executing Example 5.2..\n');
 figs = book2_ex5_2;
 
-utils.exportPlot(figs(1), [prefix '7']);
-utils.exportPlot(figs(2), [prefix '7b']);
+utils.exportPlot(figs(1), [prefix '8']);
+utils.exportPlot(figs(2), [prefix '8b']);
 
-%% Figure 8, Example 5.3
+%% Figure 10, Example 5.3
 fprintf('Executing Example 5.3..\n');
 fig = book2_ex5_3;
 
-utils.exportPlot(fig, [prefix '8']);
+utils.exportPlot(fig, [prefix '10']);
 
-%% Figure 11, Example 5.4
+%% Figure 13, Example 5.4
 fprintf('Executing Example 5.4..\n');
 fig = book2_ex5_4;
 
-utils.exportPlot(fig, [prefix '11']);
+utils.exportPlot(fig, [prefix '13']);
 
-%% Figure 12, Logarithmic Barriers
+%% Figure 14, Logarithmic Barriers
 
 % Ideal barrier
 u = linspace(-3,1,1001);
@@ -76,10 +76,10 @@ xlabel('u');
 ylabel('Cost');
 
 utils.setPlotStyle(gca,{'widescreen', 'tight'});
-utils.exportPlot(fig1,[prefix '12']);
+utils.exportPlot(fig1,[prefix '14']);
 
 
-%% Figure 13, Illustration of Likelihood and Priors
+%% Figure 15, Illustration of Likelihood and Priors
 
 % Set up axes
 y = linspace(0,10,101);
@@ -108,11 +108,11 @@ zlabel('f(x,y)');
 title('Data Likelihood');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13a,[prefix '13a']);
+utils.exportPlot(fig13a,[prefix '15a']);
 
 % A priori pdf
 
-prior = reshape(mvnpdf([xx(:), yy(:)], [x_ctr, y_ctr], [20, 2]),size(xx));
+prior = reshape(utils.mvnpdf([xx(:), yy(:)], [x_ctr, y_ctr], [20, 2]),size(xx));
 
 fig13b=figure;
 imagesc(x,y,prior);
@@ -124,7 +124,7 @@ zlabel('f(x,y)');
 title('Prior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13b,[prefix '13b']);
+utils.exportPlot(fig13b,[prefix '15b']);
 
 % Posterier
 fig13c=figure;
@@ -137,14 +137,14 @@ zlabel('f(x,y)');
 title('Posterior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13c,[prefix '13c']);
+utils.exportPlot(fig13c,[prefix '15c']);
 
-%% Figure 14, Example 5.5
+%% Figure 16, Example 5.5
 fprintf('Executing Example 5.5...\n');
 figs = book2_ex5_5;
 
-utils.exportPlot(figs(1), [prefix '14a']);
-utils.exportPlot(figs(2), [prefix '14b']);
+utils.exportPlot(figs(1), [prefix '16a']);
+utils.exportPlot(figs(2), [prefix '16b']);
 
 %% Cleanup
 

@@ -35,11 +35,11 @@ end
 switch pdftype
     case 'MVN'
         C = varargin{1};
-        pdfs = {@(x) mvnpdf(msmt_function(x)',msmts(:)',C)'};
+        pdfs = {@(x) utils.mvnpdf(msmt_function(x)',msmts(:)',C)'};
             
     case 'Normal'
         c = varargin{1};
-        pdfs = {@(x) mvnpdf(msmt_function(x)',msmts(:)',diag(c))'};
+        pdfs = {@(x) utils.mvnpdf(msmt_function(x)',msmts(:)',diag(c))'};
             
     otherwise
         error('Unrecognized PDF type setting: %s.\n',pdftype);
