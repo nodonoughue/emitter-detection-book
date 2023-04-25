@@ -1,5 +1,5 @@
 function sigma = freqEstCRLB(sample_time,num_samples,snr_db)
-% sigma = freqDiffEstCRLB(time_s,bw_hz,snr_db)
+% sigma = freqEstCRLB(time_s,bw_hz,snr_db)
 %
 % Compute the CRLB for the frequency difference estimate from a pair of
 % sensors, given the time duration of the sampled signals, receiver
@@ -7,7 +7,7 @@ function sigma = freqEstCRLB(sample_time,num_samples,snr_db)
 %
 % INPUTS:
 %   sample_time Received signal duration [s]
-%   num_samples Number of receiver samples [Hz]
+%   num_samples Number of receiver samples
 %   snr_db      SNR [dB]
 %
 % OUTPUTS:
