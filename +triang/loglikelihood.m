@@ -54,7 +54,7 @@ for idx_source = 1:n_source_pos
     p = triang.measurement(x_sensor, x_source(:,idx_source), do2DAoA);
     
     % Compute the measurement error
-    err = (psi - p);
+    err = utils.modulo2pi(psi - p);
 
     % Evaluate the scaled log likelihood
     if do_decomp
