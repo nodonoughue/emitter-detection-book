@@ -86,7 +86,7 @@ cep50 = utils.computeCEP50(crlb);
 fprintf('CEP50: %.2f km\n',cep50/1e3);
 
 % Generate the 90% error ellipse from the CRLB
-crlb_ellipse = utils.drawErrorEllipse(x_source, crlb, 101, 50);
+crlb_ellipse = utils.drawErrorEllipse(x_source, crlb, 101, 90);
 
 %% Plot Result
 

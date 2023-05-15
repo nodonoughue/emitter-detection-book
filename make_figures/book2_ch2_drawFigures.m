@@ -291,19 +291,17 @@ ylim([2 3.5]*1e3);
 utils.exportPlot(fig, [prefix '7b']);
 
 %% Figure 2.8
-%  Example 2.3 is lengthy to compute, skip this unless recalcluation of the
+%  Example 2.3 is lengthy to compute, skip this unless recalculation of the
 %  output is specifically requested.
 
-if force_recalc
-    fig = book2_ex2_3;
+fig = book2_ex2_3;
 
-    utils.exportPlot(fig, [prefix '8a']);
+utils.exportPlot(fig, [prefix '8a']);
 
-    % Zoom in
-    xlim([2 3.5]*1e3);
-    ylim([2 3.5]*1e3);
-    utils.exportPlot(fig, [prefix '8b']);
-end
+% Zoom in
+xlim([2 3.5]*1e3);
+ylim([2 3.5]*1e3);
+utils.exportPlot(fig, [prefix '8b']);
 
 %% Cleanup
 
