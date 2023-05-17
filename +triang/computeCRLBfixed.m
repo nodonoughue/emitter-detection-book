@@ -34,4 +34,4 @@ end
 J = @(x) triang.jacobian(x_aoa,x,do2DAoA);
 
 % Call the generic solver with the equality constraints
-crlb = utils.computeCRLB(xs, C_tilde, J, [], a_grad);
+crlb = utils.computeCRLB(xs, C, J, [], a_grad);

@@ -25,7 +25,6 @@ if nargin < 4 || isempty(do2DAoA)
     do2DAoA = ~(size(C,1)==size(x_aoa,2)); % If the cov mtx is 1 per sensor, then it's not a 2D AOA problem 
 end
 
-
 % Set up Jacobian function
 J = @(x) triang.jacobian(x_aoa,x,do2DAoA);
 

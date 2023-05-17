@@ -1,4 +1,4 @@
-function crlb = computeCRLBpriors(x_aoa,x0,C,fim_prior,do2DAoA)
+function crlb = computeCRLBpriors(x_aoa,xs,C,fim_prior,do2DAoA)
 % crlb = computeCRLBpriors(x_aoa,xs,C,fim_prior,do2DAoA)
 %
 % Computes the CRLB on position accuracy for source at location xs and
