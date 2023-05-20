@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
-% [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol, ref_idx)
+% [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,search_size,epsilon,a,b,tol, ref_idx)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -33,6 +33,10 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_fdoa,v_fdoa,rho_dot,C,x_ctr,sear
 %
 % Nicholas O'Donoughue
 % 5 September 2021
+
+if nargin < 11 || ~exist('ref_idx','var')
+    ref_idx = [];
+end
 
 % Set up function handle
 ell = @(x) fdoa.loglikelihood(x_fdoa,v_fdoa,rho_dot,C,x,ref_idx);

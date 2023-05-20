@@ -35,7 +35,7 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,eps
 % Nicholas O'Donoughue
 % 5 September 2021
 
-if nargin < 7 || ~exist('ref_idx','var')
+if nargin < 10 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 
