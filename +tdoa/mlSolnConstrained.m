@@ -1,5 +1,5 @@
-function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol)
-% [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol,ref_idx)
+% [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,epsilon,a,b,tol,ref_idx)
 %
 % Construct the ML Estimate by systematically evaluating the log
 % likelihood function at a series of coordinates, and returning the index
@@ -23,6 +23,8 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,eps
 %   a           Equality constraint function handle
 %   b           Array of inequality constraint function handles
 %   tol         Tolerance for equality constraint
+%   ref_idx     Scalar index of reference sensor, or nDim x nPair
+%               matrix of sensor pairings
 %
 % OUTPUTS:
 %   x_est           Estimated source position [m]
@@ -32,6 +34,10 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_tdoa,rho,C,x_ctr,search_size,eps
 %
 % Nicholas O'Donoughue
 % 5 September 2021
+
+if nargin < 7 || ~exist('ref_idx','var')
+    ref_idx = [];
+end
 
 % Set up function handle
 ell = @(x) tdoa.loglikelihood(x_tdoa,rho,C,x,ref_idx);

@@ -46,11 +46,27 @@ fprintf('Unconstrained Solution: %.2f km E, %.2f km N, %.2f km U\n',...
 fprintf('Constrained Solution:   %.2f km E, %.2f km N, %.2f km U\n',...
         x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, x_gd_alt(3)/1e3);
 
+% Modify to add ML Soln
+x_ctr = [0e3, 30e3, 1e3];
+x_offset = [15e3, 15e3, 1e3]; % 30km x 30km search grid in x/y, with a 10 km search grid in z
+x_step = [1e3, 1e3, 50];
+tol = x_step(3)/2; % used for checking equality with the fixed altitude constraint
+
+[x_ml, ~, ~] = tdoa.mlSoln(x_tdoa, zeta, Croa, x_ctr, x_offset, x_step);
+[x_ml_alt, ~, ~] = tdoa.mlSolnConstrained(x_tdoa, zeta, Croa, x_ctr, x_offset, x_step, a, [], tol);
+
+fprintf('Unconstrained ML Solution:   %.2f km E, %.2f km N, %.2f km U\n',...
+        x_ml(1)/1e3, x_ml(2)/1e3, x_ml(3)/1e3);
+fprintf('Constrained Solution:   %.2f km E, %.2f km N, %.2f km U\n',...
+        x_ml_alt(1)/1e3, x_ml_alt(2)/1e3, x_ml_alt(3)/1e3);
+
 %% Plot the scenario
 fig1 = figure;
 stem3(x_tdoa(1,:),x_tdoa(2,:),x_tdoa(3,:),'k+','DisplayName','Sensors')
 hold on;
 stem3(x_tgt(1), x_tgt(2), x_tgt(3),'^','DisplayName','Target');
+stem3(x_ml(1), x_ml(2), x_ml(3), 'v','DisplayName','ML (unconst.)');
+stem3(x_ml_alt(1), x_ml_alt(2), x_ml_alt(3),'*','DisplayName','ML (const.)');
 set(gca,'ColorOrderIndex',1);
 grid on;
 
