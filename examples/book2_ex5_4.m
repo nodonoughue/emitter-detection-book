@@ -36,6 +36,7 @@ x_tgt_enu = [e, n, u]';
 alt_low = 500e3;
 alt_high = 600e3;
 b = utils.constraints.boundedAlt(alt_low, alt_high, 'ellipse');
+a = utils.constraints.fixedAlt(sat_lla(end),'ellipse');
 
 %% Measurements
 % Error
@@ -54,6 +55,14 @@ x_init = [x, y, z]';
 [x_gd, x_gd_full] = triang.gdSoln(x_aoa, zeta, C_aoa, x_init);
 [x_gd_bnd, x_gd_bnd_full] = triang.gdSolnBounded(x_aoa, zeta, C_aoa, x_init, b);
 
+x_ctr = x_init;
+x_offset = [300e3, 300e3, 300e3];
+x_step = [4e3, 4e3, 4e3];
+
+[x_ml, ~, ~] = triang.mlSoln(x_aoa, zeta, C_aoa, x_ctr, x_offset, x_step);
+[x_ml_bnd, ~, ~] = triang.mlSolnConstrained(x_aoa, zeta, C_aoa, x_ctr, x_offset, x_step, [], b);
+[x_ml_fix, ~, ~] = triang.mlSolnConstrained(x_aoa, zeta, C_aoa, x_ctr, x_offset, x_step, a, [], 3e3);
+
 %% Convert to LLA and Plot
 [lat,lon,alt] = utils.ecef2lla(x_gd(1), x_gd(2), x_gd(3), 'm');
 fprintf('Unconstrained Solution:  %.2f deg N, %.2f deg W, %.2f km\n', ...
@@ -63,6 +72,21 @@ fprintf('   Error: %.2f km\n', norm(x_gd-x_tgt)/1e3);
 fprintf('Constrained Solution:    %.2f deg N, %.2f deg W, %.2f km\n', ...
         lat, abs(lon), alt/1e3);
 fprintf('  Error:  %.2f km\n', norm(x_gd_bnd-x_tgt)/1e3);
+
+[lat,lon,alt] = utils.ecef2lla(x_ml(1), x_ml(2), x_ml(3), 'm');
+fprintf('Unconstrained ML Solution:  %.2f deg N, %.2f deg W, %.2f km\n', ...
+        lat, abs(lon), alt/1e3);
+fprintf('   Error: %.2f km\n', norm(x_ml-x_tgt)/1e3);
+
+[lat,lon,alt] = utils.ecef2lla(x_ml_bnd(1), x_ml_bnd(2), x_ml_bnd(3), 'm');
+fprintf('Constrained ML Solution:  %.2f deg N, %.2f deg W, %.2f km\n', ...
+        lat, abs(lon), alt/1e3);
+fprintf('   Error: %.2f km\n', norm(x_ml_bnd-x_tgt)/1e3);
+
+[lat,lon,alt] = utils.ecef2lla(x_ml_fix(1), x_ml_fix(2), x_ml_fix(3), 'm');
+fprintf('Fixed Alt ML Solution:  %.2f deg N, %.2f deg W, %.2f km\n', ...
+        lat, abs(lon), alt/1e3);
+fprintf('   Error: %.2f km\n', norm(x_ml_fix-x_tgt)/1e3);
 
 %% Plot in ENU
 [e,n,u] = utils.ecef2enu(x_gd(1), x_gd(2), x_gd(3), ...
@@ -81,6 +105,14 @@ x_gd_bnd_enu = [e(:), n(:), u(:)]';
                          ref_lla(1), ref_lla(2), ref_lla(3), 'deg', 'm');
 x_gd_bnd_full_enu = [e(:), n(:), u(:)]';
 
+[e,n,u] = utils.ecef2enu(x_ml(1), x_ml(2), x_ml(3), ...
+                         ref_lla(1), ref_lla(2), ref_lla(3), 'deg', 'm');
+x_ml_enu = [e, n, u]';
+
+[e,n,u] = utils.ecef2enu(x_ml_bnd(1), x_ml_bnd(2), x_ml_bnd(3), ...
+                         ref_lla(1), ref_lla(2), ref_lla(3), 'deg', 'm');
+x_ml_bnd_enu = [e, n, u]';
+
 fig1=figure;
 stem3(x_aoa_enu(1,:),x_aoa_enu(2,:),x_aoa_enu(3,:),'o','filled','DisplayName','Sensors')
 hold on;
@@ -97,6 +129,8 @@ hdl=plot3(x_gd_bnd_full_enu(1,:), x_gd_bnd_full_enu(2,:), max(0,x_gd_bnd_full_en
 utils.excludeFromLegend(hdl);
 plot3(x_gd_bnd_enu(1), x_gd_bnd_enu(2), max(0,x_gd_bnd_enu(3)),'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
 
+stem3(x_ml(1), x_ml(2), x_ml(3),'v','DisplayName','ML (unconstrained)');
+stem3(x_ml_bnd(1), x_ml_bnd(2), x_ml_bnd(3), '+','DisplayName','ML (constrained)');
 legend();
 
 view(-45,10);
