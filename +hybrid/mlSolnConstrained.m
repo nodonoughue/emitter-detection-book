@@ -1,4 +1,4 @@
-function [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
+function [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol,tdoa_ref_idx,fdoa_ref_idx)
 % [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,x_ctr,search_size,epsilon,a,b,tol)
 %
 % Construct the ML Estimate by systematically evaluating the log
@@ -26,6 +26,10 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,
 %   a           Equality constraint function handle
 %   b           Array of inequality constraint function handles
 %   tol         Tolerance for equality constraint
+%   tdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
+%                   matrix of sensor pairings for TDOA
+%   fdoa_ref_idx    Scalar index of reference sensor, or nDim x nPair
+%                   matrix of sensor pairings for FDOA
 %
 % OUTPUTS:
 %   x_est           Estimated source position [m]
@@ -37,12 +41,24 @@ function [x_est,A,x_grid] = mlSolnConstrained(x_aoa,x_tdoa,x_fdoa,v_fdoa,zeta,C,
 % 5 September 2021
 
 % Parse inputs
-if nargin < 10 || ~exist('tdoa_ref_idx','var')
+if nargin < 14 || ~exist('fdoa_ref_idx','var')
+    fdoa_ref_idx = [];
+end
+
+if nargin < 13 || ~exist('tdoa_ref_idx','var')
     tdoa_ref_idx = [];
 end
 
-if nargin < 11 || ~exist('fdoa_ref_idx','var')
-    fdoa_ref_idx = [];
+if nargin < 12 || ~exist('tol','var')
+    tol = [];
+end
+
+if nargin < 11 || ~exist('b','var')
+    b = [];
+end
+
+if nargin < 10 || ~exist('a','var')
+    a = [];
 end
 
 % Set up function handle

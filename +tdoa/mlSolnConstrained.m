@@ -39,6 +39,18 @@ if nargin < 10 || ~exist('ref_idx','var')
     ref_idx = [];
 end
 
+if nargin < 9 || ~exist('tol','var')
+    tol = [];
+end
+
+if nargin < 8 || ~exist('b','var')
+    b = [];
+end
+
+if nargin < 7 || ~exist('a','var')
+    a = [];
+end
+
 % Set up function handle
 ell = @(x) tdoa.loglikelihood(x_tdoa,rho,C,x,ref_idx);
 
