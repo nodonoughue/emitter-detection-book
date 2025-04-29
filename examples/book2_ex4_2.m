@@ -82,7 +82,7 @@ rmse_crlb = reshape(arrayfun(@(i) sqrt(trace(crlb(:,:,i))), 1:size(crlb,3)), siz
 
 %% Plotting
 fig=figure;
-imagesc(xx_grid/1e3,yy_grid/1e3,rmse_crlb/1e3);
+imagesc(xx_grid/1e3,yy_grid/1e3,rmse_crlb'/1e3);
 hold on;
 colorbar;
 plot(x_sensor_enu(1,:)/1e3,x_sensor_enu(2,:)/1e3,'ko');

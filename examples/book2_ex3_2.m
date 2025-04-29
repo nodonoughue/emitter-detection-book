@@ -51,8 +51,8 @@ for idx_set = 1:numel(ref_set)
     this_crlb = tdoa.computeCRLB(x_sensor, x_source, cov_full, this_ref);
         % N x N x 3
     
-    this_cep = sqrt(this_crlb(1,1,:) + this_crlb(2,2,:) + this_crlb(3,3,:));
-    %this_cep = utils.computeCEP50(this_crlb);
+    %this_cep = sqrt(this_crlb(1,1,:) + this_crlb(2,2,:) + this_crlb(3,3,:));
+    this_cep = utils.computeCEP50(this_crlb);
     
     % Plot this result
     figs(idx_set+1) = figure;

@@ -47,26 +47,30 @@ r1 = utils.rng(x1,x_source);
 r2 = utils.rng(x2,x_source);
 
 % Error Values
-epsang = 5*pi/180;
+std_dev = 4*pi/180;
+epsang = 2*std_dev;
+psi = triang.measurement([x0,x1,x2],x_source,0,0,std_dev^2*eye(3));
 
 % Find AOA 
-lob0 = x_source - x0;
-aoa0 = atan2(lob0(2),lob0(1));
-xaoa0 = x0 + [0 cos(aoa0);0 sin(aoa0)]*5*r1;
-xaoap0 = x0 + [0 cos(aoa0+epsang);0 sin(aoa0+epsang)]*5*r1;
-xaoam0 = x0 + [0 cos(aoa0-epsang);0 sin(aoa0-epsang)]*5*r1;
+% lob0 = x_source - x0;
+aoa0 = psi(1);
+% aoa0 = atan2(lob0(2),lob0(1))
+xaoa0 = x0 + [0 cos(aoa0);0 sin(aoa0)]*5*r0;
+xaoap0 = x0 + [0 cos(aoa0+epsang);0 sin(aoa0+epsang)]*5*r0;
+xaoam0 = x0 + [0 cos(aoa0-epsang);0 sin(aoa0-epsang)]*5*r0;
 lobFill0 = cat(2,xaoap0,fliplr(xaoam0),xaoap0(:,1));
 
-lob1 = x_source - x1;
-aoa1 = atan2(lob1(2),lob1(1));
+% lob1 = x_source - x1;
+aoa1 = psi(2);
+% aoa1 = atan2(lob1(2),lob1(1))
 xaoa1 = x1 + [0 cos(aoa1);0 sin(aoa1)]*5*r1;
 xaoap1 = x1 + [0 cos(aoa1+epsang);0 sin(aoa1+epsang)]*5*r1;
 xaoam1 = x1 + [0 cos(aoa1-epsang);0 sin(aoa1-epsang)]*5*r1;
 lobFill1 = cat(2,xaoap1,fliplr(xaoam1),xaoap1(:,1));
 
-lob2 = x_source - x2 + [.1;0];
-
-aoa2 = atan2(lob2(2),lob2(1));
+% lob2 = x_source - x2 + [.1;0];
+aoa2 = psi(3);
+% aoa2 = atan2(lob2(2),lob2(1))
 xaoa2 = x2 + [0 cos(aoa2);0 sin(aoa2)]*5*r2;
 xaoap2 = x2 + [0 cos(aoa2+epsang);0 sin(aoa2+epsang)]*5*r2;
 xaoam2 = x2 + [0 cos(aoa2-epsang);0 sin(aoa2-epsang)]*5*r2;
@@ -76,32 +80,40 @@ lobFill2 = cat(2,xaoap2,fliplr(xaoam2),xaoap2(:,1));
 fig1 = figure();hold on;
 
 % LOBs
-plot(xaoa0(1,:),xaoa0(2,:),'k-','DisplayName','AOA Solution');
-h=plot(xaoa1(1,:),xaoa1(2,:),'k-');
-h1=plot(xaoa2(1,:),xaoa2(2,:),'k-');
-utils.excludeFromLegend([h,h1]);
+h1=plot(xaoa0(1,:),xaoa0(2,:),'-','DisplayName','AOA Solution');
+h2=plot(xaoa1(1,:),xaoa1(2,:),'-');
+h3=plot(xaoa2(1,:),xaoa2(2,:),'-');
+utils.excludeFromLegend([h2,h3]);
 
 % Uncertainty Intervals
-plot(xaoap0(1,:),xaoap0(2,:)','k--','DisplayName','Uncertainty Interval');
-h=plot(xaoam0(1,:),xaoam0(2,:),'k--');
-utils.excludeFromLegend(h);
-h = fill(lobFill0(1,:),lobFill0(2,:),'k','FaceAlpha',.1,'EdgeColor','none');
-utils.excludeFromLegend(h);
+plot(xaoap0(1,:),xaoap0(2,:)','--','Color',h1.Color,'DisplayName','Uncertainty Interval');
+hdl=plot(xaoam0(1,:),xaoam0(2,:),'--','Color',h1.Color);
+utils.excludeFromLegend(hdl);
+hdl = fill(lobFill0(1,:),lobFill0(2,:),h1.Color,'FaceAlpha',.1,'EdgeColor','none');
+utils.excludeFromLegend(hdl);
 
-h=plot(xaoap1(1,:),xaoap1(2,:)','k--',xaoam1(1,:),xaoam1(2,:),'k--');
-utils.excludeFromLegend(h);
-h = fill(lobFill1(1,:),lobFill1(2,:),'k','FaceAlpha',.1,'EdgeColor','none');
-utils.excludeFromLegend(h);
+hdl=plot(xaoap1(1,:),xaoap1(2,:)','--','Color',h2.Color);
+utils.excludeFromLegend(hdl);
+hdl=plot(xaoam1(1,:),xaoam1(2,:),'--','Color',h2.Color);
+utils.excludeFromLegend(hdl);
+hdl = fill(lobFill1(1,:),lobFill1(2,:),h2.Color,'FaceAlpha',.1,'EdgeColor','none');
+utils.excludeFromLegend(hdl);
 
-h=plot(xaoap2(1,:),xaoap2(2,:)','k--',xaoam2(1,:),xaoam2(2,:),'k--');
-utils.excludeFromLegend(h);
-h = fill(lobFill2(1,:),lobFill2(2,:),'k','FaceAlpha',.1,'EdgeColor','none');
-utils.excludeFromLegend(h);
+hdl=plot(xaoap2(1,:),xaoap2(2,:)','--','Color',h3.Color);
+utils.excludeFromLegend(hdl);
+hdl=plot(xaoam2(1,:),xaoam2(2,:),'--','Color',h3.Color);
+utils.excludeFromLegend(hdl);
+hdl = fill(lobFill2(1,:),lobFill2(2,:),h3.Color,'FaceAlpha',.1,'EdgeColor','none');
+utils.excludeFromLegend(hdl);
 
 
 % Position Markers
 plot([x0(1),x1(1),x2(1)],[x0(2),x1(2),x2(2)],'ko','DisplayName','Sensors');
-%plot(xs(1),xs(2),'k^','MarkerSize',8,'DisplayName','Transmitter');
+plot(x_source(1),x_source(2),'+','MarkerSize',8,'DisplayName','Transmitter');
+
+
+x_est = triang.centroid([x0,x1,x2],psi);
+plot(x_est(1),x_est(2),'x','MarkerSize',8,'DisplayName','Estimate');
 
 % Position Labels
 text(x0(1)+.05,x0(2)-.1,'$S_0$');
@@ -146,17 +158,17 @@ xaoa2 = x2 + [0 cos(aoa2);0 sin(aoa2)]*5*r2;
 fig2 = figure();hold on;
 
 % LOBs
-h=plot(xaoa0(1,:),xaoa0(2,:),'k-','DisplayName','AOA Solution');
-utils.excludeFromLegend(h);
-h=plot(xaoa1(1,:),xaoa1(2,:),'k-');
-utils.excludeFromLegend(h);
-h=plot(xaoa2(1,:),xaoa2(2,:),'k-');
-utils.excludeFromLegend(h);
+h2=plot(xaoa0(1,:),xaoa0(2,:),'k-','DisplayName','AOA Solution');
+utils.excludeFromLegend(h2);
+h2=plot(xaoa1(1,:),xaoa1(2,:),'k-');
+utils.excludeFromLegend(h2);
+h2=plot(xaoa2(1,:),xaoa2(2,:),'k-');
+utils.excludeFromLegend(h2);
 
 % Angle Markers
 angle_rad = .1;
 h0=plot(x0(1)+[0 3*angle_rad],x0(2)*[1 1],'k-','LineWidth',.5);
-h1=plot(x0(1)+angle_rad*cos(linspace(0,aoa0,100)),...
+h3=plot(x0(1)+angle_rad*cos(linspace(0,aoa0,100)),...
         x0(2)+angle_rad*sin(linspace(0,aoa0,100)),'k-','LineWidth',.5);
 text(x0(1)+angle_rad,x0(2)+angle_rad,'$\psi_0$');
 h2=plot(x1(1)+[0 3*angle_rad],x1(2)*[1 1],'k-','LineWidth',.5);
@@ -167,7 +179,7 @@ h4=plot(x2(1)+[0 3*angle_rad],x2(2)*[1 1],'k-','LineWidth',.5);
 h5=plot(x2(1)+angle_rad*cos(linspace(0,aoa2,100)),...
         x2(2)+angle_rad*sin(linspace(0,aoa2,100)),'k-','LineWidth',.5);
 text(x2(1)+2*angle_rad,x2(2)+angle_rad,'$\psi_2$');
-utils.excludeFromLegend([h0,h1,h2,h3,h4,h5]);
+utils.excludeFromLegend([h0,h3,h2,h3,h4,h5]);
 
 % Position Markers
 plot([x0(1),x1(1),x2(1)],[x0(2),x1(2),x2(2)],'ko','DisplayName','Sensors');
@@ -261,9 +273,9 @@ text(x_sensor(1,1)-.4,x_sensor(2,1),'$S_0$');
 text(x_sensor(1,2)-.4,x_sensor(2,2),'$S_1$');
 text(x_sensor(1,3)-.4,x_sensor(2,3),'$S_2$');
 hold on;
-h=plot((x_sensor(1,:)' + cos(psi(:))*r)',...
+h2=plot((x_sensor(1,:)' + cos(psi(:))*r)',...
        (x_sensor(2,:)' + sin(psi(:))*r)','k-','LineWidth',.5,'DisplayName','AOA Solutions');
-utils.excludeFromLegend(h);
+utils.excludeFromLegend(h2);
 
 % Look for intersections
 x_centroid = triang.centroid(x_sensor,psi);

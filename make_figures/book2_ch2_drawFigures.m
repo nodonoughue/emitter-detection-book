@@ -114,31 +114,62 @@ r1 = utils.rng(x_sensor1,x_source);
 r2 = utils.rng(x_sensor2,x_source);
 r3 = utils.rng(x_sensor3,x_source);
 
+std_dev = .1;
+eps_rdoa = std_dev * 1.5;
+cov = std_dev^2*(1 + eye(2));
+z = tdoa.measurement([x_sensor1, x_sensor2, x_sensor3], x_source, 2);
+L = chol(cov,'lower');
+n = L * randn(size(L,2),1);
+zeta = z + n;
+
 % Find Isochrones
-xiso1 = tdoa.drawIsochrone(x_sensor1,x_sensor2,r2-r1,1000,3);
-xiso2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,r3-r2,1000,3);
+xiso1 = tdoa.drawIsochrone(x_sensor2,x_sensor1,zeta(1),1000,3);
+xisop1 = tdoa.drawIsochrone(x_sensor2,x_sensor1,zeta(1)+eps_rdoa,1000,3);
+xisom1 = tdoa.drawIsochrone(x_sensor2,x_sensor1,zeta(1)-eps_rdoa,1000,3);
+isoFill1 = cat(2,xisop1,fliplr(xisom1),xisop1(:,1));
+
+xiso2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,zeta(2),1000,3);
+xisop2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,zeta(2)+eps_rdoa,1000,3);
+xisom2 = tdoa.drawIsochrone(x_sensor2,x_sensor3,zeta(2)-eps_rdoa,1000,3);
+isoFill2 = cat(2,xisop2,fliplr(xisom2),xisop2(:,1));
 
 % Draw Figure
 fig2 = figure();hold on;
+    
+% Position Markers
+plot([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'ko','MarkerSize',8,'DisplayName','Sensors');
+plot([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'k-.','DisplayName','TDOA Sensor Pairs');
 
 % Isochrones
-plot(xiso1(1,:),xiso1(2,:),':','DisplayName','Isochrone');
-hiso2=plot(xiso2(1,:),xiso2(2,:),':');
+set(gca,'ColorOrderIndex',1);
+hiso1=plot(xiso1(1,:),xiso1(2,:),'-','DisplayName','Isochrone');
+hiso2=plot(xiso2(1,:),xiso2(2,:),'-');
 utils.excludeFromLegend(hiso2);
 
-% Isochrone Labels
-text(mean([x_sensor1(1),x_sensor2(1)]),mean([x_sensor1(2),x_sensor2(2)])-.2,'$TDOA_{1,2}$');
-text(mean([x_sensor2(1),x_sensor3(1)])+.3,mean([x_sensor2(2),x_sensor3(2)]),'$TDOA_{2,3}$');
+% Uncertainty Intervals
+hdl = plot(xisop1(1,:),xisop1(2,:),'--','Color',hiso1.Color);
+utils.excludeFromLegend(hdl);
+hdl = plot(xisom1(1,:),xisom1(2,:),'--','Color',hiso1.Color);
+utils.excludeFromLegend(hdl);
+hdl = fill(isoFill1(1,:),isoFill1(2,:),hiso1.Color,'FaceAlpha',.1,'EdgeColor','none');
+utils.excludeFromLegend(hdl);
 
-% Position Markers
-%hiso2=scatter([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'k-','LineWidth',1);
-%utils.excludeFromLegend(hiso2);
-scatter([x_sensor1(1),x_sensor2(1),x_sensor3(1)],[x_sensor1(2),x_sensor2(2),x_sensor3(2)],'^','filled','DisplayName','Sensors');
-% hdl=scatter(x_sensor2(1),x_sensor2(2),'^','filled');
-% utils.excludeFromLegend(hdl);
-% hdl=scatter(x_sensor3(1),x_sensor3(2),'^','filled');
-% utils.excludeFromLegend(hdl);
-scatter(x_source(1),x_source(2),'s','filled','DisplayName','Transmitter');
+hdl = plot(xisop2(1,:),xisop2(2,:),'--','Color',hiso2.Color);
+utils.excludeFromLegend(hdl);
+hdl = plot(xisom2(1,:),xisom2(2,:),'--','Color',hiso2.Color);
+utils.excludeFromLegend(hdl);
+hdl = fill(isoFill2(1,:),isoFill2(2,:),hiso2.Color,'FaceAlpha',.1,'EdgeColor','none');
+utils.excludeFromLegend(hdl);
+
+% Isochrone Labels
+% text(mean([x_sensor1(1),x_sensor2(1)]),mean([x_sensor1(2),x_sensor2(2)])-.2,'$TDOA_{1,2}$');
+% text(mean([x_sensor2(1),x_sensor3(1)])+.3,mean([x_sensor2(2),x_sensor3(2)]),'$TDOA_{2,3}$');
+
+% Source and Estimated Position
+set(gca,'ColorOrderIndex',3);
+plot(x_source(1),x_source(2),'+','MarkerSize',8,'DisplayName','Transmitter');
+x_est = tdoa.lsSoln([x_sensor1,x_sensor2,x_sensor3],zeta,std_dev^2*eye(3),[0;0],[],[],[],[],2);
+plot(x_est(1),x_est(2),'x','MarkerSize',8,'DisplayName','Estimate');
 
 % Position Labels
 text(x_sensor1(1)+.05,x_sensor1(2)-.1,'$S_1$');
@@ -149,7 +180,7 @@ text(x_sensor3(1)+.05,x_sensor3(2)-.1,'$S_3$');
 
 % Adjust Axes
 xlim([-2 3]);
-ylim([-1 2]);
+ylim([-.5 2]);
 legend('Location','SouthEast');
 
 utils.setPlotStyle(gca,{'clean','equal','widescreen','tight'});

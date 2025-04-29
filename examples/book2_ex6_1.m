@@ -20,7 +20,7 @@ n_aoa = size(x_aoa,2);
 x_tgt = [5; 3];
 
 % Define received signals and covariance matrix
-alpha = [5, 10, -5]*pi/180; % AOA bias
+alpha = [5, 10, -5]'*pi/180; % AOA bias
 psi = triang.measurement(x_aoa, x_tgt);
 psi_bias = triang.measurement(x_aoa, x_tgt, false, alpha);
 

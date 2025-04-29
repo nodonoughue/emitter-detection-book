@@ -89,7 +89,7 @@ view(0,80);
 
 % Add TDOA Results
 [grid_lat, grid_lon, ~] = utils.enu2lla(x_grid(1,:), x_grid(2,:), x_grid(3,:), ref_lat, ref_lon, ref_alt);
-geoshow(reshape(grid_lat,size(XX)), reshape(grid_lon,size(XX)), rmse_crlb/1e3,'DisplayType','texturemap');
+geoshow(reshape(grid_lat,size(XX)), reshape(grid_lon,size(XX)), rmse_crlb'/1e3,'DisplayType','texturemap');
 colorbar;
 colormap(flipud(utils.viridis));
 caxis([0 20]);

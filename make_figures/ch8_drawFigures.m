@@ -200,7 +200,7 @@ annotation(fig6,'doublearrow',[0.477430555555556 0.560763888888889],...
 text(0,-18,'$\delta_u$','FontSize',11);
 grid off
 
-ylabel('Array Factor [linear]');
+ylabel('Array Factor [dB]');
 ylim([-20 0]);
 %legend(arrayfun(@(x) sprintf('d = %.1f \\delta_u',x),spacing,'UniformOutput',false));
 utils.setPlotStyle(gca,{'widescreen'});
