@@ -46,7 +46,7 @@ figs = book2_ex7_3;
 utils.exportPlot(figs(1), [prefix '5a']);
 utils.exportPlot(figs(2), [prefix '5b']);
 
-%% Figure 7.6
+%% Figure 7.7
 % Illustration of TDOA changes over time
 
 x_tgt = [0; 0];
@@ -63,7 +63,7 @@ num_t = numel(t);
 x_tdoa_full = x_tdoa + v_tdoa .* reshape(t,1,1,num_t);
 
 % Plot Geometry
-fig6a = figure;
+fig7a = figure;
 colors = get(gca,'ColorOrder');
 plot(x_tgt(1), x_tgt(2),'^', 'DisplayName','Target');
 hold on;
@@ -82,7 +82,7 @@ for idx=1:num_t
     zeta(:,idx) = tdoa.measurement(this_x,x_tgt,1);
 end
 
-fig6b=figure;
+fig7b=figure;
 plot(t,zeta);
 legend('TDOA_{1,2}','TDOA_{1,3}');
 grid on;
@@ -91,16 +91,16 @@ ylabel('Range Difference Measurement [m]');
 
 utils.setPlotStyle(gca,{'widescreen'});
 
-utils.exportPlot(fig6a,[prefix '6a']);
-utils.exportPlot(fig6b,[prefix '6b']);
+utils.exportPlot(fig7a,[prefix '7a']);
+utils.exportPlot(fig7b,[prefix '7b']);
 
-%% Figure 7.7
+%% Figure 7.8
 figs = book2_ex7_4;
 
-utils.exportPlot(figs(1), [prefix '7a']);
-utils.exportPlot(figs(2), [prefix '7b']);
+utils.exportPlot(figs(1), [prefix '8a']);
+utils.exportPlot(figs(2), [prefix '8b']);
 
-%% Figure 7.8 and 7.9 Degenerate Geometry
+%% Figure 7.10 Degenerate Geometry
 x_tgt = [0; 10e3];
 
 x_init = [0; 0];
@@ -116,7 +116,7 @@ x_aoa = x_init + cumsum(v_aoa * dt,2);
 
 theta_unc = 5; % +/- 5 degree uncertainty interval
 
-fig8a=figure;
+fig10a=figure;
 hdl_traj = plot(x_aoa(1,:), x_aoa(2,:),'DisplayName','Sensor Trajectory');
 hold on;
 
@@ -188,14 +188,14 @@ for idx = 1:numel(t_vec)
     P_prev = this_P;
 end
 
-fig8b=figure;
-plot(t_vec, cep_vec/1e3);
+fig10b=figure;
+semilogy(t_vec, cep_vec/1e3);
 xlabel('Time [s]');
-ylabel('$CEP_{50}$ [m]');
+ylabel('$CEP_{50}$ [km]');
 utils.setPlotStyle(gca,{'widescreen'});
 
-utils.exportPlot(fig8a,[prefix '8a']);
-utils.exportPlot(fig8b,[prefix '8b']);
+utils.exportPlot(fig10a,[prefix '10a']);
+utils.exportPlot(fig10b,[prefix '10b']);
 
 %% Cleanup
 

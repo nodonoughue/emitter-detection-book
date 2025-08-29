@@ -31,14 +31,14 @@ figs = book2_ex5_1;
 
 utils.exportPlot(figs(1),[prefix '5']);
 utils.exportPlot(figs(2),[prefix '6']);
-utils.exportPlot(figs(3),[prefix '6b']);
+utils.exportPlot(figs(3),[prefix '6_video']);
 
 %% Figure 8, Example 5.2
 fprintf('Executing Example 5.2..\n');
 figs = book2_ex5_2;
 
 utils.exportPlot(figs(1), [prefix '8']);
-utils.exportPlot(figs(2), [prefix '8b']);
+utils.exportPlot(figs(2), [prefix '8_video']);
 
 %% Figure 10, Example 5.3
 fprintf('Executing Example 5.3..\n');

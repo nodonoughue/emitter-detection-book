@@ -33,13 +33,13 @@ utils.exportPlot(figs(1), [prefix '3']);
 utils.exportPlot(figs(2), [prefix '4']);
 utils.exportPlot(figs(3), [prefix '5']);
 
-%% Figures 8.6a/b and 8.7, Example 8.2
+%% Figures 8.7 and 8.8, Example 8.2
 
 figs = book2_ex8_2;
 
-utils.exportPlot(figs(1), [prefix '6a']);
-utils.exportPlot(figs(2), [prefix '6b']);
-utils.exportPlot(figs(3), [prefix '7']);
+utils.exportPlot(figs(1), [prefix '7a']);
+utils.exportPlot(figs(2), [prefix '7b']);
+utils.exportPlot(figs(3), [prefix '8']);
 
 %% Cleanup
 

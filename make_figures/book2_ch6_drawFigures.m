@@ -41,12 +41,12 @@ fig = book2_ex6_2;
 
 utils.exportPlot(fig, [prefix '2']);
 
-%% Figure 6.2a, Example 6.3
+%% Figure 6.5, Example 6.3
 fig = book2_ex6_3;
 
-utils.exportPlot(fig, [prefix '2a']);
+utils.exportPlot(fig, [prefix '5']);
 
-%% Figures 6.3a and 6.3b, Impact of Sensor Position Errors
+%% Figures 6.6a and 6.6b, Impact of Sensor Position Errors
 
 x_aoa = [-1, 1;0, 0];
 x_target = [0; 5];
@@ -72,7 +72,7 @@ lob_un = x_aoa_un + lob_zero;
 lob_nonun = x_aoa_nonun + lob_zero;
 
 % Draw Uniform Offset case
-fig3a=figure;
+fig6a=figure;
 hdls = plot(squeeze(lob_true(1,:,:))',...
             squeeze(lob_true(2,:,:))','-','Color',colors(1,:),...
             'DisplayName','True LOB');
@@ -91,10 +91,10 @@ ylim([0 11]);
 legend('Location','NorthWest');
 
 utils.setPlotStyle(gca,{'tight','clean','equal'});
-utils.exportPlot(fig3a,[prefix '3a']);
+utils.exportPlot(fig6a,[prefix '6a']);
 
 % Draw Non-Uniform Offset case
-fig3b=figure;
+fig6b=figure;
 plot(squeeze(lob_true(1,:,:))',...
      squeeze(lob_true(2,:,:))','-','Color',colors(1,:),'DisplayName','True LOB');
 hold on;
@@ -109,22 +109,22 @@ xlim([-6 6]);
 ylim([0 11]);
 
 utils.setPlotStyle(gca,{'tight','clean','equal'});
-utils.exportPlot(fig3b,[prefix '3b']);
+utils.exportPlot(fig6b,[prefix '6b']);
 
-%% Figures 6.7a, 6.7b, and 6.8, Example 6.4
+%% Figures 6.8 and 6.9, Example 6.4
 if force_recalc
     figs = book2_ex6_4;
 
-    utils.exportPlot(figs(1), [prefix '7a']);
-    utils.exportPlot(figs(2), [prefix '7b']);
-    utils.exportPlot(figs(3), [prefix '8a']);
-    utils.exportPlot(figs(4), [prefix '8b']);
+    utils.exportPlot(figs(1), [prefix '8a']);
+    utils.exportPlot(figs(2), [prefix '8b']);
+    utils.exportPlot(figs(3), [prefix '9a']);
+    utils.exportPlot(figs(4), [prefix '9b']);
 end
 
-%% Figure 6.10, Example 6.5
+%% Figure 6.12, Example 6.5
 figs = book2_ex6_5;
 
-utils.exportPlot(figs(1), [prefix '10']);
+utils.exportPlot(figs(1), [prefix '12']);
 
 %% Cleanup
 
