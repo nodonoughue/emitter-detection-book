@@ -13,12 +13,18 @@ function figs = book2_ex3_2()
 % Nicholas O'Donoughue
 % 31 May 2021
 
+% In the video following this example, some modifications are made.
+% We've added a boolean flag here to turn those modifications on or off.
+do_video_version=false;
+
 %% Set up sensor coordinates
 n_sensors = 4;
 baseline = 10e3;
 thSensors = linspace(0,2*pi,n_sensors) +pi/2; % add an extra sample, will be ignored
 x_sensor = [0, cos(thSensors(1:end-1)); 0, sin(thSensors(1:end-1))] * baseline;
-x_sensor = cat(1, x_sensor, 10e3*ones(1,n_sensors));
+if do_video_version
+    x_sensor = cat(1, x_sensor, 10e3*ones(1,n_sensors));
+end
 
 %% Define Covariance Matrix
 time_err = 100e-9; % 100 ns
@@ -26,12 +32,15 @@ cov_full = time_err^2 * eye(n_sensors);
 
 %% Plot Geometry
 fig1=figure;
-plot(x_sensor(1,:), x_sensor(2,:), 'o', 'DisplayName','Sensors');
+plot(x_sensor(1,:)/1e3, x_sensor(2,:)/1e3, 'o', 'DisplayName','Sensors');
 legend('Location','NorthWest');
+xlabel('x [km]');
+ylabel('y [km]');
 
 %% Sensor Pairs
 % Cell array of the different configurations, to be iterated over
-ref_set = {1, 'full', [1 3 3;2 4 2]};
+% ref_set = {1, 'full', [1 3 3;2 4 2]};
+ref_set = {1, 2, 3, 4, 'full'};
 
 %% Compute CRLB
 figs = [fig1, zeros(size(ref_set))];
@@ -39,9 +48,11 @@ figs = [fig1, zeros(size(ref_set))];
 % Define search grid (targets up to 200 km away)
 xx_vec = linspace(-100e3, 100e3, 101);
 [xx,yy] = meshgrid(xx_vec);
-alt=5e3;
-x_source = [xx(:), yy(:), alt*ones(numel(xx),1)]';
-%x_source = [xx(:), yy(:)]';
+x_source = [xx(:), yy(:)]';
+if do_video_version
+    alt=5e3;
+    x_source = cat(1,x_source, alt*ones(1,numel(xx)));
+end
 
 levels = [.01,1,5,10, 25, 50, 100, 200];
 
@@ -56,7 +67,7 @@ for idx_set = 1:numel(ref_set)
     
     % Plot this result
     figs(idx_set+1) = figure;
-    [C,h] = contourf(xx_vec,xx_vec,reshape(this_cep/1e3, size(xx)),levels);
+    [C,h] = contourf(xx_vec/1e3,xx_vec/1e3,reshape(this_cep/1e3, size(xx)),levels);
     clabel(C,h,'Color','white');
     set(gca,'ydir','normal');
     set(gca,'ColorScale','log');
@@ -64,7 +75,9 @@ for idx_set = 1:numel(ref_set)
     caxis([levels(1),levels(end)]);
     colorbar
     hold on;
-    plot(x_sensor(1,:), x_sensor(2,:), 'wo', 'DisplayName','Sensors');
+    plot(x_sensor(1,:)/1e3, x_sensor(2,:)/1e3, 'wo', 'DisplayName','Sensors');
+    xlabel('x [km]');
+    ylabel('y [km]');
 end
 
 %% Repeat with higher error for sensor one
@@ -84,7 +97,7 @@ for idx_set = 1:numel(ref_set)
     
     % Plot this result
     figs2(idx_set) = figure;
-    [C,h] = contourf(xx_vec,xx_vec,reshape(this_cep/1e3, size(xx)),levels);
+    [C,h] = contourf(xx_vec/1e3,xx_vec/1e3,reshape(this_cep/1e3, size(xx)),levels);
     clabel(C,h,'Color','white');
     set(gca,'ydir','normal');
     set(gca,'ColorScale','log');
@@ -92,5 +105,7 @@ for idx_set = 1:numel(ref_set)
     colorbar
     caxis([levels(1),levels(end)]);
     hold on;
-    plot(x_sensor(1,:), x_sensor(2,:), 'wo', 'DisplayName','Sensors');
+   plot(x_sensor(1,:)/1e3, x_sensor(2,:)/1e3, 'wo', 'DisplayName','Sensors');
+   xlabel('x [km]');
+   ylabel('y [km]');
 end

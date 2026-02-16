@@ -28,10 +28,6 @@ n_dim = size(x_fdoa,1);
 n_fdoa = size(x_fdoa,2);
 n_source = size(x_source,2);
 
-if nargin < 4 || ~exist('fdoa_ref_idx','var')
-    fdoa_ref_idx = [];
-end
-
 % Compute Pointing Vectors
 dx = x_fdoa - reshape(x_source,n_dim,1,n_source); % nDim x nSensor x nSource
 Rn = sqrt(sum(abs(dx).^2,1)); % Euclidean norm for each offset vector

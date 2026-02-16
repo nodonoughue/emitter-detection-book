@@ -96,6 +96,8 @@ plot(x_aoa(1), x_aoa(2), 'ko', 'DisplayName','AOA Sensor');
 
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
@@ -117,6 +119,8 @@ plot(x_tdoa(1, :), x_tdoa(2, :), 'ks', 'DisplayName','TDOA Sensor');
 
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
@@ -140,6 +144,8 @@ utils.drawArrow(x_fdoa(1,2)+[0 v_fdoa(1,2)],x_fdoa(2,2)+[0 v_fdoa(2,2)]);
 
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
@@ -165,6 +171,8 @@ utils.drawArrow(x_fdoa(1,2)+[0 v_fdoa(1,2)],x_fdoa(2,2)+[0 v_fdoa(2,2)]);
 
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');

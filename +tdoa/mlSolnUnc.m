@@ -49,7 +49,7 @@ m_tdoa = numel(tdoa_test_idx_vec);
 % indices
 x_ind = 1:n_dim;
 a_ind = n_dim + (1:n_tdoa);
-b_ind = a_ind(end) + 1:(n_dim*n_tdoa);
+b_ind = a_ind(end) + (1:(n_dim*n_tdoa));
 
 % Set up function handle
 % We must take care to ensure that it can handle an n_th x N matrix of

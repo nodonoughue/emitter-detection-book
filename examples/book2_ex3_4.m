@@ -153,30 +153,32 @@ crlb_ellipse = utils.drawErrorEllipse(x_source(:,end), crlb, 101, 50);
 %% Plot Result
 
 fig2=figure;
-plot(x_source(1, end), x_source(2, end), 'kx', 'DisplayName','Target');
+plot(x_source(1, end)/1e3, x_source(2, end)/1e3, 'kx', 'DisplayName','Target');
 hold on;
-plot(x_tdoa(1, :), x_tdoa(2, :), 'ks', 'DisplayName','TDOA Sensor');
+plot(x_tdoa(1, :)/1e3, x_tdoa(2, :)/1e3, 'ks', 'DisplayName','TDOA Sensor');
 
-plot(x_ml(1), x_ml(2), 'v', 'DisplayName', 'ML Solution');
-plot(x_ml_full(1), x_ml_full(2), '^', 'DisplayName', 'ML Solution (full)');
-hdl=plot(x_gd_iters(1,:), x_gd_iters(2,:), '-.');
+plot(x_ml(1)/1e3, x_ml(2)/1e3, 'v', 'DisplayName', 'ML Solution');
+plot(x_ml_full(1)/1e3, x_ml_full(2)/1e3, '^', 'DisplayName', 'ML Solution (full)');
+hdl=plot(x_gd_iters(1,:)/1e3, x_gd_iters(2,:)/1e3, '-.');
 utils.excludeFromLegend(hdl);
-plot(x_gd(1),x_gd(2),'-.+','DisplayName','GD Solution','Color',hdl.Color);
-hdl=plot(x_gd_full_iters(1,:), x_gd_full_iters(2,:), '-.');
+plot(x_gd(1)/1e3,x_gd(2)/1e3,'-.+','DisplayName','GD Solution','Color',hdl.Color);
+hdl=plot(x_gd_full_iters(1,:)/1e3, x_gd_full_iters(2,:)/1e3, '-.');
 utils.excludeFromLegend(hdl);
-plot(x_gd_full(1),x_gd_full(2),'-.+','DisplayName','GD Solution (full)','Color',hdl.Color);
-hdl=plot(x_ls_iters(1,:), x_ls_iters(2,:), '-');
+plot(x_gd_full(1)/1e3,x_gd_full(2)/1e3,'-.+','DisplayName','GD Solution (full)','Color',hdl.Color);
+hdl=plot(x_ls_iters(1,:)/1e3, x_ls_iters(2,:)/1e3, '-');
 utils.excludeFromLegend(hdl);
-plot(x_ls(1), x_ls(2), '-*','DisplayName','LS Solution','Color',hdl.Color);
-hdl=plot(x_ls_full_iters(1,:), x_ls_full_iters(2,:), '-');
+plot(x_ls(1)/1e3, x_ls(2)/1e3, '-*','DisplayName','LS Solution','Color',hdl.Color);
+hdl=plot(x_ls_full_iters(1,:)/1e3, x_ls_full_iters(2,:)/1e3, '-');
 utils.excludeFromLegend(hdl);
-plot(x_ls_full(1), x_ls_full(2), '-*','DisplayName','LS Solution (full)','Color',hdl.Color);
+plot(x_ls_full(1)/1e3, x_ls_full(2)/1e3, '-*','DisplayName','LS Solution (full)','Color',hdl.Color);
 
-plot(crlb_ellipse(1,:), crlb_ellipse(2,:), '--','DisplayName','CRLB');
+plot(crlb_ellipse(1,:)/1e3, crlb_ellipse(2,:)/1e3, '--','DisplayName','CRLB');
 
 grid on;
-ylim([-1 6]*1e3);
-xlim([0.5 5.5]*1e3);
+ylim([-1 6]);
+xlim([0.5 5.5]);
+xlabel('x [km]');
+ylabel('y [km]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');

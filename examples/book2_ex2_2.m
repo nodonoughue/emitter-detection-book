@@ -96,6 +96,8 @@ plot(x_ls(1), x_ls(2), '-*','DisplayName','LS Solution','Color',hdl.Color);
 grid on;
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');

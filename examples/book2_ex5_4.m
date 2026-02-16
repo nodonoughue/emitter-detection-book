@@ -114,29 +114,29 @@ x_ml_enu = [e, n, u]';
 x_ml_bnd_enu = [e, n, u]';
 
 fig1=figure;
-stem3(x_aoa_enu(1,:),x_aoa_enu(2,:),x_aoa_enu(3,:),'o','filled','DisplayName','Sensors')
+stem3(x_aoa_enu(1,:)/1e3,x_aoa_enu(2,:)/1e3,x_aoa_enu(3,:)/1e3,'o','filled','DisplayName','Sensors')
 hold on;
-stem3(x_tgt_enu(1), x_tgt_enu(2), x_tgt_enu(3),'^','DisplayName','Target');
+stem3(x_tgt_enu(1)/1e3, x_tgt_enu(2)/1e3, x_tgt_enu(3)/1e3,'^','DisplayName','Target');
 set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the GD
-hdl=plot3(x_gd_full_enu(1,:), x_gd_full_enu(2,:), max(0,x_gd_full_enu(3,:)),'-.');
+hdl=plot3(x_gd_full_enu(1,:)/1e3, x_gd_full_enu(2,:)/1e3, max(0,x_gd_full_enu(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd_enu(1), x_gd_enu(2), max(0,x_gd_enu(3)),'-.o','Color',hdl.Color,'DisplayName','GD (unconstrained)');
+plot3(x_gd_enu(1)/1e3, x_gd_enu(2)/1e3, max(0,x_gd_enu(3))/1e3,'-.o','Color',hdl.Color,'DisplayName','GD (unconstrained)');
 
-hdl=plot3(x_gd_bnd_full_enu(1,:), x_gd_bnd_full_enu(2,:), max(0,x_gd_bnd_full_enu(3,:)),'-.');
+hdl=plot3(x_gd_bnd_full_enu(1,:)/1e3, x_gd_bnd_full_enu(2,:)/1e3, max(0,x_gd_bnd_full_enu(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd_bnd_enu(1), x_gd_bnd_enu(2), max(0,x_gd_bnd_enu(3)),'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+plot3(x_gd_bnd_enu(1)/1e3, x_gd_bnd_enu(2)/1e3, max(0,x_gd_bnd_enu(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
 
-stem3(x_ml(1), x_ml(2), x_ml(3),'v','DisplayName','ML (unconstrained)');
-stem3(x_ml_bnd(1), x_ml_bnd(2), x_ml_bnd(3), '+','DisplayName','ML (constrained)');
+stem3(x_ml_enu(1)/1e3, x_ml_enu(2)/1e3, x_ml_enu(3)/1e3,'v','DisplayName','ML (unconstrained)');
+stem3(x_ml_bnd_enu(1)/1e3, x_ml_bnd_enu(2)/1e3, x_ml_bnd_enu(3)/1e3, '+','DisplayName','ML (constrained)');
 legend();
 
 view(-45,10);
-xlabel('x [m]');
-ylabel('y [m]');
-zlabel('z [m]');
+xlabel('x [km]');
+ylabel('y [km]');
+zlabel('z [km]');
 
 %% Collect Figure Handles for Export
 figs = [fig1];

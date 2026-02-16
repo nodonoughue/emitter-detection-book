@@ -68,12 +68,12 @@ x_vec = x_grid{1};
 y_vec = x_grid{2};
 
 fig1=figure;
-imagesc(x_vec, y_vec, reshape(A,numel(x_vec),numel(y_vec))');
+imagesc(x_vec/1e3, y_vec/1e3, reshape(A,numel(x_vec),numel(y_vec))');
 set(gca,'ydir','normal');
 hold on;
-scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')
-scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target');
-scatter(x_ml(1), x_ml(2), 's','filled','DisplayName','Estimate');
+scatter(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,'o','filled','DisplayName','Sensors')
+scatter(x_tgt(1)/1e3, x_tgt(2)/1e3,'^','filled','DisplayName','Target');
+scatter(x_ml(1)/1e3, x_ml(2)/1e3, 's','filled','DisplayName','Estimate');
 
 grid on;
 legend('Location','NorthWest');
@@ -81,22 +81,22 @@ colorbar;
 caxis([-50 0]);
 colormap(utils.viridis);
 
-xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]);
-xlabel('x [m]');
-ylabel('y [m]');
+xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]/1e3);
+xlabel('x [km]');
+ylabel('y [km]');
 title('Likelihood and Estimate without Prior');
 
 fig2=figure;
-imagesc(x_vec, y_vec, reshape(A_p, numel(x_vec), numel(y_vec))');
+imagesc(x_vec/1e3, y_vec/1e3, reshape(A_p, numel(x_vec), numel(y_vec))');
 set(gca,'ydir','normal');
 hold on;
-scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','DisplayName','Sensors')
-scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target');
-scatter(x_ml(1), x_ml(2), 's','filled','DisplayName','Estimate (w/o prior)');
-scatter(x_prior(1), x_prior(2), 'v','filled','DisplayName','Prior');
+scatter(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,'o','filled','DisplayName','Sensors')
+scatter(x_tgt(1)/1e3, x_tgt(2)/1e3,'^','filled','DisplayName','Target');
+scatter(x_ml(1)/1e3, x_ml(2)/1e3, 's','filled','DisplayName','Estimate (w/o prior)');
+scatter(x_prior(1)/1e3, x_prior(2)/1e3, 'v','filled','DisplayName','Prior');
 ell = utils.drawErrorEllipse(x_prior(1:2),C_prior(1:2,1:2),101,90);
-plot(ell(1,:),ell(2,:),'-.','Color','w','DisplayName','Prior Confidence (90%)')
-scatter(x_ml_p(1), x_ml_p(2), 'd','filled','DisplayName','Estimate (w/prior)');
+plot(ell(1,:)/1e3,ell(2,:)/1e3,'-.','Color','w','DisplayName','Prior Confidence (90%)')
+scatter(x_ml_p(1)/1e3, x_ml_p(2)/1e3, 'd','filled','DisplayName','Estimate (w/prior)');
 
 grid on;
 legend('Location','NorthWest');
@@ -104,9 +104,9 @@ colorbar;
 caxis([-50 0]);
 colormap(utils.viridis);
 
-xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]);
-xlabel('x [m]');
-ylabel('y [m]');
+xlim([min(x_tdoa(1,:))-10e3, max(x_vec)]/1e3);
+xlabel('x [km]');
+ylabel('y [km]');
 title('Likelihood and Estimate with Prior');
 
 %% Collect Figure Handles for Export

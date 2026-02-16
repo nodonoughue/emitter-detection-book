@@ -39,10 +39,10 @@ phi_0 = @(psi) (2*pi*f*R/c)*cos(2*pi*fr*t_vec(:) - psi(:)');
 
 % Initialize DF search loop
 this_psi_res = 1;                       % Start at 1 radian resolution
-psi_vec = min_psi:this_psi_res:max_psi; % Set up search vector
+psi_vec = min_psi:this_psi_res:max_psi+this_psi_res; % Set up search vector
 
 % Loop until desired DF resolution achieved
-while this_psi_res > psi_res
+while this_psi_res >= psi_res
     % Compute error at each test point in search vector
     err = sum(abs(phi(:)-phi_0(psi_vec)).^2,1);
     

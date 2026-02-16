@@ -24,6 +24,10 @@ C_last = utils.resampleCovMtx(C, 5);
 figa = figure();
 imagesc(C_first);
 caxis([0 c_max]);
+xticks(0:size(C_first,1));
+yticks(0:size(C_first,2));
+xlabel('Sensor Pair Index');
+ylabel('Sensor Pair Index');
 colorbar;
 title('Ref Index = 1');
 
@@ -32,6 +36,10 @@ imagesc(C_last);
 caxis([0 c_max]);
 colorbar;
 title('Ref Index = 5');
+xticks(0:size(C_first,1));
+yticks(0:size(C_first,2));
+xlabel('Sensor Pair Index');
+ylabel('Sensor Pair Index');
 
 %% Generate Full Measurement Set
 C_full = utils.resampleCovMtx(C, 'full');
@@ -41,6 +49,10 @@ imagesc(C_full);
 caxis([0 c_max]);
 colorbar;
 title('Full Measurement Set');
+xticks(0:size(C_first,1));
+yticks(0:size(C_first,2));
+xlabel('Sensor Pair Index');
+ylabel('Sensor Pair Index');
 
 %% Output Figures
 figs = [figa, figb, figc];

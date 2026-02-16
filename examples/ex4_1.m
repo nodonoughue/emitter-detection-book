@@ -17,8 +17,8 @@ ERP = [10 -7]; % tower / user
 f0 = [850e6 1900e6];
 ht = [60 2];
 Lt = 0;
-Bs = 5e6;
-Tp = 20e-3;
+Bs = 25e3; % 5e6;
+Tp = 10e-3; % 20e-3;
 
 % Receive Side
 hr = 1e3;
@@ -46,6 +46,8 @@ xi_user = xi0(2) -Lprop_user;
 PD=.8;
 PFA=1e-6;
 M = fix(Tcorr*Bn);
+M_ed = fix(Tp*Bs);
+
 xi_ed = detector.squareLawMinSNR(PFA,PD,M);
 xi_xc = detector.xcorrMinSNR(PFA,PD,Tcorr,Tp,Bn,Bs);
 

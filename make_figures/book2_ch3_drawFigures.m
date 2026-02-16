@@ -29,24 +29,29 @@ x_source = [2; 3];
 x_sensor = [0, -1, 0, 1;
             0, -.5, 1, -.5];
 
+ref_idx = 1;
+test_idx = ~ismember(1:size(x_sensor,2), ref_idx);
+x_ref = x_sensor(:, ref_idx);
+x_test = x_sensor(:, test_idx);
 % Plot sensor/source positions
 fig1 = figure();
-plot(x_source(1), x_source(2), '^', 'DisplayName','Source');
+plot(x_source(1), x_source(2), 'k^', 'DisplayName','Source');
 hold on;
-plot(x_sensor(1,:), x_sensor(2,:), 'o', 'DisplayName','Sensor');
+plot(x_ref(1), x_ref(2,1), 'kv', 'DisplayName', 'Reference Sensor')
+plot(x_test(1,:), x_test(2,:), 'ko', 'DisplayName','Sensor');
 
 % Generate Isochrones
-ref_idx = 1;
-x_ref = x_sensor(:,ref_idx);
 isochrone_label = 'Isochrones';
-for test_idx = 2:4
-    x_test = x_sensor(:,test_idx);
-    rdiff = utils.rngDiff(x_source, x_ref, x_test);
-    xy_iso = tdoa.drawIsochrone(x_ref, x_test, rdiff, 10000, 5);
-    
-    hdl=plot(xy_iso(1, :), xy_iso(2, :), '--', 'DisplayName',isochrone_label);
-    if test_idx > 2
-        utils.excludeFromLegend(hdl);
+for ii = 1:size(x_test,2)
+    this_x_test = x_test(:,ii);
+    rdiff = utils.rngDiff(x_source, x_ref, this_x_test);
+    xy_iso = tdoa.drawIsochrone(x_ref, this_x_test, rdiff, 10000, 5);
+
+    hdl1=plot([x_ref(1), this_x_test(1)], [x_ref(2), this_x_test(2)], '-.', 'DisplayName', 'Sensor Pair');
+    hdl2=plot(xy_iso(1, :), xy_iso(2, :), '-', 'Color', hdl1.Color, 'DisplayName',isochrone_label);
+    if ii > 1
+        utils.excludeFromLegend(hdl1);
+        utils.excludeFromLegend(hdl2);
     end
 end
 
@@ -65,9 +70,9 @@ x_sensor = [0, -1, 0, 1;
 
 % Plot sensor/source positions
 fig2 = figure();
-plot(x_source(1), x_source(2), '^', 'DisplayName','Source');
+plot(x_source(1), x_source(2), 'k^', 'DisplayName','Source');
 hold on;
-plot(x_sensor(1,:), x_sensor(2,:), 'o', 'DisplayName','Sensor');
+plot(x_sensor(1,:), x_sensor(2,:), 'ko', 'DisplayName','Sensor');
 
 % Generate Isochrones
 isochrone_label = 'Isochrones';
@@ -79,9 +84,11 @@ for ref_idx = 1:3
         rdiff = utils.rngDiff(x_source, x_ref, x_test);
         xy_iso = tdoa.drawIsochrone(x_ref, x_test, rdiff, 10000, 5);
 
-        hdl=plot(xy_iso(1, :), xy_iso(2, :), '--', 'DisplayName',isochrone_label);
+        hdl1=plot([x_ref(1), x_test(1)], [x_ref(2), x_test(2)], '-.', 'DisplayName', 'Sensor Pairs');
+        hdl2=plot(xy_iso(1, :), xy_iso(2, :), '-', 'Color', hdl1.Color, 'DisplayName',isochrone_label);
         if ref_idx > 1 || test_idx > 2
-            utils.excludeFromLegend(hdl);
+            utils.excludeFromLegend(hdl1);
+            utils.excludeFromLegend(hdl2);
         end
     end
 end
@@ -136,8 +143,8 @@ if force_recalc
         utils.exportPlot(figs(idx), [prefix '8' char('a' + idx-1)]);
     end
     
-    xlim([1600,4400]);
-    ylim([3200,4800]);
+    xlim([1.6,4.4]);
+    ylim([3.2,4.8]);
     utils.exportPlot(figs(end), [prefix '8b_zoom']);
 end
 

@@ -38,13 +38,15 @@ cov_full = blkdiag(cov_tdoa, cov_fdoa);
 
 %% Plot Geometry
 fig1=figure;
-plot(x_sensor(1,:), x_sensor(2,:), 'o', 'DisplayName','Sensors');
+plot(x_sensor(1,:)/1e3, x_sensor(2,:)/1e3, 'o', 'DisplayName','Sensors');
 hold on;
 for idx_sensor=1:n_sensors
-    utils.drawArrow(x_sensor(1,idx_sensor) + [0 v_sensor(1,idx_sensor)]*1e3, ...
-                    x_sensor(2,idx_sensor) + [0 v_sensor(2,idx_sensor)]*1e3);
+    utils.drawArrow(x_sensor(1,idx_sensor)/1e3 + [0 v_sensor(1,idx_sensor)], ...
+                    x_sensor(2,idx_sensor)/1e3 + [0 v_sensor(2,idx_sensor)]);
 end
-ylim([-10e3 10e3])
+ylim([-10 10])
+xlabel('x [km]');
+ylabel('y [km]');
 legend('Location','NorthWest');
 utils.setPlotStyle(gca,'equal');
 
@@ -76,18 +78,20 @@ for idx_set = 1:numel(ref_set)
 
     % Plot this result
     figs(idx_set+1) = figure;
-    [C,h] = contourf(xx_vec,xx_vec,reshape(this_rmse/1e3, size(xx)),levels);
+    [C,h] = contourf(xx_vec/1e3,xx_vec/1e3,reshape(this_rmse/1e3, size(xx)),levels);
     clabel(C,h,'Color','white');
     set(gca,'ydir','normal');
     colormap(utils.viridis);
     set(gca,'ColorScale','log');
     colorbar
     hold on;
-    plot(x_sensor(1,:), x_sensor(2,:), 'wo', 'DisplayName','Sensors');
+    plot(x_sensor(1,:)/1e3, x_sensor(2,:)/1e3, 'wo', 'DisplayName','Sensors');
     for idx_sensor=1:n_sensors
-        utils.drawArrow(x_sensor(1,idx_sensor) + [0 v_sensor(1,idx_sensor)]*1e1, ...
-                        x_sensor(2,idx_sensor) + [0 v_sensor(2,idx_sensor)]*1e1);
+        utils.drawArrow(x_sensor(1,idx_sensor)/1e3 + [0 v_sensor(1,idx_sensor)], ...
+                        x_sensor(2,idx_sensor)/1e3 + [0 v_sensor(2,idx_sensor)]);
     end
+    xlabel('x [km]');
+    ylabel('y [km]');
 end
 
 

@@ -112,6 +112,8 @@ plot(crlb_ellipse(1,:), crlb_ellipse(2,:), '--','DisplayName','CRLB');
 grid on;
 ylim([0 4]*1e3);
 xlim([-0.5 5.5]*1e3);
+xlabel('x [m]');
+ylabel('y [m]');
 caxis([-20 0]);
 set(gca,'ydir','normal');
 legend('Location','NorthEast');

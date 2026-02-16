@@ -154,19 +154,21 @@ crlb_ellipse = utils.drawErrorEllipse(x_source_enu(1:2), crlb, 101, 50);
 %% Plot Result
 
 fig1=figure;
-plot(x_source_enu(1, end), x_source_enu(2, end), 'kx', 'DisplayName','Target');
+plot(x_source_enu(1, end)/1e3, x_source_enu(2, end)/1e3, 'kx', 'DisplayName','Target');
 hold on;
-plot(x_sensor_enu(1, :), x_sensor_enu(2, :), 'ks', 'DisplayName','Sensor');
+plot(x_sensor_enu(1, :)/1e3, x_sensor_enu(2, :)/1e3, 'ks', 'DisplayName','Sensor');
 
-hdl=plot(x_ls_iters(1,:), x_ls_iters(2,:), '-');
+hdl=plot(x_ls_iters(1,:)/1e3, x_ls_iters(2,:)/1e3, '-');
 utils.excludeFromLegend(hdl);
-plot(x_ls(1), x_ls(2), '-*','DisplayName','LS Solution','Color',hdl.Color);
+plot(x_ls(1)/1e3, x_ls(2)/1e3, '-*','DisplayName','LS Solution','Color',hdl.Color);
 
-plot(crlb_ellipse(1,:), crlb_ellipse(2,:), '--','DisplayName','CRLB');
+plot(crlb_ellipse(1,:)/1e3, crlb_ellipse(2,:)/1e3, '--','DisplayName','CRLB');
 
 grid on;
 set(gca,'ydir','normal');
 legend('Location','NorthEast');
+xlabel('East [km]');
+ylabel('North [km]');
 
 %% Parse Outputs
 figs = [fig1, fig2];

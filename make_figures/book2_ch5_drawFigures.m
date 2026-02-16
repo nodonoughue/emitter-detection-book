@@ -32,6 +32,7 @@ figs = book2_ex5_1;
 utils.exportPlot(figs(1),[prefix '5']);
 utils.exportPlot(figs(2),[prefix '6']);
 utils.exportPlot(figs(3),[prefix '6_video']);
+utils.exportPlot(figs(4),[prefix '6_err']);
 
 %% Figure 8, Example 5.2
 fprintf('Executing Example 5.2..\n');
@@ -102,8 +103,8 @@ hold on;
 plot(mean_vec, y, 'k--');
 grid on;
 
-xlabel('x');
-ylabel('y');
+xlabel('x [km]');
+ylabel('y [km]');
 zlabel('f(x,y)');
 title('Data Likelihood');
 
@@ -118,8 +119,8 @@ fig13b=figure;
 imagesc(x,y,prior);
 grid on;
 
-xlabel('x');
-ylabel('y');
+xlabel('x [km]');
+ylabel('y [km]');
 zlabel('f(x,y)');
 title('Prior Distribution on Target Location');
 
@@ -131,8 +132,8 @@ fig13c=figure;
 imagesc(x,y,ell.*prior);
 grid on;
 
-xlabel('x');
-ylabel('y');
+xlabel('x [km]');
+ylabel('y [km]');
 zlabel('f(x,y)');
 title('Posterior Distribution on Target Location');
 

@@ -62,41 +62,41 @@ fprintf('Constrained Solution:   %.2f km E, %.2f km N, %.2f km U\n',...
 
 %% Plot the scenario
 fig1 = figure;
-stem3(x_tdoa(1,:),x_tdoa(2,:),x_tdoa(3,:),'k+','DisplayName','Sensors')
+stem3(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,x_tdoa(3,:)/1e3,'k+','DisplayName','Sensors')
 hold on;
-stem3(x_tgt(1), x_tgt(2), x_tgt(3),'^','DisplayName','Target');
-stem3(x_ml(1), x_ml(2), x_ml(3), 'v','DisplayName','ML (unconst.)');
-stem3(x_ml_alt(1), x_ml_alt(2), x_ml_alt(3),'*','DisplayName','ML (const.)');
+stem3(x_tgt(1)/1e3, x_tgt(2)/1e3, x_tgt(3)/1e3,'^','DisplayName','Target');
+stem3(x_ml(1)/1e3, x_ml(2)/1e3, x_ml(3)/1e3, 'v','DisplayName','ML (unconst.)');
+stem3(x_ml_alt(1)/1e3, x_ml_alt(2)/1e3, x_ml_alt(3)/1e3,'*','DisplayName','ML (const.)');
 set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
 for tx_id = 1:n_tdoa-1
     iso = tdoa.drawIsochrone(x_tdoa(1:2,end),x_tdoa(1:2,tx_id),zeta(tx_id),101,40e3);
-    hdl=plot(iso(1,:),iso(2,:),'--k','DisplayName','Isochrones');
+    hdl=plot(iso(1,:)/1e3,iso(2,:)/1e3,'--k','DisplayName','Isochrones');
     if tx_id > 1
         utils.excludeFromLegend(hdl);
     end
 end
 
 % Draw the GD
-hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
+hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd(1), x_gd(2), max(0,x_gd(3)),'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
+plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
 
-hdl=plot3(x_gd_alt_full(1,:), x_gd_alt_full(2,:), max(0,x_gd_alt_full(3,:)),'-.');
+hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd_alt(1), x_gd_alt(2), max(0,x_gd_alt(3)),'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
 
-xlim([-20e3,20e3]);
-ylim([0e3,50e3]);
+xlim([-20,20]);
+ylim([0,50]);
 % zlim([0,12e3]);
 legend();
 
 view(-45,10);
-xlabel('x [m]');
-ylabel('y [m]');
-zlabel('z [m]');
+xlabel('x [km]');
+ylabel('y [km]');
+zlabel('z [km]');
 
 
 %% Retry with better elevation support
@@ -112,17 +112,17 @@ zeta2 = z2 + noise_z;
 
 % Plot old and new results
 fig2 = figure;
-stem3(x_tdoa(1,:),x_tdoa(2,:),x_tdoa(3,:),'+','DisplayName','Sensors')
+stem3(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,x_tdoa(3,:)/1e3,'+','DisplayName','Sensors')
 hold on;
-stem3(x_tdoa2(1,:),x_tdoa2(2,:),x_tdoa2(3,:),'+','DisplayName','Sensors (alt. config)')
-stem3(x_tgt(1), x_tgt(2), x_tgt(3),'^','DisplayName','Target');
+stem3(x_tdoa2(1,:)/1e3,x_tdoa2(2,:)/1e3,x_tdoa2(3,:)/1e3,'+','DisplayName','Sensors (alt. config)')
+stem3(x_tgt(1)/1e3, x_tgt(2)/1e3, x_tgt(3)/1e3,'^','DisplayName','Target');
 set(gca,'ColorOrderIndex',1);
 grid on;
 
 % Draw the Isochrones at alt=0
 for tx_id = 1:n_tdoa-1
     iso = tdoa.drawIsochrone(x_tdoa2(1:2,end),x_tdoa2(1:2,tx_id),zeta2(tx_id),101,40e3);
-    hdl=plot(iso(1,:),iso(2,:),'--k','DisplayName','Isochrones');
+    hdl=plot(iso(1,:)/1e3,iso(2,:)/1e3,'--k','DisplayName','Isochrones');
     if tx_id > 1
         utils.excludeFromLegend(hdl);
     end
@@ -130,27 +130,27 @@ end
 
 
 % Draw the GD
-hdl=plot3(x_gd_full(1,:), x_gd_full(2,:), max(0,x_gd_full(3,:)),'-.');
+hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd(1), x_gd(2), max(0,x_gd(3)),'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
+plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
 
-hdl=plot3(x_gd_alt_full(1,:), x_gd_alt_full(2,:), max(0,x_gd_alt_full(3,:)),'-.');
+hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd_alt(1), x_gd_alt(2), max(0,x_gd_alt(3)),'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
 
-hdl=plot3(x_gd2_full(1,:), x_gd2_full(2,:), max(0,x_gd2_full(3,:)),'-.');
+hdl=plot3(x_gd2_full(1,:)/1e3, x_gd2_full(2,:)/1e3, max(0,x_gd2_full(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd2(1), x_gd2(2), max(0,x_gd2(3)),'-.s','Color',hdl.Color,'DisplayName','GD (alt. config)');
+plot3(x_gd2(1)/1e3, x_gd2(2)/1e3, max(0,x_gd2(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (alt. config)');
 
-xlim([-20e3,20e3]);
-ylim([0e3,50e3]);
-% zlim([0,12e3]);
+xlim([-20,20]);
+ylim([0,50]);
+% zlim([0,12]);
 legend();
 
 view(-45,10);
-xlabel('x [m]');
-ylabel('y [m]');
-zlabel('z [m]');
+xlabel('x [km]');
+ylabel('y [km]');
+zlabel('z [km]');
 
 fprintf('Unconstrained Solution (alt config):   %.2f km E, %.2f km N, %.2f km U\n',...
         x_gd2(1)/1e3, x_gd2(2)/1e3, x_gd2(3)/1e3);

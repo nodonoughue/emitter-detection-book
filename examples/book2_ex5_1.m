@@ -40,6 +40,8 @@ plot(x_lob(:,1),y_lob(:,1),'Color',hdl1.CData,'DisplayName','LOBs');
 hdl2=plot(x_lob(:,2),y_lob(:,2),'Color',hdl2.CData);
 utils.excludeFromLegend(hdl2);
 utils.setPlotStyle(gca,'widescreen');
+xlabel('East [km]');
+ylabel('North [km]');
 
 %% Gradient Descent Solution (unconstrained)
 [x_gd, x_gd_full] = triang.gdSoln(x_aoa, psi, C, x_init);
@@ -50,8 +52,8 @@ y_soln = 25;
 [x_gd_const,x_gd_full_const] = triang.gdSolnFixed(x_aoa, psi, C, x_init, a);
 
 %% Print Results
-fprintf('Unconstrained Solution: (%.2f, %.2f)\n', x_gd(1), x_gd(2));
-fprintf('Constrained Solution:   (%.2f, %.2f)\n', x_gd_const(1), x_gd_const(2));
+fprintf('Unconstrained Solution: (%.2f, %.2f) km\n', x_gd(1), x_gd(2));
+fprintf('Constrained Solution:   (%.2f, %.2f) km\n', x_gd_const(1), x_gd_const(2));
 
 %% Plot with Solutions
 fig2 = figure;
@@ -61,6 +63,8 @@ hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
 utils.excludeFromLegend(hdl2);
 set(gca,'ColorOrderIndex',1);
 grid on;
+xlabel('East [km]');
+ylabel('North [km]');
 
 % Draw the LOBs
 lob_len = 35;
@@ -90,8 +94,8 @@ utils.setPlotStyle(gca,'widescreen');
 [x_ls, x_ls_full] = triang.lsSoln(x_aoa, psi, C, x_init);
 [x_ls_const,x_ls_full_const] = triang.lsSolnFixed(x_aoa, psi, C, x_init, a);
 
-fprintf('Unconstrained LS Solution: (%.2f, %.2f)\n', x_ls(1), x_ls(2));
-fprintf('Constrained LS Solution:   (%.2f, %.2f)\n', x_ls_const(1), x_ls_const(2));
+fprintf('Unconstrained LS Solution: (%.2f, %.2f) km\n', x_ls(1), x_ls(2));
+fprintf('Constrained LS Solution:   (%.2f, %.2f) km\n', x_ls_const(1), x_ls_const(2));
 
 %% Plot with Solutions
 fig3 = figure;
@@ -101,6 +105,8 @@ hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
 utils.excludeFromLegend(hdl2);
 set(gca,'ColorOrderIndex',1);
 grid on;
+xlabel('E [km]');
+ylabel('N [km]');
 
 % Draw the LOBs
 lob_len = 35;
@@ -125,19 +131,37 @@ plot(x_gd_const(1),x_gd_const(2),'-.s','Color',hdl.Color,...
 utils.excludeFromLegend(hdl);
 
 % Unconstrained Solution (LS)
-hdl=plot(x_ls_full(1,:),x_ls_full(2,:),':',...
+hdl1=plot(x_ls_full(1,:),x_ls_full(2,:),':',...
      'DisplayName','LS (unconstrained)');
-plot(x_ls(1),x_ls(2),':o','Color',hdl.Color,...
+hdl2=plot(x_ls_full(1,1:10), x_ls_full(2,1:10),'+', 'Color', hdl1.Color);
+plot(x_ls(1),x_ls(2),':o','Color',hdl1.Color,...
     'DisplayName','LS (unconstrained)');
-utils.excludeFromLegend(hdl);
+utils.excludeFromLegend(hdl1);
+utils.excludeFromLegend(hdl2);
 
 % Constrained Solution (LS)
-hdl=plot(x_ls_full_const(1,:), x_ls_full_const(2,:),':');
-plot(x_ls_const(1),x_ls_const(2),':s','Color',hdl.Color,...
+hdl1=plot(x_ls_full_const(1,:), x_ls_full_const(2,:),':');
+hdl2=plot(x_ls_full_const(1,1:10), x_ls_full_const(2,1:10),'x','Color',hdl1.Color);
+plot(x_ls_const(1),x_ls_const(2),':s','Color',hdl1.Color,...
     'DisplayName','LS (constrained)');
-utils.excludeFromLegend(hdl);
+utils.excludeFromLegend(hdl1);
+utils.excludeFromLegend(hdl2);
 legend('Location','NorthWest');
 utils.setPlotStyle(gca,'widescreen');
 
+%
+x_tgt = [2.9; 25];
+err_gd = sqrt(sum(abs(x_gd_full - x_tgt).^2,1));
+err_gd_const = sqrt(sum(abs(x_gd_full_const - x_tgt),1));
+
+fig4=figure();
+plot(1:numel(err_gd), err_gd, 'DisplayName','GD (unconstrained)');
+hold on;
+plot(1:numel(err_gd_const), err_gd_const, 'DisplayName','GD (constrained)');
+grid('on');
+xlabel('Iteration Number');
+ylabel('Error [km]');
+xlim([0, 100]);
+legend();
 %% Collect Figure Handles for Export
-figs = [fig1, fig2, fig3];
+figs = [fig1, fig2, fig3, fig4];

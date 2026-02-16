@@ -58,5 +58,7 @@ end
 legend('Location','SouthEast');
 xlim([-1 8]);
 ylim([-3 4]);
+xlabel('x [km]');
+ylabel('y [km]');
 
 utils.setPlotStyle(gca,'widescreen');

@@ -59,7 +59,8 @@ colormap(utils.viridis);
 caxis([-100,0]);
 grid on
 legend('Location','NorthWest');
-
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});
 
 fig2 = figure;
@@ -75,7 +76,8 @@ colormap(utils.viridis);
 caxis([-100,0]);
 grid on;
 legend('Location','Northwest');
-
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});
 
 %% ML Solver (baseline)
@@ -97,7 +99,7 @@ search_size = cat(1,5e3*ones(2,1), 80*ones(n_tdoa-1,1), 0, zeros(numel(x_tdoa),1
 epsilon = cat(1,500*ones(2,1), 10*ones(n_tdoa,1), ones(numel(x_tdoa),1));
 C_beta = .001*eye(numel(x_tdoa)); % position covariance error -- doesn't really matter, since we're not searching over it
 
-[x_est_bias, alpha_est, ~] = tdoa.mlSolnUnc(x_tdoa, zeta, C_roa, C_beta,th_ctr, search_size, epsilon, n_tdoa);
+[x_est_bias, alpha_est, ~] = tdoa.mlSolnUnc(x_tdoa, z, C_roa, C_beta,th_ctr, search_size, epsilon, n_tdoa);
 fprintf('ML Est. w/Uncertainty: (%.2f, %.2f) km, error: %.2f km\n',...
         x_est_bias(1)/1e3, x_est_bias(2)/1e3, norm(x_est_bias-x_tgt)/1e3);
 
@@ -137,7 +139,8 @@ colormap(utils.viridis);
 caxis([-100,0]);
 grid on;
 legend('Location','NorthWest');
-
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});
 
 
