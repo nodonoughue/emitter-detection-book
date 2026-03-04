@@ -87,7 +87,8 @@ utils.excludeFromLegend(hdl);
 scatter(x_est_cal(1)/1e3,x_est_cal(2)/1e3,'s','filled','MarkerFaceColor',hdl.Color,'DisplayName','Solution (w/cal)');
 grid on
 legend('Location','NorthEast');
-
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});
 
 
@@ -135,6 +136,8 @@ grid on
 legend('Location','NorthEast');
 xlim([-4,4]);
 ylim([-6,10]);
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});
 
 figs = [fig1,fig2];

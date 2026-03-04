@@ -61,6 +61,7 @@ grid on
 legend('Location','NorthWest');
 xlabel('x [km]');
 ylabel('y [km]');
+set(gca,'Layer','top')
 utils.setPlotStyle(gca,{'tight'});
 
 fig2 = figure;
@@ -78,6 +79,7 @@ grid on;
 legend('Location','Northwest');
 xlabel('x [km]');
 ylabel('y [km]');
+set(gca,'Layer','top')
 utils.setPlotStyle(gca,{'tight'});
 
 %% ML Solver (baseline)
@@ -121,6 +123,7 @@ colormap(utils.viridis);
 caxis([-100,0]);
 legend('Location','NorthWest');
 grid on;
+set(gca,'Layer','top')
 
 utils.setPlotStyle(gca,{'tight'});
 
@@ -139,6 +142,7 @@ colormap(utils.viridis);
 caxis([-100,0]);
 grid on;
 legend('Location','NorthWest');
+set(gca,'Layer','top')
 xlabel('x [km]');
 ylabel('y [km]');
 utils.setPlotStyle(gca,{'tight'});

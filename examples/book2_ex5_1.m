@@ -105,8 +105,8 @@ hdl2=scatter(x_aoa(1,2),x_aoa(2,2),'^','filled','DisplayName','Sensors');
 utils.excludeFromLegend(hdl2);
 set(gca,'ColorOrderIndex',1);
 grid on;
-xlabel('E [km]');
-ylabel('N [km]');
+xlabel('East [km]');
+ylabel('North [km]');
 
 % Draw the LOBs
 lob_len = 35;
@@ -163,5 +163,7 @@ xlabel('Iteration Number');
 ylabel('Error [km]');
 xlim([0, 100]);
 legend();
+set(gca,'yscale','log');
+
 %% Collect Figure Handles for Export
 figs = [fig1, fig2, fig3, fig4];

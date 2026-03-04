@@ -60,4 +60,4 @@ set(groot,'DefaultAxesOuterPosition',posVec);
 set(groot,'DefaultFigurePosition',posVec);
 set(groot,'DefaultFigureUnits','inches');
 %set(groot,'DefaultFigureOuterPosition',posVec);
-
+set(groot,'DefaultFigureWindowStyle','normal');

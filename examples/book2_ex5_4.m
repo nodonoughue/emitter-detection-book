@@ -127,7 +127,7 @@ plot3(x_gd_enu(1)/1e3, x_gd_enu(2)/1e3, max(0,x_gd_enu(3))/1e3,'-.o','Color',hdl
 
 hdl=plot3(x_gd_bnd_full_enu(1,:)/1e3, x_gd_bnd_full_enu(2,:)/1e3, max(0,x_gd_bnd_full_enu(3,:))/1e3,'-.');
 utils.excludeFromLegend(hdl);
-plot3(x_gd_bnd_enu(1)/1e3, x_gd_bnd_enu(2)/1e3, max(0,x_gd_bnd_enu(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+plot3(x_gd_bnd_enu(1)/1e3, x_gd_bnd_enu(2)/1e3, max(0,x_gd_bnd_enu(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained)');
 
 stem3(x_ml_enu(1)/1e3, x_ml_enu(2)/1e3, x_ml_enu(3)/1e3,'v','DisplayName','ML (unconstrained)');
 stem3(x_ml_bnd_enu(1)/1e3, x_ml_bnd_enu(2)/1e3, x_ml_bnd_enu(3)/1e3, '+','DisplayName','ML (constrained)');

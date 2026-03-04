@@ -88,5 +88,5 @@ colorbar;
 plot(x_sensor_enu(1,:)/1e3,x_sensor_enu(2,:)/1e3,'ko');
 caxis([5,10]);
 grid on;
-xlabel('E [km]');
-ylabel('N [km]');
+xlabel('East [km]');
+ylabel('North [km]');

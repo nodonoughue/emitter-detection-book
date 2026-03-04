@@ -36,8 +36,8 @@ imagesc(C_last);
 caxis([0 c_max]);
 colorbar;
 title('Ref Index = 5');
-xticks(0:size(C_first,1));
-yticks(0:size(C_first,2));
+xticks(0:size(C_last,1));
+yticks(0:size(C_last,2));
 xlabel('Sensor Pair Index');
 ylabel('Sensor Pair Index');
 
@@ -49,8 +49,8 @@ imagesc(C_full);
 caxis([0 c_max]);
 colorbar;
 title('Full Measurement Set');
-xticks(0:size(C_first,1));
-yticks(0:size(C_first,2));
+xticks(0:size(C_full,1));
+yticks(0:size(C_full,2));
 xlabel('Sensor Pair Index');
 ylabel('Sensor Pair Index');
 

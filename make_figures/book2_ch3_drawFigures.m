@@ -22,6 +22,12 @@ utils.initPlotSettings;
 
 % Reset the random number generator, to ensure reproducability
 rng('default') ; 
+addpath('examples');
+
+if ~exist('force_recalc','var')
+    force_recalc = false;
+end
+
 
 %% Figure 1, TDOA Geometry -- non-redundant set
 

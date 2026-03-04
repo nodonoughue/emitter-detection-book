@@ -17,7 +17,7 @@ function figs = book2_ex3_4()
 warning('off','MATLAB:nearlySingularMatrix');
 
 % Set up sensor and target coordinates
-num_mc = 1000;
+num_mc = 100; % todo: restore to 1,000
 x_source_ctr = [3; 4]*1e3;
 x_source = x_source_ctr + 1e2*(-1 + 2*rand(2,num_mc));
 
@@ -71,7 +71,7 @@ rmse_ls_full = zeros(num_mc, max_num_iterations);
 
 for idx=1:num_mc
     fprintf('.');
-    if mod(idx,100)==0
+    if mod(idx,10)==0
         fprintf('\n');
     end
     
@@ -111,14 +111,13 @@ rmse_avg_gd_full = sum(rmse_gd_full,1)/num_mc;
 rmse_avg_ls_full = sum(rmse_ls_full,1)/num_mc;
 
 fig1=figure;
-plot([1 max_num_iterations],rmse_avg_ml*[1 1],'DisplayName','ML');
+ml_hdl = plot([1 max_num_iterations],rmse_avg_ml*[1 1],'-x','DisplayName','ML','v');
 hold on;
-plot(1:max_num_iterations, rmse_avg_gd,'DisplayName','Gradient Descent');
-plot(1:max_num_iterations, rmse_avg_ls,'DisplayName','Least Squares')
-set(gca,'ColorOrderIndex',1);
-plot([1 max_num_iterations],rmse_avg_ml_full*[1 1],'--','DisplayName','ML (full)');
-plot(1:max_num_iterations, rmse_avg_gd_full,'--','DisplayName','Gradient Descent (full)');
-plot(1:max_num_iterations, rmse_avg_ls_full,'--','DisplayName','Least Squares (full)')
+plot([1 max_num_iterations],rmse_avg_ml_full*[1 1],'--o','DisplayName','ML (full)','Color',ml_hdl.Color);
+gd_hdl = plot(1:max_num_iterations, rmse_avg_gd,'-+','DisplayName','Gradient Descent');
+plot(1:max_num_iterations, rmse_avg_gd_full,'--^','DisplayName','Gradient Descent (full)','Color',gd_hdl.Color);
+ls_hdl = plot(1:max_num_iterations, rmse_avg_ls,'-*','DisplayName','Least Squares');
+plot(1:max_num_iterations, rmse_avg_ls_full,'--v','DisplayName','Least Squares (full)','Color',ls_hdl.Color);
 set(gca,'yscale','log');
 legend('Location','NorthEast')
 
@@ -136,7 +135,7 @@ rmse_crlb_full =sqrt(trace(crlb_full));
 
 fprintf('RMSE: %.2f km (%.2f km using full set)\n',rmse_crlb/1e3, rmse_crlb_full/1e3);
 plot([1 max_num_iterations], rmse_crlb*[1 1],'k','DisplayName','CRLB');
-plot([1 max_num_iterations], rmse_crlb_full*[1 1],'k','DisplayName','CRLB (full)');
+plot([1 max_num_iterations], rmse_crlb_full*[1 1],'--k','DisplayName','CRLB (full)');
 xlabel('Iteration Number');
 ylabel('RMSE [m]');
 title('Monte Carlo Geolocation Results');
@@ -157,22 +156,22 @@ plot(x_source(1, end)/1e3, x_source(2, end)/1e3, 'kx', 'DisplayName','Target');
 hold on;
 plot(x_tdoa(1, :)/1e3, x_tdoa(2, :)/1e3, 'ks', 'DisplayName','TDOA Sensor');
 
-plot(x_ml(1)/1e3, x_ml(2)/1e3, 'v', 'DisplayName', 'ML Solution');
-plot(x_ml_full(1)/1e3, x_ml_full(2)/1e3, '^', 'DisplayName', 'ML Solution (full)');
-hdl=plot(x_gd_iters(1,:)/1e3, x_gd_iters(2,:)/1e3, '-.');
+plot(x_ml(1)/1e3, x_ml(2)/1e3, 'x', 'DisplayName', 'ML Solution','Color',ml_hdl.Color);
+plot(x_ml_full(1)/1e3, x_ml_full(2)/1e3, 'o', 'DisplayName', 'ML Solution (full)','Color',ml_hdl.Color);
+hdl=plot(x_gd_iters(1,:)/1e3, x_gd_iters(2,:)/1e3, '-','Color',gd_hdl.Color);
 utils.excludeFromLegend(hdl);
-plot(x_gd(1)/1e3,x_gd(2)/1e3,'-.+','DisplayName','GD Solution','Color',hdl.Color);
-hdl=plot(x_gd_full_iters(1,:)/1e3, x_gd_full_iters(2,:)/1e3, '-.');
+plot(x_gd(1)/1e3,x_gd(2)/1e3,'-+','DisplayName','GD Solution','Color',gd_hdl.Color);
+hdl=plot(x_gd_full_iters(1,:)/1e3, x_gd_full_iters(2,:)/1e3, '--','Color',gd_hdl.Color);
 utils.excludeFromLegend(hdl);
-plot(x_gd_full(1)/1e3,x_gd_full(2)/1e3,'-.+','DisplayName','GD Solution (full)','Color',hdl.Color);
-hdl=plot(x_ls_iters(1,:)/1e3, x_ls_iters(2,:)/1e3, '-');
+plot(x_gd_full(1)/1e3,x_gd_full(2)/1e3,'--^','DisplayName','GD Solution (full)','Color',gd_hdl.Color);
+hdl=plot(x_ls_iters(1,:)/1e3, x_ls_iters(2,:)/1e3, '-','Color',ls_hdl.Color);
 utils.excludeFromLegend(hdl);
-plot(x_ls(1)/1e3, x_ls(2)/1e3, '-*','DisplayName','LS Solution','Color',hdl.Color);
-hdl=plot(x_ls_full_iters(1,:)/1e3, x_ls_full_iters(2,:)/1e3, '-');
+plot(x_ls(1)/1e3, x_ls(2)/1e3, '-*','DisplayName','LS Solution','Color',ls_hdl.Color);
+hdl=plot(x_ls_full_iters(1,:)/1e3, x_ls_full_iters(2,:)/1e3, '--','Color',ls_hdl.Color);
 utils.excludeFromLegend(hdl);
-plot(x_ls_full(1)/1e3, x_ls_full(2)/1e3, '-*','DisplayName','LS Solution (full)','Color',hdl.Color);
+plot(x_ls_full(1)/1e3, x_ls_full(2)/1e3, '--v','DisplayName','LS Solution (full)','Color',ls_hdl.Color);
 
-plot(crlb_ellipse(1,:)/1e3, crlb_ellipse(2,:)/1e3, '--','DisplayName','CRLB');
+plot(crlb_ellipse(1,:)/1e3, crlb_ellipse(2,:)/1e3, 'k-','DisplayName','CRLB');
 
 grid on;
 ylim([-1 6]);

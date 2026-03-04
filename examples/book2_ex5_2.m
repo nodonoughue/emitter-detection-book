@@ -65,11 +65,6 @@ fig1 = figure;
 stem3(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,x_tdoa(3,:)/1e3,'k+','DisplayName','Sensors')
 hold on;
 stem3(x_tgt(1)/1e3, x_tgt(2)/1e3, x_tgt(3)/1e3,'^','DisplayName','Target');
-stem3(x_ml(1)/1e3, x_ml(2)/1e3, x_ml(3)/1e3, 'v','DisplayName','ML (unconst.)');
-stem3(x_ml_alt(1)/1e3, x_ml_alt(2)/1e3, x_ml_alt(3)/1e3,'*','DisplayName','ML (const.)');
-set(gca,'ColorOrderIndex',1);
-grid on;
-
 % Draw the Isochrones at alt=0
 for tx_id = 1:n_tdoa-1
     iso = tdoa.drawIsochrone(x_tdoa(1:2,end),x_tdoa(1:2,tx_id),zeta(tx_id),101,40e3);
@@ -79,15 +74,20 @@ for tx_id = 1:n_tdoa-1
     end
 end
 
+% ML Solutions
+ml_uc_hdl=stem3(x_ml(1)/1e3, x_ml(2)/1e3, x_ml(3)/1e3, 'v','DisplayName','ML (unconstrained)');
+ml_c_hdl=stem3(x_ml_alt(1)/1e3, x_ml_alt(2)/1e3, x_ml_alt(3)/1e3,'*','DisplayName','ML (constrained)');
+
 % Draw the GD
-hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.');
-utils.excludeFromLegend(hdl);
-plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
+gd_uc_hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.');
+utils.excludeFromLegend(gd_uc_hdl);
+plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',gd_uc_hdl.Color,'DisplayName','GD (unconstrained)');
 
-hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.');
-utils.excludeFromLegend(hdl);
-plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+gd_c_hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.');
+utils.excludeFromLegend(gd_c_hdl);
+plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',gd_c_hdl.Color,'DisplayName','GD (constrained)');
 
+grid on;
 xlim([-20,20]);
 ylim([0,50]);
 % zlim([0,12e3]);
@@ -116,8 +116,6 @@ stem3(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,x_tdoa(3,:)/1e3,'+','DisplayName','Sensors
 hold on;
 stem3(x_tdoa2(1,:)/1e3,x_tdoa2(2,:)/1e3,x_tdoa2(3,:)/1e3,'+','DisplayName','Sensors (alt. config)')
 stem3(x_tgt(1)/1e3, x_tgt(2)/1e3, x_tgt(3)/1e3,'^','DisplayName','Target');
-set(gca,'ColorOrderIndex',1);
-grid on;
 
 % Draw the Isochrones at alt=0
 for tx_id = 1:n_tdoa-1
@@ -130,17 +128,16 @@ end
 
 
 % Draw the GD
-hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.');
-utils.excludeFromLegend(hdl);
-plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (unconstrained)');
+hdl=plot3(x_gd_full(1,:)/1e3, x_gd_full(2,:)/1e3, max(0,x_gd_full(3,:))/1e3,'-.','Color',gd_uc_hdl.Color);
+plot3(x_gd(1)/1e3, x_gd(2)/1e3, max(0,x_gd(3))/1e3,'-.s','Color',gd_uc_hdl.Color,'DisplayName','GD (unconstrained)');
 
-hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.');
+hdl=plot3(x_gd_alt_full(1,:)/1e3, x_gd_alt_full(2,:)/1e3, max(0,x_gd_alt_full(3,:))/1e3,'-.','Color',gd_c_hdl.Color);
 utils.excludeFromLegend(hdl);
-plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (constrained');
+plot3(x_gd_alt(1)/1e3, x_gd_alt(2)/1e3, max(0,x_gd_alt(3))/1e3,'-.s','Color',gd_c_hdl.Color,'DisplayName','GD (constrained');
 
-hdl=plot3(x_gd2_full(1,:)/1e3, x_gd2_full(2,:)/1e3, max(0,x_gd2_full(3,:))/1e3,'-.');
-utils.excludeFromLegend(hdl);
-plot3(x_gd2(1)/1e3, x_gd2(2)/1e3, max(0,x_gd2(3))/1e3,'-.s','Color',hdl.Color,'DisplayName','GD (alt. config)');
+gd_alt_hdl=plot3(x_gd2_full(1,:)/1e3, x_gd2_full(2,:)/1e3, max(0,x_gd2_full(3,:))/1e3,'-.');
+utils.excludeFromLegend(gd_alt_hdl);
+plot3(x_gd2(1)/1e3, x_gd2(2)/1e3, max(0,x_gd2(3))/1e3,'-.s','Color',gd_alt_hdl.Color,'DisplayName','GD (alt. config)');
 
 xlim([-20,20]);
 ylim([0,50]);

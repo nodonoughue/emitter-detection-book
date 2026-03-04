@@ -44,7 +44,7 @@ tdoa_soln = tdoa.drawIsochrone(x_tdoa(:,2),x_tdoa(:,1),r,1000,5e3);
 plot(tdoa_soln(1,:), tdoa_soln(2,:), 'Color', h_tdoa.Color, 'DisplayName', 'TDOA Solution');
 
 r_dot = fdoa.measurement(x_fdoa, v_fdoa, x_source);
-soln_fdoa = fdoa.drawIsodop(x_fdoa(:,2),v_fdoa(:,2),x_fdoa(:,1),v_fdoa(:,1),r_dot,2000,15e3);
+soln_fdoa = fdoa.drawIsodop(x_fdoa(:,2),v_fdoa(:,2),x_fdoa(:,1),v_fdoa(:,1),r_dot,1000,5e3);
 plot(soln_fdoa(1,:), soln_fdoa(2,:), 'Color', h_fdoa.Color, 'DisplayName', 'FDOA Solution');
 
 ylim([0 4]*1e3);
