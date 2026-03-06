@@ -32,14 +32,15 @@ v_tgt_full = [-20;0;0] + cumsum(a_tgt_full*t_inc,2);
 x_tgt_full = [50e3;50e3;0] + cumsum(v_tgt_full*t_inc,2);
 
 fig1=figure;
-hdl=plot(x_aoa_full(1,:), x_aoa_full(2,:));
+hdl=plot(x_aoa_full(1,:)/1e3, x_aoa_full(2,:)/1e3);
 utils.excludeFromLegend(hdl);
 hold on;
-plot(x_aoa_full(1,end), x_aoa_full(2,end),'-^','Color',hdl.Color,'DisplayName','AOA Sensor Trajectory');
-hdl=plot(x_tgt_full(1,:), x_tgt_full(2,:));
+plot(x_aoa_full(1,end)/1e3, x_aoa_full(2,end)/1e3,'-^','Color',hdl.Color,'DisplayName','AOA Sensor Trajectory');
+hdl=plot(x_tgt_full(1,:)/1e3, x_tgt_full(2,:)/1e3);
 utils.excludeFromLegend(hdl);
-plot(x_tgt_full(1,end),x_tgt_full(2,end),'-<','Color',hdl.Color,'DisplayName','Target Trajectory');
-
+plot(x_tgt_full(1,end)/1e3,x_tgt_full(2,end)/1e3,'-<','Color',hdl.Color,'DisplayName','Target Trajectory');
+xlabel('x [km]');
+ylabel('y [km]');
 grid on;
 legend('Location','NorthEast');
 
@@ -66,14 +67,14 @@ for idx_overlay = [1,2,3,fix(num_time/2),num_time]
 
     lob_fill = cat(2,lob_minus, fliplr(lob_plus), lob_minus(:,1));
 
-    hdl = fill(lob_fill(1,:), lob_fill(2,:), fill_color,'FaceAlpha',.3,'EdgeColor','none','DisplayName','DF Error');
+    hdl = fill(lob_fill(1,:)/1e3, lob_fill(2,:)/1e3, fill_color,'FaceAlpha',.3,'EdgeColor','none','DisplayName','DF Error');
     if idx_overlay > 1
         utils.excludeFromLegend(hdl);
     end
 end
 
-xlim([-5e3,55e3]);
-ylim([-5e3,105e3]);
+xlim([-5,55]);
+ylim([-5,105]);
 
 %% Generate Measurements
 do2daoa = num_msmt==2;
@@ -176,9 +177,9 @@ for idx=1:num_time
 end
 
 fprintf('done.\n');
-plot(x_init(1), x_init(2), '+','DisplayName','Initial Position Estimate');
-plot(x_ekf_est(1,:),x_ekf_est(2,:),'-','DisplayName','EKF (est.)');
-plot(x_ekf_pred(1,:),x_ekf_pred(2,:),'-','DisplayName','EKF (pred.)');
+plot(x_init(1)/1e3, x_init(2)/1e3, '+','DisplayName','Initial Position Estimate');
+plot(x_ekf_est(1,:)/1e3,x_ekf_est(2,:)/1e3,'-','DisplayName','EKF (est.)');
+plot(x_ekf_pred(1,:)/1e3,x_ekf_pred(2,:)/1e3,'-','DisplayName','EKF (pred.)');
 grid on;
 
 % Plot some error ellipses
@@ -192,15 +193,15 @@ grid on;
 
 %% Zoomed Plot on Target
 fig2=figure;
-hdl=plot(x_tgt_full(1,:), x_tgt_full(2,:));
+hdl=plot(x_tgt_full(1,:)/1e3, x_tgt_full(2,:)/1e3);
 hold on;
 utils.excludeFromLegend(hdl);
-plot(x_tgt_full(1,end),x_tgt_full(2,end),'-<','Color',hdl.Color,'DisplayName','Target Trajectory');
-plot(x_init(1), x_init(2), '+','DisplayName','Initial Position Estimate');
-plot(x_ekf_est(1,:),x_ekf_est(2,:),'-','DisplayName','EKF (est.)');
-plot(x_ekf_pred(1,:),x_ekf_pred(2,:),'-','DisplayName','EKF (pred.)');
+plot(x_tgt_full(1,end)/1e3,x_tgt_full(2,end)/1e3,'-<','Color',hdl.Color,'DisplayName','Target Trajectory');
+plot(x_init(1)/1e3, x_init(2)/1e3, '+','DisplayName','Initial Position Estimate');
+plot(x_ekf_est(1,:)/1e3,x_ekf_est(2,:)/1e3,'-','DisplayName','EKF (est.)');
+plot(x_ekf_pred(1,:)/1e3,x_ekf_pred(2,:)/1e3,'-','DisplayName','EKF (pred.)');
 grid on;
-xlim([30e3,50e3]);
+xlim([30,50]);
 legend('Location','NorthWest');
 utils.setPlotStyle(gca,{'widescreen','equal'});
 
@@ -212,15 +213,15 @@ rmse_pred = sqrt(sum(abs(err_pred).^2,1));
 rmse_est = sqrt(sum(abs(err_est).^2,1));
 
 fig3=figure;
-plot(t_vec,rmse_cov_est,'DisplayName','RMSE (est. cov.)');  
+plot(t_vec,rmse_cov_est/1e3,'DisplayName','RMSE (est. cov.)');  
 hold on;
-plot(t_vec(2:end), rmse_cov_pred(1:end-1),'DisplayName','RMSE (pred. cov)');
+plot(t_vec(2:end), rmse_cov_pred(1:end-1)/1e3,'DisplayName','RMSE (pred. cov)');
 set(gca,'ColorOrderIndex',1);
-plot(t_vec,rmse_est,'--','DisplayName','RMSE (est. act.)');
-plot(t_vec(2:end), rmse_pred, '--','DisplayName','RMSE (pred. act.)');
+plot(t_vec,rmse_est/1e3,'--','DisplayName','RMSE (est. act.)');
+plot(t_vec(2:end), rmse_pred/1e3, '--','DisplayName','RMSE (pred. act.)');
 grid on;
 xlabel('Time [sec]');
-ylabel('Error [m]');
+ylabel('Error [km]');
 legend('Location','NorthEast')
 set(gca,'yscale','log');
 utils.setPlotStyle(gca,{'widescreen'});

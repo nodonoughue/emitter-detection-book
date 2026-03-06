@@ -52,10 +52,10 @@ num_time = numel(t_vec);
 
 % Plot Geometry
 fig1 = figure;
-plot(x_tdoa(1,:), x_tdoa(2,:), 'o', 'DisplayName','Sensors');
+plot(x_tdoa(1,:)/1e3, x_tdoa(2,:)/1e3, 'o', 'DisplayName','Sensors');
 hold on;
-hdl=plot(x_tgt_full(1,end), x_tgt_full(2,end), 'v-','DisplayName','Aircraft');
-hdl_traj=plot(x_tgt_full(1,:),x_tgt_full(2,:),'Color',hdl.Color);
+hdl=plot(x_tgt_full(1,end)/1e3, x_tgt_full(2,end)/1e3, 'v-','DisplayName','Aircraft');
+hdl_traj=plot(x_tgt_full(1,:)/1e3,x_tgt_full(2,:)/1e3,'Color',hdl.Color);
 utils.excludeFromLegend(hdl_traj);
 legend('Location','SouthWest');
 grid on;
@@ -140,10 +140,12 @@ for idx=1:num_time
 end
 
 fprintf('done.\n');
-plot(x_init(1), x_init(2), '+','DisplayName','Initial Position Estimate');
-hdl_est=plot(x_ekf_est(1,:),x_ekf_est(2,:),'--','DisplayName','EKF (est.)');
-plot(x_ekf_pred(1,:),x_ekf_pred(2,:),'--','DisplayName','EKF (pred.)');
+plot(x_init(1)/1e3, x_init(2)/1e3, '+','DisplayName','Initial Position Estimate');
+hdl_est=plot(x_ekf_est(1,:)/1e3,x_ekf_est(2,:)/1e3,'--','DisplayName','EKF (est.)');
+plot(x_ekf_pred(1,:)/1e3,x_ekf_pred(2,:)/1e3,'--','DisplayName','EKF (pred.)');
 grid on;
+xlabel('x [km]');
+ylabel('y [km]');
 
 % Plot some error ellipses
 %for idx=1:10:num_time
@@ -163,15 +165,15 @@ rmse_pred = sqrt(sum(abs(err_pred).^2,1));
 rmse_est = sqrt(sum(abs(err_est).^2,1));
 
 fig2=figure;
-plot(t_vec,rmse_cov_est,'DisplayName','RMSE (est. cov.)');  
+plot(t_vec,rmse_cov_est/1e3,'DisplayName','RMSE (est. cov.)');  
 hold on;
-plot(t_vec(2:end), rmse_cov_pred(1:end-1),'DisplayName','RMSE (pred. cov)');
+plot(t_vec(2:end), rmse_cov_pred(1:end-1)/1e3,'DisplayName','RMSE (pred. cov)');
 set(gca,'ColorOrderIndex',1);
-plot(t_vec,rmse_est,'--','DisplayName','RMSE (est. act.)');
-plot(t_vec(2:end), rmse_pred, '--','DisplayName','RMSE (pred. act.)');
+plot(t_vec,rmse_est/1e3,'--','DisplayName','RMSE (est. act.)');
+plot(t_vec(2:end), rmse_pred/1e3, '--','DisplayName','RMSE (pred. act.)');
 grid on;
 xlabel('Time [sec]');
-ylabel('Error [m]');
+ylabel('Error [km]');
 set(gca,'yscale','log');
 utils.setPlotStyle(gca,{'widescreen'});
 
@@ -250,15 +252,15 @@ rmse_cov_est = sqrt(mean(sse_cov_est,1));
 rmse_cov_pred = sqrt(mean(sse_cov_pred,1));
 
 fig3=figure;
-plot(t_vec,rmse_cov_est,'DisplayName','RMSE (est. cov.)');  
+plot(t_vec,rmse_cov_est/1e3,'DisplayName','RMSE (est. cov.)');  
 hold on;
-plot(t_vec(2:end), rmse_cov_pred(1:end-1),'DisplayName','RMSE (pred. cov)');
+plot(t_vec(2:end), rmse_cov_pred(1:end-1)/1e3,'DisplayName','RMSE (pred. cov)');
 set(gca,'ColorOrderIndex',1);
-plot(t_vec,rmse_est,'--','DisplayName','RMSE (est. act.)');
-plot(t_vec(2:end),rmse_pred,'--','DisplayName','RMSE (pred. act.)');
+plot(t_vec,rmse_est/1e3,'--','DisplayName','RMSE (est. act.)');
+plot(t_vec(2:end),rmse_pred/1e3,'--','DisplayName','RMSE (pred. act.)');
 grid on;
 xlabel('Time [sec]');
-ylabel('Error [m]');
+ylabel('Error [km]');
 set(gca,'yscale','log');
 
 legend('Location','NorthEast');
