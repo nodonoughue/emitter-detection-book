@@ -60,6 +60,7 @@ utils.excludeFromLegend(hdl_traj);
 legend('Location','SouthWest');
 grid on;
 
+
 %% Measurement Statistics
 ref_idx = 1;
 sigma_toa = 10e-9;
@@ -146,6 +147,7 @@ plot(x_ekf_pred(1,:)/1e3,x_ekf_pred(2,:)/1e3,'--','DisplayName','EKF (pred.)');
 grid on;
 xlabel('x [km]');
 ylabel('y [km]');
+utils.setPlotStyle(gca,{'widescreen'});
 
 % Plot some error ellipses
 %for idx=1:10:num_time

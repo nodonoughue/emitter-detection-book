@@ -71,7 +71,7 @@ rmse_ls_full = zeros(num_mc, max_num_iterations);
 
 for idx=1:num_mc
     fprintf('.');
-    if mod(idx,10)==0
+    if mod(idx,100)==0
         fprintf('\n');
     end
     
@@ -111,7 +111,7 @@ rmse_avg_gd_full = sum(rmse_gd_full,1)/num_mc;
 rmse_avg_ls_full = sum(rmse_ls_full,1)/num_mc;
 
 fig1=figure;
-ml_hdl = plot([1 max_num_iterations],rmse_avg_ml*[1 1],'-x','DisplayName','ML','v');
+ml_hdl = plot([1 max_num_iterations],rmse_avg_ml*[1 1],'x-','DisplayName','ML','v');
 hold on;
 plot([1 max_num_iterations],rmse_avg_ml_full*[1 1],'--o','DisplayName','ML (full)','Color',ml_hdl.Color);
 gd_hdl = plot(1:max_num_iterations, rmse_avg_gd,'-+','DisplayName','Gradient Descent');
