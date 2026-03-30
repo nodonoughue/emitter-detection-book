@@ -1,4 +1,4 @@
-function exportPlot(fig,fnm)
+function exportPlot(fig,fnm,raster_output)
 % exportPlot(fig,fnm)
 %
 % Exports a plot to file using the desired resolution and format for
@@ -13,8 +13,12 @@ function exportPlot(fig,fnm)
 % Nicholas O'Donoughue
 % 1 July 2019
 
-fig.InvertHardcopy = 'off';
+if nargin < 3 || isempty(raster_output)
+    raster_output = false;
+end
 
-saveas(fig,[fnm '.fig']);
-print(fig,fnm,'-depsc','-r1200','-painters');
-print(fig,fnm,'-dpng','-r1200');
+if raster_output
+    exportgraphics(fig,[fnm '.svg'],'ContentType','image')
+else
+    exportgraphics(fig,[fnm '.svg'],'ContentType', 'vector');
+end
