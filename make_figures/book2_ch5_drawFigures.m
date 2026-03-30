@@ -30,9 +30,9 @@ fprintf('Executing Example 5.1..\n');
 figs = book2_ex5_1;
 
 utils.exportPlot(figs(1),[prefix '5']);
-utils.exportPlot(figs(2),[prefix '6']);
+utils.exportPlot(figs(2),[prefix '6a']);
 utils.exportPlot(figs(3),[prefix '6_video']);
-utils.exportPlot(figs(4),[prefix '6_err']);
+utils.exportPlot(figs(4),[prefix '6b']);
 
 %% Figure 8, Example 5.2
 fprintf('Executing Example 5.2..\n');
@@ -45,7 +45,7 @@ utils.exportPlot(figs(2), [prefix '8_video']);
 fprintf('Executing Example 5.3..\n');
 fig = book2_ex5_3;
 
-utils.exportPlot(fig, [prefix '10']);
+utils.exportPlot(fig, [prefix '10'],true);
 
 %% Figure 13, Example 5.4
 fprintf('Executing Example 5.4..\n');
@@ -109,7 +109,7 @@ zlabel('f(x,y)');
 title('Data Likelihood');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13a,[prefix '15a']);
+utils.exportPlot(fig13a,[prefix '15a'],true);
 
 % A priori pdf
 
@@ -125,7 +125,7 @@ zlabel('f(x,y)');
 title('Prior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13b,[prefix '15b']);
+utils.exportPlot(fig13b,[prefix '15b'],true);
 
 % Posterier
 fig13c=figure;
@@ -138,14 +138,14 @@ zlabel('f(x,y)');
 title('Posterior Distribution on Target Location');
 
 utils.setPlotStyle(gca,{'widescreen'});
-utils.exportPlot(fig13c,[prefix '15c']);
+utils.exportPlot(fig13c,[prefix '15c'],true);
 
 %% Figure 16, Example 5.5
 fprintf('Executing Example 5.5...\n');
 figs = book2_ex5_5;
 
-utils.exportPlot(figs(1), [prefix '16a']);
-utils.exportPlot(figs(2), [prefix '16b']);
+utils.exportPlot(figs(1), [prefix '16a'],true);
+utils.exportPlot(figs(2), [prefix '16b'],true);
 
 %% Cleanup
 

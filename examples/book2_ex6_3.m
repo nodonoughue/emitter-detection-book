@@ -72,10 +72,10 @@ fprintf(']\n');
 
 %% Plot Scenario
 fig = figure;
-scatter([x_aoa(1,:),x_tdoa(1,:)]/1e3,[x_aoa(2,:),x_tdoa(2,:)]/1e3,'s','filled','DisplayName','Sensors (nominal positions)')
+scatter([x_aoa(1,:),x_tdoa(1,:)],[x_aoa(2,:),x_tdoa(2,:)],'s','filled','DisplayName','Sensors (nominal positions)')
 hold on;
-scatter([beta_aoa(1,:), beta_tdoa(1,:)]/1e3,[beta_aoa(2,:),beta_tdoa(2,:)]/1e3,'o','filled','DisplayName','Sensors (true positions)')
-scatter(x_tgt(1)/1e3, x_tgt(2)/1e3,'^','filled','DisplayName','Target')
+scatter([beta_aoa(1,:), beta_tdoa(1,:)],[beta_aoa(2,:),beta_tdoa(2,:)],'o','filled','DisplayName','Sensors (true positions)')
+scatter(x_tgt(1), x_tgt(2),'^','filled','DisplayName','Target')
 grid on;
 
 % Draw the Isochrones and LOBs -- Truth
@@ -83,7 +83,7 @@ xy_lob = triang.drawLob(x_aoa, zeta_unc_bias(1:n_aoa), x_tgt, 1.5);
 % xy_lob_bias = triang.drawLob(beta_aoa,zeta_unc_bias(1:n_aoa), x_tgt, 1.5);
 for idx=1:n_aoa
     set(gca,'ColorOrderIndex',3); % reset to the same point; so the lobs have repeated colors
-    hdl=plot(xy_lob(1,:,idx)/1e3,xy_lob(2,:,idx)/1e3,'DisplayName','LOB (nominal positions)');
+    hdl=plot(xy_lob(1,:,idx),xy_lob(2,:,idx),'DisplayName','LOB (nominal positions)');
 
 %     set(gca,'ColorOrderIndex',idx); % reset to the same point; so the lobs have repeated colors
 %     hdl_bias=plot(xy_lob_bias(1,:,idx),xy_lob_bias(2,:,idx),'-.','DisplayName','Isochrone/LOB (w/pos.unc. and bias)');
@@ -96,7 +96,7 @@ for idx=1:n_tdoa-1
 %     xy_iso_bias= tdoa.drawIsochrone(beta_tdoa(:,end), beta_tdoa(:,idx),zeta_unc_bias(n_aoa+idx),101,8);
 
     set(gca,'ColorOrderIndex',4); % reset to the same point; so the lobs have repeated colors
-    hdl=plot(xy_iso(1,:)/1e3,xy_iso(2,:)/1e3,'DisplayName','Isochrone (nominal positions)');
+    hdl=plot(xy_iso(1,:),xy_iso(2,:),'DisplayName','Isochrone (nominal positions)');
 %     set(gca,'ColorOrderIndex',n_aoa+idx); % reset to the same point; so the lobs have repeated colors
 %     hdl_bias=plot(xy_iso_bias(1,:),xy_iso_bias(2,:),'-.','DisplayName','Isochrone (w/pos. unc. and bias)');
     if idx > 1

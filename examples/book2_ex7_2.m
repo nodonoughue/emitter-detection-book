@@ -108,11 +108,13 @@ end
 fig2=figure;
 % plot(x_tdoa(1,:), x_tdoa(2,:),'o','DisplayName','TDOA Sensors');
 % hold on;
-plot(x_tgt(1,:), x_tgt(2,:), '^','DisplayName','Target');
+plot(x_tgt(1,:)/1e3, x_tgt(2,:)/1e3, '^','DisplayName','Target');
 hold on;
 %plot(x_ls_mn(1,:),x_ls_mn(2,:),'--','DisplayName','LS Soln (single sample)');
-plot(x_ls_mn(1,:),x_ls_mn(2,:),'-.','DisplayName','LS Soln (sample mean)');
+plot(x_ls_mn(1,:)/1e3,x_ls_mn(2,:)/1e3,'-.','DisplayName','LS Soln (sample mean)');
 grid on;
+xlabel('x [km]');
+ylabel('y [km]');
 legend('Location','NorthEast');
 utils.setPlotStyle(gca,{'widescreen','equal'});
 
@@ -120,8 +122,8 @@ utils.setPlotStyle(gca,{'widescreen','equal'});
 ell = utils.drawErrorEllipse(x_tgt,crlb_single_sample,101);
 ell_full = utils.drawErrorEllipse(x_tgt,crlb_sample_mean,101);
 
-plot(ell(1,:),ell(2,:),'DisplayName','Error Ellipse (single sample)');
-plot(ell_full(1,:), ell_full(2,:),'DisplayName','Error Ellipse (sample mean)');
+plot(ell(1,:)/1e3,ell(2,:)/1e3,'DisplayName','Error Ellipse (single sample)');
+plot(ell_full(1,:)/1e3,ell_full(2,:)/1e3,'DisplayName','Error Ellipse (sample mean)');
 
 % Plot error as a function of time
 err = sqrt(sum(abs(x_ls-x_tgt).^2,1));

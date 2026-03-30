@@ -306,27 +306,14 @@ addpath('examples');
 figs = book2_ex2_1;
 
 utils.exportPlot(figs(1),[prefix '5']);
-utils.exportPlot(figs(2),[prefix '6a']);
-utils.exportPlot(figs(3),[prefix '6b']);
-utils.exportPlot(figs(4),[prefix '6c']);
-utils.exportPlot(figs(5),[prefix '6d']);
-
-%% Figure 2.7
-
-fig = book2_ex2_2;
-
-utils.exportPlot(fig, [prefix '7a']);
-
-% Zoom in
-xlim([2 3.5]*1e3);
-ylim([2 3.5]*1e3);
-utils.exportPlot(fig, [prefix '7b']);
+utils.exportPlot(figs(2),[prefix '6a'],true);
+utils.exportPlot(figs(3),[prefix '6b'],true);
+utils.exportPlot(figs(4),[prefix '6c'],true);
+utils.exportPlot(figs(5),[prefix '6d'],true);
 
 %% Figure 2.8
-%  Example 2.3 is lengthy to compute, skip this unless recalculation of the
-%  output is specifically requested.
 
-fig = book2_ex2_3;
+fig = book2_ex2_2;
 
 utils.exportPlot(fig, [prefix '8a']);
 
@@ -334,6 +321,19 @@ utils.exportPlot(fig, [prefix '8a']);
 xlim([2 3.5]*1e3);
 ylim([2 3.5]*1e3);
 utils.exportPlot(fig, [prefix '8b']);
+
+%% Figure 2.10
+%  Example 2.3 is lengthy to compute, skip this unless recalculation of the
+%  output is specifically requested.
+
+fig = book2_ex2_3;
+
+utils.exportPlot(fig, [prefix '10a']);
+
+% Zoom in
+xlim([2 3.5]*1e3);
+ylim([2 3.5]*1e3);
+utils.exportPlot(fig, [prefix '10b']);
 
 %% Cleanup
 

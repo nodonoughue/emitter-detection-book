@@ -37,7 +37,7 @@ est_k_min = ceil((cep50/cep50_desired).^2);
 fprintf('Estimate %d samples required.\n',est_k_min);
 
 % Iterate over number of samples
-num_samples = [1:1000,2000:1000:10000];
+num_samples = kron(10.^(0:4), 1:9);  % [1..9, 10..90, ..., 10000..90000]
 sigma_theta_vec = [5, 10, 30];
 
 cep_vec = zeros(numel(num_samples), numel(sigma_theta_vec));

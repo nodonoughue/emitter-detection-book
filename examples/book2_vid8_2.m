@@ -51,12 +51,12 @@ zeta = z + noise;
 sigma_a = .05;
 num_dims = 3; % number of dimensions to use in state
 
-[f_fun, q_fun, state_space] = tracker.makeKinematicModel('cv',num_dims,sigma_a^2);
-num_states = state_space.num_states;
-pos_idx = state_space.pos_idx;
-vel_idx = state_space.vel_idx;
-F = f_fun(t_inc); % generate state transition matrix
-Q = q_fun(t_inc); % generate process noise covariance matrix
+motion = tracker.makeMotionModel('cv',num_dims,sigma_a^2);
+num_states = motion.state_space.num_states;
+pos_idx = motion.state_space.pos_idx;
+vel_idx = motion.state_space.vel_idx;
+F = motion.f_fun(t_inc); % generate state transition matrix
+Q = motion.q_fun(t_inc); % generate process noise covariance matrix
 
 %% Initialize Track State
 x_pred = zeros(num_states,1);

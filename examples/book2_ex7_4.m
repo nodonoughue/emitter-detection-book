@@ -72,23 +72,25 @@ for idx=1:num_pulses
 end
 
 fig1=figure;
-plot(x_est(1,:),x_est(2,:),'-.','DisplayName','Estimated Position');
+plot(x_est(1,:)/1e3,x_est(2,:)/1e3,'-.','DisplayName','Estimated Position');
 hold on;
-plot(x_tgt(1),x_tgt(2),'^','DisplayName','Target');
+plot(x_tgt(1)/1e3,x_tgt(2)/1e3,'^','DisplayName','Target');
 grid on;
 legend('Location','NorthEast');
 
 % Draw Error Ellipse from single sample
 crlb = triang.computeCRLB(this_x_aoa, x_tgt, C_df);
 ell = utils.drawErrorEllipse(x_tgt, crlb, 101);
-plot(ell(1,:), ell(2,:),'-.','DisplayName','Error Ellipse (single msmt.)');
+plot(ell(1,:)/1e3, ell(2,:)/1e3,'-.','DisplayName','Error Ellipse (single msmt.)');
 
 ell_end = utils.drawErrorEllipse(x_tgt, this_P, 101);
-plot(ell_end(1,:), ell_end(2,:),'-.','DisplayName','Error Ellipse (Final EKF Update)');
+plot(ell_end(1,:)/1e3, ell_end(2,:)/1e3,'-.','DisplayName','Error Ellipse (Final EKF Update)');
 
 offset = max(max(ell,[],2)-min(ell,[],2));
-xlim(x_tgt(1) + .6*offset*[-1 1]);
-ylim(x_tgt(2) + .6*offset*[-1 1]);
+xlim(x_tgt(1)/1e3 + .6*offset/1e3*[-1 1]);
+ylim(x_tgt(2)/1e3 + .6*offset/1e3*[-1 1]);
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'widescreen'});
 
 %% Compute Errors

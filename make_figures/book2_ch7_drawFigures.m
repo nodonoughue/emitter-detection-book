@@ -30,8 +30,8 @@ addpath('examples');
 figs = book2_ex7_1;
 
 utils.exportPlot(figs(1), [prefix '1']);
-utils.exportPlot(figs(2), [prefix '2a']);
-utils.exportPlot(figs(3), [prefix '2b']);
+utils.exportPlot(figs(2), [prefix '2a'],true);
+utils.exportPlot(figs(3), [prefix '2b'],true);
 
 %% Figure 7.3 and 7.4, Example 7.2
 figs = book2_ex7_2;
@@ -65,14 +65,15 @@ x_tdoa_full = x_tdoa + v_tdoa .* reshape(t,1,1,num_t);
 % Plot Geometry
 fig7a = figure;
 colors = get(gca,'ColorOrder');
-plot(x_tgt(1), x_tgt(2),'^', 'DisplayName','Target');
+plot(x_tgt(1)/1e3, x_tgt(2)/1e3,'^', 'DisplayName','Target');
 hold on;
-hdl=plot(squeeze(x_tdoa_full(1,:,:))', squeeze(x_tdoa_full(2,:,:))','Color',colors(2,:),'DisplayName','TDOA Sensors');
+hdl=plot(squeeze(x_tdoa_full(1,:,:)/1e3)', squeeze(x_tdoa_full(2,:,:)/1e3)','Color',colors(2,:),'DisplayName','TDOA Sensors');
 utils.excludeFromLegend(hdl(2:end));
-hdl=scatter(x_tdoa(1,:),x_tdoa(2,:),'o','filled','MarkerEdgeColor',.8*colors(2,:),'MarkerFaceColor',colors(2,:));
+hdl=scatter(x_tdoa(1,:)/1e3,x_tdoa(2,:)/1e3,'o','filled','MarkerEdgeColor',.8*colors(2,:),'MarkerFaceColor',colors(2,:));
 utils.excludeFromLegend(hdl);
 legend('Location','NorthWest');
-
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'widescreen','equal'});
 
 % Compute TDOA as a function of time
@@ -83,11 +84,11 @@ for idx=1:num_t
 end
 
 fig7b=figure;
-plot(t,zeta);
+plot(t,zeta/1e3);
 legend('TDOA_{1,2}','TDOA_{1,3}');
 grid on;
 xlabel('Time [s]');
-ylabel('Range Difference Measurement [m]');
+ylabel('Range Difference Measurement [km]');
 
 utils.setPlotStyle(gca,{'widescreen'});
 
@@ -117,7 +118,7 @@ x_aoa = x_init + cumsum(v_aoa * dt,2);
 theta_unc = 5; % +/- 5 degree uncertainty interval
 
 fig10a=figure;
-hdl_traj = plot(x_aoa(1,:), x_aoa(2,:),'DisplayName','Sensor Trajectory');
+hdl_traj = plot(x_aoa(1,:)/1e3, x_aoa(2,:)/1e3,'DisplayName','Sensor Trajectory');
 hold on;
 
 % Draw bearings at time markers
@@ -138,7 +139,7 @@ for ii = 1:numel(idx_set)
     marker_y = this_x(2) + marker_radius*sin(vertex_theta);
 
     % Draw Icon
-    hdl = patch(marker_x, marker_y,'^','EdgeColor','k','FaceColor',hdl_traj.Color);
+    hdl = patch(marker_x/1e3, marker_y/1e3,'^','EdgeColor','k','FaceColor',hdl_traj.Color);
     utils.excludeFromLegend(hdl);
 
     % Draw LOB with uncertainty
@@ -151,17 +152,19 @@ for ii = 1:numel(idx_set)
     xy_lob_low = triang.drawLob(this_x, psi_low, x_tgt, 5);
     lobFill = cat(2,xy_lob_high,fliplr(xy_lob_low),xy_lob_high(:,1));
 
-    hdl_fill = fill(lobFill(1,:),lobFill(2,:),.2,'FaceAlpha',.2,'EdgeColor','k','LineStyle','--','DisplayName','Uncertainty Interval');
-    hdl_lob = plot(xy_lob(1,:), xy_lob(2,:), '-.','DisplayName','LOB','Color',hdl_traj.Color);
+    hdl_fill = fill(lobFill(1,:)/1e3,lobFill(2,:)/1e3,.2,'FaceAlpha',.2,'EdgeColor','k','LineStyle','--','DisplayName','Uncertainty Interval');
+    hdl_lob = plot(xy_lob(1,:)/1e3, xy_lob(2,:)/1e3, '-.','DisplayName','LOB','Color',hdl_traj.Color);
     if ii > 1
         utils.excludeFromLegend(hdl_fill);
         utils.excludeFromLegend(hdl_lob);
     end
 end
-plot(x_tgt(1), x_tgt(2),'o','DisplayName','Target');
+plot(x_tgt(1)/1e3, x_tgt(2)/1e3,'o','DisplayName','Target');
 legend('Location','SouthEast');
-ylim([-1e3 11e3]);
-xlim([-7.5e3 13.5e3]);
+ylim([-1 11]);
+xlim([-7.5 13.5]);
+xlabel('x [km]');
+ylabel('y [km]');
 utils.setPlotStyle(gca,{'widescreen'})
 
 % Model CEP over time

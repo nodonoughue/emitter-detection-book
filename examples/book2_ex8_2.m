@@ -91,12 +91,13 @@ zeta = z + noise;
 sigma_a = .05;
 num_dims = 3; % number of dimensions to use in state
 
-[f_fun, q_fun, state_space] = tracker.makeKinematicModel('cv',num_dims,sigma_a^2);
-num_states = state_space.num_states;
-pos_idx = state_space.pos_idx;
-vel_idx = state_space.vel_idx;
-F = f_fun(t_inc); % generate state transition matrix
-Q = q_fun(t_inc); % generate process noise covariance matrix
+motion = tracker.makeMotionModel('cv',num_dims,sigma_a^2);
+ss = motion.state_space;
+num_states = ss.num_states;
+pos_idx = ss.pos_idx;
+vel_idx = ss.vel_idx;
+F = motion.f_fun(t_inc); % generate state transition matrix
+Q = motion.q_fun(t_inc); % generate process noise covariance matrix
 
 %% Initialize Track State
 x_pred = zeros(num_states,1);
@@ -141,7 +142,7 @@ for idx=1:num_time
     % Update msmt function
     this_x_aoa = x_aoa_full(1:num_dims,idx);
 
-    [z_fun, h_fun] = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],state_space);
+    [z_fun, h_fun] = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],ss);
 
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred
@@ -202,6 +203,8 @@ plot(x_ekf_est(1,:)/1e3,x_ekf_est(2,:)/1e3,'-','DisplayName','EKF (est.)');
 plot(x_ekf_pred(1,:)/1e3,x_ekf_pred(2,:)/1e3,'-','DisplayName','EKF (pred.)');
 grid on;
 xlim([30,50]);
+xlabel('x [km]');
+ylabel('y [km]');
 legend('Location','NorthWest');
 utils.setPlotStyle(gca,{'widescreen','equal'});
 

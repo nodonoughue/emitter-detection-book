@@ -49,7 +49,7 @@ r2 = utils.rng(x2,x_source);
 % Error Values
 std_dev = 4*pi/180;
 epsang = 2*std_dev;
-psi = triang.measurement([x0,x1,x2],x_source,0,0,std_dev^2*eye(3));
+psi = triang.measurement([x0,x1,x2],x_source);
 
 % Find AOA 
 % lob0 = x_source - x0;

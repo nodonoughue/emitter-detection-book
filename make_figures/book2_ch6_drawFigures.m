@@ -115,10 +115,10 @@ utils.exportPlot(fig6b,[prefix '6b']);
 if force_recalc
     figs = book2_ex6_4;
 
-    utils.exportPlot(figs(1), [prefix '8a']);
-    utils.exportPlot(figs(2), [prefix '8b']);
-    utils.exportPlot(figs(3), [prefix '9a']);
-    utils.exportPlot(figs(4), [prefix '9b']);
+    utils.exportPlot(figs(1), [prefix '8a'],true);
+    utils.exportPlot(figs(2), [prefix '8b'],true);
+    utils.exportPlot(figs(3), [prefix '9a'],true);
+    utils.exportPlot(figs(4), [prefix '9b'],true);
 end
 
 %% Figure 6.12, Example 6.5
