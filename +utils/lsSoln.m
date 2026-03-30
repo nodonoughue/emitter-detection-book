@@ -82,8 +82,11 @@ if plot_progress
 end
 
 % Divergence Detection
+% 20 consecutive expanding steps before declaring divergence, matching
+% the Python ls_solver fix (targets can be far from the initial guess,
+% requiring more exploratory iterations before the GN steps settle).
 num_expanding_iters = 0;
-max_num_expanding_iters = 10;
+max_num_expanding_iters = 20;
 prev_error = Inf;
 
 % Loop until either the desired tolerance is achieved or the maximum
