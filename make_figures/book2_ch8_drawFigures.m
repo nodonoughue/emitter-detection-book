@@ -41,6 +41,22 @@ utils.exportPlot(figs(1), [prefix '7a']);
 utils.exportPlot(figs(2), [prefix '7b']);
 utils.exportPlot(figs(3), [prefix '8']);
 
+%% Figures 8.10ab, Example 8.3
+
+figs = book2_ex8_3;
+
+utils.exportPlot(figs(1), [prefix '10a']);
+utils.exportPlot(figs(2), [prefix '10b']);
+
+%% Figures 8.11ab and 8.12ab, Example 8.4
+
+figs = book2_ex8_4;
+
+utils.exportPlot(figs(1), [prefix '11a']);
+utils.exportPlot(figs(2), [prefix '11b']);
+utils.exportPlot(figs(3), [prefix '12a']);
+utils.exportPlot(figs(4), [prefix '12b']);
+
 %% Cleanup
 
 % Restore plot settings

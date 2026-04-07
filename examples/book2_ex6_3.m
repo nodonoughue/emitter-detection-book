@@ -82,7 +82,7 @@ grid on;
 xy_lob = triang.drawLob(x_aoa, zeta_unc_bias(1:n_aoa), x_tgt, 1.5);
 % xy_lob_bias = triang.drawLob(beta_aoa,zeta_unc_bias(1:n_aoa), x_tgt, 1.5);
 for idx=1:n_aoa
-    set(gca,'ColorOrderIndex',3); % reset to the same point; so the lobs have repeated colors
+    set(gca,'ColorOrderIndex',4); % reset to the same point; so the lobs have repeated colors
     hdl=plot(xy_lob(1,:,idx),xy_lob(2,:,idx),'DisplayName','LOB (nominal positions)');
 
 %     set(gca,'ColorOrderIndex',idx); % reset to the same point; so the lobs have repeated colors
@@ -95,7 +95,7 @@ for idx=1:n_tdoa-1
     xy_iso = tdoa.drawIsochrone(x_tdoa(:,end),x_tdoa(:,idx),zeta_unc_bias(n_aoa+idx),101,8);
 %     xy_iso_bias= tdoa.drawIsochrone(beta_tdoa(:,end), beta_tdoa(:,idx),zeta_unc_bias(n_aoa+idx),101,8);
 
-    set(gca,'ColorOrderIndex',4); % reset to the same point; so the lobs have repeated colors
+    set(gca,'ColorOrderIndex',5); % reset to the same point; so the lobs have repeated colors
     hdl=plot(xy_iso(1,:),xy_iso(2,:),'DisplayName','Isochrone (nominal positions)');
 %     set(gca,'ColorOrderIndex',n_aoa+idx); % reset to the same point; so the lobs have repeated colors
 %     hdl_bias=plot(xy_iso_bias(1,:),xy_iso_bias(2,:),'-.','DisplayName','Isochrone (w/pos. unc. and bias)');

@@ -68,7 +68,10 @@ Q_cv = motion_cv.q_fun(t_inc);
 sigma_a_bal = 3;
 motion_bal = tracker.makeMotionModel('ballistic', 3, sigma_a_bal^2);
 F_bal = motion_bal.f_fun(t_inc);
-Q_bal = motino_bal.q_fun(t_inc);
+Q_bal = motion_bal.q_fun(t_inc);
+b_bal = motion_bal.b_fun(t_inc);
+
+ss_cv = motion_cv.state_space;
 
 % Both share the same TDOA measurement model (same state-space layout)
 [z_fun, h_fun] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
@@ -105,14 +108,9 @@ for idx = 1 : num_time
     x_cv_est(:, idx)  = x_cv_est_k(pos_idx);
     x_bal_est(:, idx) = x_bal_est_k(pos_idx);
 
-    % KF Predict (linear CV step)
+    % KF Predict (linear step; ballistic model passes gravity as control input u)
     [x_cv_pred,  P_cv_pred]  = tracker.kfPredict(x_cv_est_k,  P_cv_est,  Q_cv,  F_cv);
-    [x_bal_pred, P_bal_pred] = tracker.kfPredict(x_bal_est_k, P_bal_est, Q_bal, F_bal);
-
-    % Apply deterministic gravity bias to the Ballistic prediction (mean only;
-    % covariance is unchanged because gravity is deterministic).
-    x_bal_pred(pos_idx(3)) = x_bal_pred(pos_idx(3)) + 0.5 * g * t_inc^2;
-    x_bal_pred(vel_idx(3)) = x_bal_pred(vel_idx(3)) + g * t_inc;
+    [x_bal_pred, P_bal_pred] = tracker.kfPredict(x_bal_est_k, P_bal_est, Q_bal, F_bal, b_bal);
 end
 fprintf('done.\n');
 
@@ -131,7 +129,7 @@ xlabel('Horizontal range [km]');
 ylabel('Altitude [km]');
 legend('Location', 'NorthEast');
 grid on;
-title('Example 8.3: Ballistic Trajectory – Range/Altitude Profile');
+% title('Example 8.3: Ballistic Trajectory – Range/Altitude Profile');
 utils.setPlotStyle(gca, {'widescreen'});
 
 %% Figure 2: 3-D position RMSE vs time --------------------------------------
@@ -146,7 +144,7 @@ xlabel('Time [s]');
 ylabel('3-D RMSE [km]');
 legend('Location', 'NorthEast');
 grid on;
-title('Example 8.3: Position RMSE vs Time');
+% title('Example 8.3: Position RMSE vs Time');
 utils.setPlotStyle(gca, {'widescreen'});
 
 figs = [fig1, fig2];

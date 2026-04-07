@@ -112,9 +112,9 @@ rmse_avg_ls_full = sum(rmse_ls_full,1)/num_mc;
 
 fig1=figure;
 marker_indices = 1:10:max_num_iterations;
-ml_hdl = plot([1 max_num_iterations],rmse_avg_ml*[1 1],'x-','DisplayName','ML','MarkerIndices', marker_indices);
+ml_hdl = plot([1 max_num_iterations],rmse_avg_ml*[1 1],'x-','DisplayName','ML');
 hold on;
-plot([1 max_num_iterations],rmse_avg_ml_full*[1 1],'--o','DisplayName','ML (full)','Color',ml_hdl.Color,'MarkerIndices', marker_indices);
+plot([1 max_num_iterations],rmse_avg_ml_full*[1 1],'--o','DisplayName','ML (full)','Color',ml_hdl.Color);
 gd_hdl = plot(1:max_num_iterations, rmse_avg_gd,'-+','DisplayName','Gradient Descent','MarkerIndices', marker_indices);
 plot(1:max_num_iterations, rmse_avg_gd_full,'--^','DisplayName','Gradient Descent (full)','Color',gd_hdl.Color,'MarkerIndices', marker_indices);
 ls_hdl = plot(1:max_num_iterations, rmse_avg_ls,'-*','DisplayName','Least Squares','MarkerIndices', marker_indices);

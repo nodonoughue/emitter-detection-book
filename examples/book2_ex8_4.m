@@ -52,7 +52,7 @@ x_tdoa = [ 2e3, -9e3, -9e3,  2e3;
              0.,   0.,   0.,   0.];
 n_tdoa  = size(x_tdoa, 2);
 
-sigma_toa = 10e-9;               % 10 ns  -> ~3 m RDOA noise
+sigma_toa = 100e-9;               % 10 ns  -> ~3 m RDOA noise
 C_toa     = sigma_toa^2 * eye(n_tdoa);
 C_roa     = utils.constants.c^2 * C_toa;
 R         = utils.resampleCovMtx(C_roa, []);    % default ref sensor
@@ -71,6 +71,7 @@ sigma_a_cv = 1;
 motion_cv = tracker.makeMotionModel('cv', 3, sigma_a_cv^2);
 F_cv = motion_cv.f_fun(t_inc);
 Q_cv = motion_cv.q_fun(t_inc);
+ss_cv = motion_cv.state_space;
 
 [z_fun_cv, h_fun_cv] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
 
@@ -86,7 +87,10 @@ process_covar_omega = 1e-3;    % rad^2/s^3 spectral density
 
 motion_ct = tracker.makeMotionModel('ct', 3, sigma_a_ct^2, process_covar_omega);
 Q_ct = motion_ct.q_fun(t_inc);
+f_ct = @(x) motion_ct.f_fun_ekf(x, t_inc);
+g_ct = @(x) motion_ct.jacobian_fun(x, t_inc);
 
+ss_ct = motion_ct.state_space;
 [z_fun_ct, h_fun_ct] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_ct);
 
 pos_idx_ct = ss_ct.pos_idx;
@@ -143,8 +147,7 @@ for idx = 1 : num_time
 
     % CT: nonlinear EKF predict using exact CT transition + analytical Jacobian
     [x_ct_pred, P_ct_pred] = tracker.ekfPredict(x_ct_k, P_ct_k, Q_ct, ...
-                                                  @(x) f_ct(x, t_inc), ...
-                                                  @(x) g_ct(x, t_inc));
+                                                f_ct, g_ct);
 end
 fprintf('done.\n');
 
@@ -162,7 +165,7 @@ ylabel('y [km]');
 axis equal;
 legend('Location', 'NorthEast');
 grid on;
-title('Example 8.4: Constant-Turn Aircraft – x-y Trajectory');
+% title('Example 8.4: Constant-Turn Aircraft – x-y Trajectory');
 utils.setPlotStyle(gca, {'widescreen'});
 
 %% Figure 1b: 3-D isometric trajectory (reveals altitude errors) ------------
@@ -183,7 +186,7 @@ zlabel('z [km]');
 view(ax, 30, 45);   % isometric-like viewing angle (azimuth=30, elevation=45)
 legend(ax, 'Location', 'NorthEast');
 grid(ax, 'on');
-title('Example 8.4: Constant-Turn Aircraft – 3-D Trajectory');
+% title('Example 8.4: Constant-Turn Aircraft – 3-D Trajectory');
 utils.setPlotStyle(ax, {'widescreen'});
 
 %% Figure 2: 3-D position RMSE vs time -------------------------------------
@@ -198,7 +201,7 @@ xlabel('Time [s]');
 ylabel('3-D RMSE [km]');
 legend('Location', 'NorthEast');
 grid on;
-title('Example 8.4: Position RMSE vs Time');
+% title('Example 8.4: Position RMSE vs Time');
 utils.setPlotStyle(gca, {'widescreen'});
 
 %% Figure 3: estimated turn rate vs time -----------------------------------
@@ -210,7 +213,7 @@ xlabel('Time [s]');
 ylabel('Turn rate [deg/s]');
 legend('Location', 'SouthEast');
 grid on;
-title('Example 8.4: CT Model – Estimated Turn Rate');
+% title('Example 8.4: CT Model – Estimated Turn Rate');
 utils.setPlotStyle(gca, {'widescreen'});
 
 figs = [fig1, fig1b, fig2, fig3];
