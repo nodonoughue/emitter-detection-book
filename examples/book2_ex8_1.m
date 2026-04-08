@@ -79,16 +79,16 @@ zeta = z + noise;
 % rmse_crlb = sqrt(arrayfun(@(i) trace(crlb(:,:,i)), 1:size(crlb,3)));
 
 %% Set Up Tracker
-sigma_a = 1;
+q_a = 1;
 
-motion = tracker.makeMotionModel('cv',num_dims,sigma_a^2);
+motion = tracker.makeMotionModel('cv',num_dims,q_a^2);
 num_states = motion.state_space.num_states;
 pos_idx = motion.state_space.pos_idx;
 vel_idx = motion.state_space.vel_idx;
 F = motion.f_fun(t_inc); % generate state transition matrix
 Q = motion.q_fun(t_inc); % generate process noise covariance matrix
 
-[z_fun, h_fun] = tracker.makeMeasurementModel([],x_tdoa,[],v_tdoa,ref_idx,[],motion.state_space);
+msmt = tracker.makeMeasurementModel([],x_tdoa,[],v_tdoa,ref_idx,[],motion.state_space);
  % msmt function and linearized msmt function
 
 %% Initialize Track State
@@ -124,7 +124,7 @@ for idx=1:num_time
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred
     % Updated estimate will be stored in x_est, P_est
-    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, z_fun, h_fun);
+    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
     
     % Predict state to the next time step
     [x_pred, P_pred] = tracker.kfPredict(x_est, P_est, Q, F);
@@ -225,7 +225,7 @@ for idx_mc = 1:num_mc
         % Update Position Estimate
         % Previous prediction stored in x_pred, P_pred
         % Updated estimate will be stored in x_est, P_est
-        [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, z_fun, h_fun);
+        [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
         
         % Predict state to the next time step
         [x_pred, P_pred] = tracker.kfPredict(x_est, P_est, Q, F);

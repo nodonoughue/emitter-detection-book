@@ -88,10 +88,10 @@ zeta = z + noise;
 
 %% Set Up Tracker
 % Track in x/y, even though a/c and tgt in x/y/z
-sigma_a = .05;
+q_a = .05;
 num_dims = 3; % number of dimensions to use in state
 
-motion = tracker.makeMotionModel('cv',num_dims,sigma_a^2);
+motion = tracker.makeMotionModel('cv',num_dims,q_a^2);
 ss = motion.state_space;
 num_states = ss.num_states;
 pos_idx = ss.pos_idx;
@@ -103,24 +103,17 @@ Q = motion.q_fun(t_inc); % generate process noise covariance matrix
 x_pred = zeros(num_states,1);
 P_pred = zeros(num_states, num_states);
 
-% Initialize position with AOA estimate from first three measurement
-x_aoa_init = x_aoa_full(:,1:3);
-z_init = reshape(z(:,1:3)',[],1); % collect the 3 az, then the 3 el msmts
-C_init = kron(R,eye(3));
-
+% Initialize position with AOA estimate from first measurement
 x_init_guess = [10e3;10e3;0];
 [bnd, bnd_grad] = utils.constraints.fixedAlt(0,'flat');
-x_init = triang.gdSolnFixed(x_aoa_init,z_init,C_init,x_init_guess,bnd,100,[],[],1e3,[],[],[]);
-P_init = triang.computeCRLBfixed(x_aoa_init, x_init, C_init, bnd_grad, do2daoa);
-% x_init = triang.gdSoln(x_aoa_init,z_init,C_init,x_init_guess);
-% P_init = triang.computeCRLB(x_aoa_init,x_init,C_init);
+x_init = triang.gdSolnFixed(x_aoa_full(:,1),z(:,1),R,x_init_guess,bnd,100,[],[],1e3,[],[],[]);
+P_init = triang.computeCRLBfixed(x_aoa_full(:,1), x_init, R, bnd_grad, do2daoa);
 
 x_pred(pos_idx) = x_init(1:num_dims);
 P_pred(pos_idx, pos_idx) = P_init(1:num_dims,1:num_dims);
 
 % Bound initial velocity uncertainty by assumed max velocity of 10 m/s
-% (~20 knots)
-max_vel = 30;
+max_vel = 10;
 P_pred(vel_idx, vel_idx) = max_vel^2*eye(num_dims);
 P_pred(vel_idx(end),:) = 0;
 P_pred(:,vel_idx(end),:) = 0;
@@ -142,12 +135,12 @@ for idx=1:num_time
     % Update msmt function
     this_x_aoa = x_aoa_full(1:num_dims,idx);
 
-    [z_fun, h_fun] = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],ss);
+    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],ss);
 
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred
     % Updated estimate will be stored in x_est, P_est
-    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, z_fun, h_fun);
+    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
     
     % Enforce known altitude
     x_est(pos_idx(end)) = 0;

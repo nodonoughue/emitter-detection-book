@@ -14,6 +14,8 @@ function trk = makeTrack(initial_state, track_id)
 %           track_id              – identifier (string or integer)
 %           num_missed_detections – consecutive missed-detection counter
 %           num_updates           – total successful updates received
+%           max_velocity          – optional speed cap [m/s]; [] = unconstrained
+%           max_acceleration      – optional acceleration cap [m/s²]; [] = unconstrained
 %
 % Nicholas O'Donoughue
 % June 2025
@@ -25,4 +27,6 @@ end
 trk = struct('states',                {{initial_state}}, ...
              'track_id',              track_id, ...
              'num_missed_detections', 0, ...
-             'num_updates',           1);
+             'num_updates',           1, ...
+             'max_velocity',          [], ...
+             'max_acceleration',      []);

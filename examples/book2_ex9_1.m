@@ -167,8 +167,7 @@ mm = tracker.makeMotionModel('cv', 2, diag([25, 25]));
 ss = mm.state_space;
 
 % Measurement model: pure AOA (azimuth only, 2 sensors -> 2-D zeta)
-[z_fun, h_fun] = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss);
-msmt_model = tracker.makeMsmtModel(z_fun, h_fun, R, ss);
+msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss, R);
 
 % Pre-initialised track states at t = 0  [px; py; vx; vy]  (m, m/s)
 state_vecs = {[0;    2e3;  0;   100], ...

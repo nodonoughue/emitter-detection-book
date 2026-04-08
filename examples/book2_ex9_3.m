@@ -83,7 +83,7 @@ function s_upd = pda_update_track(s_pred, msmts, msmt_model, gate_prob, pd)
 % INPUTS
 %   s_pred      Predicted State struct
 %   msmts       Cell array of all Measurement structs for the current scan
-%   msmt_model  Measurement model struct from makeMsmtModel
+%   msmt_model  Measurement model struct from makeMeasurementModel
 %   gate_prob   Chi-square gate probability (e.g. 0.75)
 %   pd          Detection probability (default: 1.0)
 
@@ -172,8 +172,7 @@ R         = sigma_psi^2 * eye(2);
 mm = tracker.makeMotionModel('cv', 2, diag([25, 25]));
 ss = mm.state_space;
 
-[z_fun, h_fun] = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss);
-msmt_model = tracker.makeMsmtModel(z_fun, h_fun, R, ss);
+msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss, R);
 
 state_vecs = {[0;    2e3;  0;   100], ...
               [1e3;  2e3;  80;  -10], ...

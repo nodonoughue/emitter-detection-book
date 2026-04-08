@@ -20,7 +20,7 @@ x_aoa = [-2, 2; 0, 0];
 % Define received signals and covariance matrix
 psi = [80; 87]*pi/180;
 % C = eye(n_aoa); % Make it 1 degree std. dev.
-C = diag([.1, 1]);
+C = diag([1, 1]);
 x_init = [0;1]; % initial guess
 
 %% Plot the scenario

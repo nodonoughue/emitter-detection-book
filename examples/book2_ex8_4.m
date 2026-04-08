@@ -67,13 +67,13 @@ zeta = z + L * randn(num_msmt, num_time);
 % sigma_a = 1 m/s^2 (tuned for a non-maneuvering target).  The centripetal
 % acceleration is ~10.5 m/s^2, so each 5-second step introduces a large
 % model-mismatch error.
-sigma_a_cv = 1;
-motion_cv = tracker.makeMotionModel('cv', 3, sigma_a_cv^2);
+q_a_cv = 1;
+motion_cv = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 F_cv = motion_cv.f_fun(t_inc);
 Q_cv = motion_cv.q_fun(t_inc);
 ss_cv = motion_cv.state_space;
 
-[z_fun_cv, h_fun_cv] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
+msmt_cv = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
 
 pos_idx_cv = ss_cv.pos_idx;
 vel_idx_cv = ss_cv.vel_idx;
@@ -82,16 +82,16 @@ num_states_cv = ss_cv.num_states;
 %% CT motion model ----------------------------------------------------------
 % Same kinematic sigma_a; omega is treated as nearly-constant (small
 % process_covar_omega keeps the estimate locked once it converges).
-sigma_a_ct          = 1;
-process_covar_omega = 1e-3;    % rad^2/s^3 spectral density
+q_a_ct  = 1;
+q_omega = 1e-2;    % rad/s spectral density
 
-motion_ct = tracker.makeMotionModel('ct', 3, sigma_a_ct^2, process_covar_omega);
+motion_ct = tracker.makeMotionModel('ct', 3, q_a_ct^2, q_omega^2);
 Q_ct = motion_ct.q_fun(t_inc);
 f_ct = @(x) motion_ct.f_fun_ekf(x, t_inc);
-g_ct = @(x) motion_ct.jacobian_fun(x, t_inc);
+j_ct = @(x) motion_ct.jacobian_fun(x, t_inc);
 
 ss_ct = motion_ct.state_space;
-[z_fun_ct, h_fun_ct] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_ct);
+msmt_ct = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_ct);
 
 pos_idx_ct = ss_ct.pos_idx;
 vel_idx_ct = ss_ct.vel_idx;
@@ -134,8 +134,8 @@ for idx = 1 : num_time
     this_zeta = zeta(:, idx);
 
     % EKF Update
-    [x_cv_k, P_cv_k] = tracker.ekfUpdate(x_cv_pred, P_cv_pred, this_zeta, R, z_fun_cv, h_fun_cv);
-    [x_ct_k, P_ct_k] = tracker.ekfUpdate(x_ct_pred, P_ct_pred, this_zeta, R, z_fun_ct, h_fun_ct);
+    [x_cv_k, P_cv_k] = tracker.ekfUpdate(x_cv_pred, P_cv_pred, this_zeta, R, msmt_cv.z_fun_raw, msmt_cv.h_fun_raw);
+    [x_ct_k, P_ct_k] = tracker.ekfUpdate(x_ct_pred, P_ct_pred, this_zeta, R, msmt_ct.z_fun_raw, msmt_ct.h_fun_raw);
 
     % Store estimated positions and turn rate
     x_cv_est(:, idx)  = x_cv_k(pos_idx_cv);
@@ -147,7 +147,7 @@ for idx = 1 : num_time
 
     % CT: nonlinear EKF predict using exact CT transition + analytical Jacobian
     [x_ct_pred, P_ct_pred] = tracker.ekfPredict(x_ct_k, P_ct_k, Q_ct, ...
-                                                f_ct, g_ct);
+                                                f_ct, j_ct);
 end
 fprintf('done.\n');
 

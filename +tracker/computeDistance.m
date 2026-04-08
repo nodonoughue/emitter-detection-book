@@ -7,7 +7,7 @@ function [dist, innov, S] = computeDistance(s_pred, zeta, msmt_model)
 % INPUTS
 %   s_pred      Predicted State struct (from predictState)
 %   zeta        Measurement vector (num_msmt x 1)
-%   msmt_model  Measurement model struct from makeMsmtModel
+%   msmt_model  Measurement model struct from makeMeasurementModel
 %
 % OUTPUTS
 %   dist    Normalised Mahalanobis distance: (y' * S^{-1} * y) / num_msmt

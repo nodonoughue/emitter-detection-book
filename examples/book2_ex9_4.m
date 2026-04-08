@@ -7,15 +7,13 @@ function figs = book2_ex9_4()
 % Multi-Target Tracking with False Alarms.
 %
 % Three aircraft fly through a 900-second scenario tracked by four ground-
-% based TDOA sensors.  At each 10-second scan, the three noiseless truth
-% TDOA measurements are mixed with 20 uniformly distributed false-alarm
-% measurements and the combined list is shuffled before being handed to
-% two independent trackers:
+% based TDOA sensors.  At each scan, the three noisy truth TDOA measurements
+% are shuffled and handed to two independent trackers:
 %
 %   CV model  - Constant-Velocity, sigma_a = 1 m/s^2
 %   CA model  - Constant-Acceleration, sigma_a = 1 m/s^2
 %
-% Both trackers use a TwoPointInitiator, GNN associator (gate prob = 0.7),
+% Both trackers use a TwoPointInitiator, GNN associator (gate prob = 0.95),
 % MofN promoter (3-of-5), and MissedDetectionDeleter (max_missed = 3).
 %
 % INPUTS
@@ -33,7 +31,7 @@ function figs = book2_ex9_4()
 fprintf('Example 9.4...\n');
 
 %% Scenario parameters -------------------------------------------------------
-t_inc    = 10;                 % s between track updates
+t_inc    = 1;                  % s between track updates
 max_time = 900;                % s total duration
 ft2m     = 0.3048;
 alt      = 20000 * ft2m;      % 20 000 ft -> ~6096 m
@@ -48,8 +46,8 @@ num_tgts = 3;
 num_time = numel(t_vec);
 
 %% TDOA sensor array ---------------------------------------------------------
-x_tdoa  = [ 5e3,  0,    0,  -5e3;
-              0,  5e3,  0,     0;
+x_tdoa  = [15e3,  0,    0, -15e3;
+              0, 15e3,  0,     0;
              30,   60,  30,   60];
 n_tdoa  = size(x_tdoa, 2);
 ref_idx = 1;                   % first sensor as reference
@@ -71,25 +69,22 @@ sigma_a = 1;                   % m/s^2 process noise (same for both trackers)
 mm_cv   = tracker.makeMotionModel('cv', 3, sigma_a^2);
 mm_ca   = tracker.makeMotionModel('ca', 3, sigma_a^2);
 
-[z_cv, h_cv] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_cv.state_space);
-[z_ca, h_ca] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_ca.state_space);
-
-msmt_cv = tracker.makeMsmtModel(z_cv, h_cv, R, mm_cv.state_space, ls_fun, crlb_fun);
-msmt_ca = tracker.makeMsmtModel(z_ca, h_ca, R, mm_ca.state_space, ls_fun, crlb_fun);
+msmt_cv = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_cv.state_space, R, ls_fun, crlb_fun);
+msmt_ca = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_ca.state_space, R, ls_fun, crlb_fun);
 
 %% Tracker states (independent CV and CA) ------------------------------------
 ts_cv = tracker.makeTrackerState(mm_cv, msmt_cv, ...
-    'gate_probability', 0.7, 'num_hits', 3, 'num_chances', 5, ...
+    'gate_probability', 0.95, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true);
 ts_ca = tracker.makeTrackerState(mm_ca, msmt_ca, ...
-    'gate_probability', 0.7, 'num_hits', 3, 'num_chances', 5, ...
+    'gate_probability', 0.95, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true);
 
 %% Figure 1 setup: 2x2 panel -------------------------------------------------
 scale  = 1e3;                  % plot in km
 clrs   = lines(num_tgts);
-num_fa = 10;                    % false alarms per scan
-max_val = 8e3;                 % false-alarm extent per RDOA channel [m]
+num_fa = 10;                   % false alarms per scan
+max_val = 30e3;                 % false-alarm extent per RDOA channel [m]
 
 fig1   = figure;
 tlo    = tiledlayout(fig1, 2, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -257,9 +252,9 @@ for ti = 1:num_tgts
          'DisplayName', sprintf('Target %d CA', ti));
 end
 
-title(ax3,  'Example 9.4: Position Error vs Time (CV dashed, CA dash-dot)', 'FontSize', 10);
+title(ax3,  'Example 9.4: Horizontal Position Error vs Time (CV dashed, CA dash-dot)', 'FontSize', 10);
 xlabel(ax3, 'Time [s]',  'FontSize', 8);
-ylabel(ax3, 'Error [km]','FontSize', 8);
+ylabel(ax3, 'Horizontal Error [km]','FontSize', 8);
 legend(ax3, 'FontSize', 8);
 grid(ax3, 'on');
 ax3.FontSize = 8;
@@ -354,23 +349,26 @@ end
 
 %% ==========================================================================
 function err = compute_position_error(all_tracks, t_vec, x_truth, pos_idx)
-% For each element of t_vec, return the minimum Euclidean distance from
-% x_truth(:, idx) to the position stored in any confirmed track at that
-% time.  Returns NaN where no track has a state at that timestamp.
+% For each element of t_vec, return the minimum horizontal (x-y) distance
+% from x_truth(1:2, idx) to the x-y position stored in any confirmed track
+% at that time.  Z is excluded because the sensor array is nearly coplanar
+% (z~30-60 m) while targets fly at ~6096 m, making altitude nearly
+% unobservable via TDOA alone (CRLB_z >> CRLB_xy for this geometry).
+% Returns NaN where no track has a state at that timestamp.
 
 num_time = numel(t_vec);
 err      = nan(1, num_time);
 
 for t_idx = 1:num_time
     t      = t_vec(t_idx);
-    x_true = x_truth(:, t_idx);
+    x_true = x_truth(1:2, t_idx);   % horizontal truth position only
     min_d  = inf;
 
     for trk_j = 1:numel(all_tracks)
         states = all_tracks{trk_j}.states;
         for s_k = 1:numel(states)
-            if abs(states{s_k}.time - t) < 0.1    % within half a step
-                x_est = states{s_k}.state(pos_idx);
+            if abs(states{s_k}.time - t) < 0.5    % within half a step
+                x_est = states{s_k}.state(pos_idx(1:2));   % xy only
                 d = norm(x_true - x_est);
                 if d < min_d
                     min_d = d;

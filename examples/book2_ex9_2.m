@@ -78,8 +78,7 @@ R         = sigma_psi^2 * eye(2);
 mm = tracker.makeMotionModel('cv', 2, diag([25, 25]));
 ss = mm.state_space;
 
-[z_fun, h_fun] = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss);
-msmt_model = tracker.makeMsmtModel(z_fun, h_fun, R, ss);
+msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss, R);
 
 state_vecs = {[0;    2e3;  0;   100], ...
               [1e3;  2e3;  80;  -10], ...

@@ -104,12 +104,12 @@ for idx=1:num_time
     this_x_aoa = x_aoa_full(1:num_dims,idx);
     this_x_tgt = x_tgt_full(1:num_dims,idx);
 
-    [z_fun, h_fun] = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],state_space);
+    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],state_space);
 
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred
     % Updated estimate will be stored in x_est, P_est
-    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, z_fun, h_fun);
+    [x_est, P_est] = tracker.ekfUpdate(x_pred, P_pred, this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
     
     % Enforce known altitude
     x_est(pos_idx(end)) = 0;

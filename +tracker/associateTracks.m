@@ -10,7 +10,7 @@ function [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx] = ...
 %   measurements    Cell array of Measurement structs
 %   curr_time       Current scan timestamp [s] (used for coasting when measurements is empty)
 %   motion_model    Motion model struct from makeMotionModel
-%   msmt_model      Measurement model struct from makeMsmtModel
+%   msmt_model      Measurement model struct from makeMeasurementModel
 %   gate_probability Chi-square acceptance gate probability (e.g., 0.99)
 %   assoc_type      'nn'  – Nearest Neighbour (sequential, priority to first tracks)
 %                   'gnn' – Global Nearest Neighbour (Munkres/Hungarian, globally optimal)

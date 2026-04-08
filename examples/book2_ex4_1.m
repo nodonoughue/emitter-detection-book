@@ -75,7 +75,7 @@ cov_rr = (err_fdoa_Hz*utils.constants.c/f_source_Hz)^2*eye(n_fdoa); % m^2/s^2
 cov_x = blkdiag(cov_psi, cov_r, cov_rr);
 
 %% Generate Noise
-num_mc = 10000;
+num_mc = 1000;
 noise_white = randn(2*n_aoa+n_tdoa+n_fdoa, num_mc); % one row per sensor,
                                                     % one column per trial
 % Generate sensor level (n_aoa + n_tdoa + n_fdoa) noise with proper errors

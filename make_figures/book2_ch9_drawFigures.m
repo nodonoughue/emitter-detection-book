@@ -63,8 +63,7 @@ ref_f2    = 1;
 C_roa_f2  = 100 * eye(3);         % range variance [m^2]
 R_f2      = utils.resampleCovMtx(C_roa_f2, ref_f2);    % 2x2
 
-[z_fun_f2, h_fun_f2] = tracker.makeMeasurementModel([], x_tdoa_f2, [], [], ref_f2, [], ss_f2);
-msmt_f2   = tracker.makeMsmtModel(z_fun_f2, h_fun_f2, R_f2, ss_f2);
+msmt_f2 = tracker.makeMeasurementModel([], x_tdoa_f2, [], [], ref_f2, [], ss_f2, R_f2);
 
 % Predicted measurement and innovation covariance
 z_pred_f2 = msmt_f2.z_fun(s_pred_f2);
@@ -172,8 +171,7 @@ x_aoa_f3   = [750, 300;   % sensor x
               200, 800];  % sensor y
 sigma_psi_f3 = 3 * pi/180;
 R_f3    = sigma_psi_f3^2 * eye(2);
-[z_fun_f3, h_fun_f3] = tracker.makeMeasurementModel(x_aoa_f3, [], [], [], [], [], ss_f3);
-msmt_f3 = tracker.makeMsmtModel(z_fun_f3, h_fun_f3, R_f3, ss_f3);
+msmt_f3 = tracker.makeMeasurementModel(x_aoa_f3, [], [], [], [], [], ss_f3, R_f3);
 
 t_msmt_f3 = 5;     % [s]
 gate_prob_f3 = 0.75;

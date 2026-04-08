@@ -21,7 +21,7 @@ function model = makeMotionModel(model_type, num_dims, process_covar, varargin)
 %           Fields for ballistic model:
 %             b_fun         – @(dt) control input vector u = [0;0;½g·dt²; 0;0;g·dt]
 %           Fields for nonlinear models (is_linear = false):
-%             ct_fun        – @(x, dt) nonlinear transition function
+%             f_fun_ekf     – @(x, dt) nonlinear transition function
 %             jacobian_fun  – @(x, dt) EKF Jacobian
 %
 % Nicholas O'Donoughue
@@ -50,7 +50,7 @@ switch lower(model_type)
                        'is_linear',      false, ...
                        'q_fun',          q_fun, ...
                        'f_fun',          [], ...
-                       'ct_fun',         f_ct, ...
+                       'f_fun_ekf',         f_ct, ...
                        'jacobian_fun',   g_ct);
 
     otherwise

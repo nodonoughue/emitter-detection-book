@@ -46,7 +46,7 @@ ref_set = {1, 2, 3, 4, 'full'};
 figs = [fig1, zeros(size(ref_set))];
 
 % Define search grid (targets up to 200 km away)
-xx_vec = linspace(-100e3, 100e3, 101);
+xx_vec = linspace(-100e3, 100e3, 201);
 [xx,yy] = meshgrid(xx_vec);
 x_source = [xx(:), yy(:)]';
 if do_video_version

@@ -58,15 +58,15 @@ zeta = z + L * randn(num_msmt, num_time);
 
 %% Motion models -------------------------------------------------------------
 % CV: large process noise to compensate for unmodelled gravity (~50 m/s^2)
-sigma_a_cv = 50;
-motion_cv = tracker.makeMotionModel('cv', 3, sigma_a_cv^2);
+q_a_cv = 50;
+motion_cv = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 F_cv = motion_cv.f_fun(t_inc);
 Q_cv = motion_cv.q_fun(t_inc);
 
 % Ballistic: same CV dynamics; gravity is applied as a mean offset after
 % kfPredict.  Small kinematic noise suffices because gravity is explicit.
-sigma_a_bal = 3;
-motion_bal = tracker.makeMotionModel('ballistic', 3, sigma_a_bal^2);
+q_a_bal = 3;
+motion_bal = tracker.makeMotionModel('ballistic', 3, q_a_bal^2);
 F_bal = motion_bal.f_fun(t_inc);
 Q_bal = motion_bal.q_fun(t_inc);
 b_bal = motion_bal.b_fun(t_inc);
@@ -74,7 +74,7 @@ b_bal = motion_bal.b_fun(t_inc);
 ss_cv = motion_cv.state_space;
 
 % Both share the same TDOA measurement model (same state-space layout)
-[z_fun, h_fun] = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
+msmt = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
 
 pos_idx = ss_cv.pos_idx;
 vel_idx = ss_cv.vel_idx;
@@ -101,8 +101,8 @@ for idx = 1 : num_time
     this_zeta = zeta(:, idx);
 
     % EKF Update
-    [x_cv_est_k,  P_cv_est]  = tracker.ekfUpdate(x_cv_pred,  P_cv_pred,  this_zeta, R, z_fun, h_fun);
-    [x_bal_est_k, P_bal_est] = tracker.ekfUpdate(x_bal_pred, P_bal_pred, this_zeta, R, z_fun, h_fun);
+    [x_cv_est_k,  P_cv_est]  = tracker.ekfUpdate(x_cv_pred,  P_cv_pred,  this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
+    [x_bal_est_k, P_bal_est] = tracker.ekfUpdate(x_bal_pred, P_bal_pred, this_zeta, R, msmt.z_fun_raw, msmt.h_fun_raw);
 
     % Store estimated positions
     x_cv_est(:, idx)  = x_cv_est_k(pos_idx);

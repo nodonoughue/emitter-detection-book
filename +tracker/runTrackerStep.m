@@ -44,7 +44,8 @@ leftover_for_init = unassoc_msmts_2;
     tracker.initiateTracks(leftover_for_init, curr_time, ...
                            cfg.motion_model, cfg.msmt_model, ...
                            cfg.gate_probability, tracker_state.next_track_id, ...
-                           tracker_state.buffer_msmts, tracker_state.buffer_tracks);
+                           tracker_state.buffer_msmts, tracker_state.buffer_tracks, ...
+                           cfg.target_max_velocity, cfg.target_max_acceleration);
 
 tracker_state.tentative_tracks = [tracker_state.tentative_tracks, new_tracks];
 
@@ -89,12 +90,14 @@ for kk = 1:numel(trk_idx)
     s  = tracker.currState(tracker_state.firm_tracks{ti});
     s_pred = tracker.predictState(s, curr_time, cfg.motion_model);
 
+    trk = tracker_state.firm_tracks{ti};
     if mi > 0
         s_upd = tracker.ekfUpdateState(s_pred, measurements{mi}.zeta, cfg.msmt_model);
-        tracker_state.firm_tracks{ti} = tracker.appendTrack(tracker_state.firm_tracks{ti}, s_upd, false);
+        s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
+        tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
     else
         % Missed detection: coast
-        tracker_state.firm_tracks{ti} = tracker.appendTrack(tracker_state.firm_tracks{ti}, s_pred, true);
+        tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_pred, true);
     end
 end
 
@@ -141,13 +144,13 @@ for kk = 1:numel(trk_idx)
     s  = tracker.currState(tracker_state.tentative_tracks{ti});
     s_pred = tracker.predictState(s, curr_time, cfg.motion_model);
 
+    trk = tracker_state.tentative_tracks{ti};
     if mi > 0
         s_upd = tracker.ekfUpdateState(s_pred, measurements{mi}.zeta, cfg.msmt_model);
-        tracker_state.tentative_tracks{ti} = ...
-            tracker.appendTrack(tracker_state.tentative_tracks{ti}, s_upd, false);
+        s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
+        tracker_state.tentative_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
     else
-        tracker_state.tentative_tracks{ti} = ...
-            tracker.appendTrack(tracker_state.tentative_tracks{ti}, s_pred, true);
+        tracker_state.tentative_tracks{ti} = tracker.appendTrack(trk, s_pred, true);
     end
 end
 

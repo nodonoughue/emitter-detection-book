@@ -40,7 +40,7 @@ err_fdoa_Hz = 100;
 f_source_Hz = 1e9;
 
 % Build grid of positions within 500km of source position (ENU origin)
-xx_offset = linspace(-500e3,500e3,1001);
+xx_offset = linspace(-500e3,500e3,201);
 
 xx_grid = xx_offset;
 yy_grid = xx_offset;

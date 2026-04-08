@@ -1,6 +1,7 @@
 function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
     initiateTracks(measurements, curr_time, motion_model, msmt_model, ...
-                   gate_probability, next_track_id, buffer_msmts, buffer_tracks)
+                   gate_probability, next_track_id, buffer_msmts, buffer_tracks, ...
+                   target_max_velocity, target_max_acceleration)
 % initiateTracks  Two-Point Initiator: seed new tentative tracks from
 %                 measurements that were not associated with any existing track.
 %
@@ -18,14 +19,21 @@ function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
 %   measurements    Cell array of unassociated Measurement structs
 %   curr_time       Timestamp of the current scan [s]
 %   motion_model    Motion model struct from makeMotionModel
-%   msmt_model      Measurement model struct from makeMsmtModel
+%   msmt_model      Measurement model struct from makeMeasurementModel
 %                   (must have a non-empty .least_square_fun field)
-%   gate_probability Gate probability for buffer–measurement pairing
-%   next_track_id   Integer: ID to assign to the next new tentative track
-%   buffer_msmts    Cell array of Measurement structs buffered from the
-%                   previous scan (pass {} on the first call)
-%   buffer_tracks   Cell array of single-point Track structs corresponding
-%                   to buffer_msmts (pass {} on the first call)
+%   gate_probability         Gate probability for buffer–measurement pairing
+%   next_track_id            Integer: ID to assign to the next new tentative track
+%   buffer_msmts             Cell array of Measurement structs buffered from the
+%                            previous scan (pass {} on the first call)
+%   buffer_tracks            Cell array of single-point Track structs corresponding
+%                            to buffer_msmts (pass {} on the first call)
+%   target_max_velocity      Optional max target speed [m/s].  Caps the velocity
+%                            covariance block and stamps max_velocity on each new
+%                            track so runTrackerStep can clip the EKF state.
+%                            Pass [] to disable (default: [])
+%   target_max_acceleration  Optional max target acceleration [m/s²].  Caps the
+%                            acceleration covariance block and stamps max_acceleration
+%                            on each new track.  Pass [] to disable (default: [])
 %
 % OUTPUTS
 %   new_tracks      Cell array of newly created tentative two-point Track structs
@@ -35,6 +43,9 @@ function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
 %
 % Nicholas O'Donoughue
 % June 2025
+
+if nargin < 9,  target_max_velocity     = []; end
+if nargin < 10, target_max_acceleration = []; end
 
 new_tracks = {};
 
@@ -92,10 +103,13 @@ if ~isempty(buffer_tracks) && ~isempty(measurements)
         % Initial covariance: use CRLB from measurement Jacobian (10x for conservatism),
         % scaled by dt^2 / dt^4 for velocity / acceleration blocks.
         % This matches Python TwoPointInitiator._build_initial_covariance.
-        P_init = build_initial_covariance(ss, x_pos2, vel_est, m2.time, dt, msmt_model);
+        P_init = build_initial_covariance(ss, x_pos2, vel_est, m2.time, dt, msmt_model, ...
+                                          target_max_velocity, target_max_acceleration);
 
         s_init = tracker.makeState(ss, m2.time, x_init, P_init);
         new_trk = tracker.makeTrack(s_init, next_track_id);
+        new_trk.max_velocity    = target_max_velocity;
+        new_trk.max_acceleration = target_max_acceleration;
         next_track_id = next_track_id + 1;
         new_tracks{end+1} = new_trk;  %#ok<AGROW>
 
@@ -132,6 +146,17 @@ for jj = 1:numel(unmatched_new)
         try
             [x_pos_est, ~] = msmt_model.least_square_fun(m.zeta, zeros(n_pos, 1));
 
+            % If 3D and z < 0, retry with the z sign flipped to escape the
+            % mirror-image local minimum from near-coplanar sensor arrays.
+            if n_pos >= 3 && x_pos_est(3) < 0
+                x_retry = zeros(n_pos, 1);
+                x_retry(3) = -x_pos_est(3);
+                [x_pos_est_retry, ~] = msmt_model.least_square_fun(m.zeta, x_retry);
+                if x_pos_est_retry(3) >= 0
+                    x_pos_est = x_pos_est_retry;
+                end
+            end
+
             % Accept the LS result only if it looks physically reasonable
             % (within 500 km of the origin; avoids using a diverged iterate)
             if norm(x_pos_est) < 5e5
@@ -164,8 +189,26 @@ for jj = 1:numel(unmatched_new)
         end
     end
 
+    % Apply velocity/acceleration covariance caps to buffer track P
+    if ~isempty(target_max_velocity) && ss.has_vel && ~isempty(ss.vel_idx)
+        vel_block = P_buf(ss.vel_idx, ss.vel_idx);
+        max_diag  = max(diag(vel_block));
+        if max_diag > target_max_velocity^2
+            P_buf(ss.vel_idx, ss.vel_idx) = vel_block * (target_max_velocity^2 / max_diag);
+        end
+    end
+    if ~isempty(target_max_acceleration) && isfield(ss, 'accel_idx') && ~isempty(ss.accel_idx)
+        acc_block = P_buf(ss.accel_idx, ss.accel_idx);
+        max_diag  = max(diag(acc_block));
+        if max_diag > target_max_acceleration^2
+            P_buf(ss.accel_idx, ss.accel_idx) = acc_block * (target_max_acceleration^2 / max_diag);
+        end
+    end
+
     s_buf  = tracker.makeState(ss, m.time, x_buf, P_buf);
     t_buf  = tracker.makeTrack(s_buf, -1);  % id=-1: tentative buffer track
+    t_buf.max_velocity    = target_max_velocity;
+    t_buf.max_acceleration = target_max_acceleration;
     new_buffer{end+1}    = m;     %#ok<AGROW>
     buffer_tracks{end+1} = t_buf; %#ok<AGROW>
 end
@@ -173,7 +216,8 @@ end
 
 %% ---- Local helper -----------------------------------------------------------
 
-function P = build_initial_covariance(ss, x_pos, vel_est, t, dt, msmt_model)
+function P = build_initial_covariance(ss, x_pos, vel_est, t, dt, msmt_model, ...
+                                       target_max_velocity, target_max_acceleration)
 % Compute the initial state covariance for a two-point tentative track using
 % a 10x Fisher-information CRLB, matching Python TwoPointInitiator logic.
 %
@@ -182,6 +226,9 @@ function P = build_initial_covariance(ss, x_pos, vel_est, t, dt, msmt_model)
 % Accel block     : crlb_pos / dt^4  (CA/CJ only)
 %
 % Falls back to 1e6*I if the CRLB is unavailable or ill-conditioned.
+
+if nargin < 7, target_max_velocity     = []; end
+if nargin < 8, target_max_acceleration = []; end
 
 pos_covar_multiplier = 10.0;
 
@@ -219,6 +266,20 @@ end
 
 crlb_vel   = crlb_pos / (dt^2);
 crlb_accel = crlb_vel / (dt^2);
+
+% Apply velocity/acceleration covariance caps if requested
+if ~isempty(target_max_velocity) && ss.has_vel && ~isempty(ss.vel_idx)
+    max_diag = max(diag(crlb_vel));
+    if max_diag > target_max_velocity^2
+        crlb_vel = crlb_vel * (target_max_velocity^2 / max_diag);
+    end
+end
+if ~isempty(target_max_acceleration) && isfield(ss, 'accel_idx') && ~isempty(ss.accel_idx)
+    max_diag = max(diag(crlb_accel));
+    if max_diag > target_max_acceleration^2
+        crlb_accel = crlb_accel * (target_max_acceleration^2 / max_diag);
+    end
+end
 
 P = zeros(ss.num_states);
 P(ss.pos_idx, ss.pos_idx) = crlb_pos;

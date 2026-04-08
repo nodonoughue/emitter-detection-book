@@ -10,7 +10,7 @@ function s_upd = ekfUpdateState(s_pred, zeta, msmt_model)
 % INPUTS
 %   s_pred      Predicted State struct (from predictState)
 %   zeta        Measurement vector (num_msmt x 1)
-%   msmt_model  Measurement model struct from makeMsmtModel
+%   msmt_model  Measurement model struct from makeMeasurementModel
 %
 % OUTPUTS
 %   s_upd   Updated State struct (same state_space and time as s_pred)
