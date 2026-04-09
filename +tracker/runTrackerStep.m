@@ -6,7 +6,10 @@ function tracker_state = runTrackerStep(tracker_state, measurements, curr_time)
 %
 % INPUTS
 %   tracker_state  Struct produced by makeTrackerState (updated in place)
-%   measurements   Cell array of Measurement structs for the current scan
+%   measurements   Cell array of Measurement structs for the current scan.
+%                  Each struct must have a non-empty .msmt_model field
+%                  (i.e. created via makeMeasurement(msmt_model, state, time)
+%                  or makeMeasurement(time, zeta, msmt_model)).
 %   curr_time      Timestamp of the current scan [s]; inferred from
 %                  measurements{1}.time if empty
 %
@@ -24,6 +27,14 @@ if nargin < 3 || isempty(curr_time)
         curr_time = measurements{1}.time;
     else
         curr_time = [];
+    end
+end
+
+% Validate that every measurement carries a measurement model
+for ii = 1:numel(measurements)
+    if isempty(measurements{ii}.msmt_model)
+        error('tracker:runTrackerStep:missingMsmtModel', ...
+              'measurements{%d}.msmt_model is empty. All measurements must be created with a msmt_model.', ii);
     end
 end
 
@@ -79,9 +90,10 @@ if isempty(tracker_state.firm_tracks) || isempty(measurements)
     return;
 end
 
-[trk_idx, msmt_idx, unassigned_msmt_idx] = ...
+[trk_idx, msmt_idx, unassigned_msmt_idx, pda_states] = ...
     tracker.associateTracks(tracker_state.firm_tracks, measurements, curr_time, ...
-                            cfg.motion_model, cfg.msmt_model, cfg.gate_probability, cfg.assoc_type);
+                            cfg.motion_model, cfg.msmt_model, cfg.gate_probability, ...
+                            cfg.assoc_type, cfg.detection_probability);
 
 % Update assigned tracks
 for kk = 1:numel(trk_idx)
@@ -91,8 +103,13 @@ for kk = 1:numel(trk_idx)
     s_pred = tracker.predictState(s, curr_time, cfg.motion_model);
 
     trk = tracker_state.firm_tracks{ti};
-    if mi > 0
-        s_upd = tracker.ekfUpdateState(s_pred, measurements{mi}.zeta, cfg.msmt_model);
+    if ~isempty(pda_states)
+        % PDA: fused state already computed by associateTracks
+        s_upd = pda_states{ti};
+        s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
+        tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
+    elseif mi > 0
+        s_upd = tracker.ekfUpdate(s_pred, measurements{mi});
         s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
         tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
     else
@@ -133,9 +150,10 @@ if isempty(measurements)
     return;
 end
 
-[trk_idx, msmt_idx, unassigned_msmt_idx] = ...
+[trk_idx, msmt_idx, unassigned_msmt_idx, pda_states] = ...
     tracker.associateTracks(tracker_state.tentative_tracks, measurements, curr_time, ...
-                            cfg.motion_model, cfg.msmt_model, cfg.gate_probability, cfg.assoc_type);
+                            cfg.motion_model, cfg.msmt_model, cfg.gate_probability, ...
+                            cfg.assoc_type, cfg.detection_probability);
 
 % Update tentative tracks
 for kk = 1:numel(trk_idx)
@@ -145,8 +163,13 @@ for kk = 1:numel(trk_idx)
     s_pred = tracker.predictState(s, curr_time, cfg.motion_model);
 
     trk = tracker_state.tentative_tracks{ti};
-    if mi > 0
-        s_upd = tracker.ekfUpdateState(s_pred, measurements{mi}.zeta, cfg.msmt_model);
+    if ~isempty(pda_states)
+        % PDA: fused state already computed by associateTracks
+        s_upd = pda_states{ti};
+        s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
+        tracker_state.tentative_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
+    elseif mi > 0
+        s_upd = tracker.ekfUpdate(s_pred, measurements{mi});
         s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
         tracker_state.tentative_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
     else

@@ -120,7 +120,7 @@ if any(~is_valid_f2)
          'MarkerSize', 8, 'DisplayName', 'Invalid Measurements');
 end
 xlabel('x [km]'); ylabel('y [km]');
-title('Track, Prediction, and Measurements');
+% title('Track, Prediction, and Measurements');
 legend('Location','best');
 utils.setPlotStyle(gca, {'widescreen'});
 
@@ -146,7 +146,7 @@ if any(~is_valid_f2)
          'MarkerSize', 8, 'DisplayName', 'Invalid Measurements');
 end
 xlabel('$\tau_{0,1}$ [m]'); ylabel('$\tau_{0,2}$ [m]');
-title('Prediction and Measurements in Zeta-Space');
+% title('Prediction and Measurements in Zeta-Space');
 legend('Location','best');
 utils.setPlotStyle(gca, {'widescreen'});
 
@@ -230,7 +230,7 @@ msmts_f3 = cell(n_rand_f3, 1);
 z_all_f3  = zeros(2, n_rand_f3);
 for jj = 1:n_rand_f3
     z_all_f3(:,jj)  = msmt_f3.z_fun(rand_states_f3{jj});
-    msmts_f3{jj}    = tracker.makeMeasurement(t_msmt_f3, z_all_f3(:,jj));
+    msmts_f3{jj}    = tracker.makeMeasurement(msmt_f3, rand_states_f3{jj}, t_msmt_f3);
 end
 
 % Predicted measurements for each track
@@ -275,7 +275,7 @@ plot(all_rand_pos_f3(1,:)/scale_f3, all_rand_pos_f3(2,:)/scale_f3, 'vk', ...
 plot(x_aoa_f3(1,:)/scale_f3, x_aoa_f3(2,:)/scale_f3, 'ks', ...
      'MarkerSize', 10, 'MarkerFaceColor', 'k', 'DisplayName', 'DF Sensors');
 xlabel('x [km]'); ylabel('y [km]');
-title('Predicted Track States with New Measurements');
+% title('Predicted Track States with New Measurements');
 legend('Location','best');
 xlim([-0.5, 2.5]); ylim([-0.5, 3.5]);
 utils.setPlotStyle(gca, {'widescreen'});
@@ -311,7 +311,7 @@ for kk = 1:3
     end
 end
 xlabel('$\theta_0$ [rad]'); ylabel('$\theta_1$ [rad]');
-title('Predicted Measurements and Associated Measurements');
+% title('Predicted Measurements and Associated Measurements');
 legend('Location','best');
 utils.setPlotStyle(gca, {'widescreen'});
 
@@ -423,7 +423,7 @@ for mm_idx = 1:num_missed_f8
 end
 
 xlabel('x [km]'); ylabel('y [km]');
-title('Error Covariance Growth as Missed Detections Accumulate');
+% title('Error Covariance Growth as Missed Detections Accumulate');
 legend('Location','best');
 utils.setPlotStyle(gca, {'widescreen'});
 

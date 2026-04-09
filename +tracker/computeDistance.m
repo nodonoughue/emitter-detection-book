@@ -1,5 +1,5 @@
 function [dist, innov, S] = computeDistance(s_pred, zeta, msmt_model)
-% computeDistance  Compute normalised Mahalanobis distance between a predicted
+% computeDistance  Compute Mahalanobis distance squared between a predicted
 %                  state and a measurement.
 %
 % [dist, innov, S] = computeDistance(s_pred, zeta, msmt_model)
@@ -10,7 +10,7 @@ function [dist, innov, S] = computeDistance(s_pred, zeta, msmt_model)
 %   msmt_model  Measurement model struct from makeMeasurementModel
 %
 % OUTPUTS
-%   dist    Normalised Mahalanobis distance: (y' * S^{-1} * y) / num_msmt
+%   dist    Mahalanobis distance squared: y' * S^{-1} * y  (chi2-distributed with num_msmt DOF)
 %   innov   Innovation vector y = zeta - z_hat  (num_msmt x 1)
 %   S       Innovation covariance (num_msmt x num_msmt)
 %
@@ -25,7 +25,5 @@ if ndims(H) == 3
 end
 
 innov = zeta(:) - z_hat(:);
-num_msmt = numel(innov);
-
-S = H * s_pred.covar * H' + msmt_model.R;
-dist = (innov' / S * innov) / num_msmt;
+S    = H * s_pred.covar * H' + msmt_model.R;
+dist = innov' / S * innov;

@@ -29,12 +29,10 @@ if motion_model.is_linear
     if isfield(motion_model, 'b_fun') && ~isempty(motion_model.b_fun)
         u = motion_model.b_fun(dt);
     end
-    [x_pred, P_pred] = tracker.kfPredict(s.state, s.covar, Q, F, u);
+    s_pred = tracker.kfPredict(s, new_time, Q, F, u);
 else
     % Nonlinear EKF predict (e.g. Constant Turn)
     f = @(x) motion_model.ct_fun(x, dt);
     g = @(x) motion_model.jacobian_fun(x, dt);
-    [x_pred, P_pred] = tracker.ekfPredict(s.state, s.covar, Q, f, g);
+    s_pred = tracker.ekfPredict(s, new_time, Q, f, g);
 end
-
-s_pred = tracker.makeState(s.state_space, new_time, x_pred, P_pred);

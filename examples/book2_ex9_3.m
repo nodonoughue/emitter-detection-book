@@ -39,11 +39,10 @@ colors    = get(0, 'DefaultAxesColorOrder');
 
 %% ---- PDAF update for each track -------------------------------------------
 num_tracks = numel(tracks);
+[~, ~, ~, pda_states] = tracker.associateTracks( ...
+    tracks, msmts, t_msmt, mm, msmt_model, gate_prob, 'pda');
 for kk = 1:num_tracks
-    s      = tracker.currState(tracks{kk});
-    s_pred = tracker.predictState(s, t_msmt, mm);
-    s_upd  = pda_update_track(s_pred, msmts, msmt_model, gate_prob);
-    tracks{kk} = tracker.appendTrack(tracks{kk}, s_upd, false);
+    tracks{kk} = tracker.appendTrack(tracks{kk}, pda_states{kk}, false);
 end
 
 %% ---- Figure: Updated tracks -----------------------------------------------
@@ -69,95 +68,6 @@ plot(ax, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ks', 'MarkerSize', 10, ...
 format_axes(ax, 'Updated Trackers after PDAF Association');
 
 figs = fig1;
-end
-
-
-%% ---- PDAF update ----------------------------------------------------------
-function s_upd = pda_update_track(s_pred, msmts, msmt_model, gate_prob, pd)
-% pda_update_track  Probabilistic Data Association EKF update for one track.
-%
-% For each gated measurement the standard EKF update is computed; a null
-% (coast) hypothesis is always included.  The resulting state is the
-% weighted Gaussian mixture of all hypotheses.
-%
-% INPUTS
-%   s_pred      Predicted State struct
-%   msmts       Cell array of all Measurement structs for the current scan
-%   msmt_model  Measurement model struct from makeMeasurementModel
-%   gate_prob   Chi-square gate probability (e.g. 0.75)
-%   pd          Detection probability (default: 1.0)
-
-if nargin < 5; pd = 1.0; end
-
-ss         = s_pred.state_space;
-n_st       = ss.num_states;
-n_all_m    = numel(msmts);
-n_msmt_dim = numel(msmts{1}.zeta);
-
-% Chi-squared gate threshold
-gate_thresh = chi2inv(gate_prob, n_msmt_dim);
-
-% Pre-compute EKF quantities at the predicted state
-z_hat = msmt_model.z_fun(s_pred);
-H     = msmt_model.h_fun(s_pred);
-if ndims(H) == 3                          % handle 3-D Jacobian (num_src > 1)
-    H = H(:, :, 1)';
-end
-P = s_pred.covar;
-R = msmt_model.R;
-S = H * P * H' + R;
-K = P * H' / S;
-
-% Find gated measurements and their Gaussian likelihoods
-gated_idx  = [];
-gated_like = [];
-for jj = 1:n_all_m
-    nu  = msmts{jj}.zeta(:) - z_hat(:);
-    d2  = nu' / S * nu;          % Mahalanobis distance squared
-    if d2 <= gate_thresh
-        n_dim  = numel(nu);
-        L_j    = exp(-0.5 * d2) / sqrt((2*pi)^n_dim * det(S));
-        gated_idx(end+1)  = jj;   %#ok<AGROW>
-        gated_like(end+1) = L_j;  %#ok<AGROW>
-    end
-end
-
-% Null hypothesis likelihood: p_miss = 1 - Pd * Pg
-p_miss = 1 - pd * gate_prob;
-
-% Build and normalise weights  [gated_1 ... gated_M  null]
-all_weights = [gated_like, p_miss];
-all_weights = all_weights / sum(all_weights);
-
-% Per-hypothesis state updates
-n_gated = numel(gated_idx);
-n_hyp   = n_gated + 1;          % gated measurements + null
-all_states = zeros(n_st, n_hyp);
-all_covars = zeros(n_st, n_st, n_hyp);
-
-I_nst = eye(n_st);
-for kk = 1:n_gated
-    jj   = gated_idx(kk);
-    nu_j = msmts{jj}.zeta(:) - z_hat(:);
-    all_states(:, kk)    = s_pred.state + K * nu_j;
-    all_covars(:, :, kk) = (I_nst - K * H) * P;
-end
-
-% Null hypothesis: coast (no measurement update)
-all_states(:, end)    = s_pred.state;
-all_covars(:, :, end) = P;
-
-% Weighted mean
-x_fused = all_states * all_weights(:);
-
-% Weighted covariance + spread-of-means
-P_fused = zeros(n_st);
-for kk = 1:n_hyp
-    delta   = all_states(:, kk) - x_fused;
-    P_fused = P_fused + all_weights(kk) * (all_covars(:, :, kk) + delta * delta');
-end
-
-s_upd = tracker.makeState(ss, s_pred.time, x_fused, P_fused);
 end
 
 
@@ -204,7 +114,7 @@ zeta_vals = {[1.811; 1.652], ...
 
 msmts = cell(4, 1);
 for jj = 1:4
-    msmts{jj} = tracker.makeMeasurement(5, zeta_vals{jj});
+    msmts{jj} = tracker.makeMeasurement(5, zeta_vals{jj}, msmt_model);
 end
 end
 
@@ -223,7 +133,7 @@ end
 function format_axes(ax, title_str)
 xlabel(ax, 'x [km]');
 ylabel(ax, 'y [km]');
-title(ax, title_str);
+% title(ax, title_str);
 legend(ax, 'Location', 'best');
 xlim(ax, [-0.5, 2.0]);
 ylim(ax, [-0.5, 3.0]);

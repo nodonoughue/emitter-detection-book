@@ -1,26 +1,40 @@
-function [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx] = ...
-    associateTracks(tracks, measurements, curr_time, motion_model, msmt_model, gate_probability, assoc_type)
-% associateTracks  Associate measurements with tracks (NN or GNN).
+function [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx, pda_states] = ...
+    associateTracks(tracks, measurements, curr_time, motion_model, msmt_model, ...
+                    gate_probability, assoc_type, detection_probability)
+% associateTracks  Associate measurements with tracks (NN, GNN, or PDA).
 %
 % [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx] = ...
-%     associateTracks(tracks, measurements, curr_time, motion_model, msmt_model, gate_probability, assoc_type)
+%     associateTracks(tracks, measurements, curr_time, motion_model, msmt_model, ...
+%                     gate_probability, assoc_type)
+%
+% [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx, pda_states] = ...
+%     associateTracks(..., detection_probability)
 %
 % INPUTS
-%   tracks          Cell array of Track structs
-%   measurements    Cell array of Measurement structs
-%   curr_time       Current scan timestamp [s] (used for coasting when measurements is empty)
-%   motion_model    Motion model struct from makeMotionModel
-%   msmt_model      Measurement model struct from makeMeasurementModel
-%   gate_probability Chi-square acceptance gate probability (e.g., 0.99)
-%   assoc_type      'nn'  – Nearest Neighbour (sequential, priority to first tracks)
-%                   'gnn' – Global Nearest Neighbour (Munkres/Hungarian, globally optimal)
-%                   Default: 'gnn'
+%   tracks               Cell array of Track structs
+%   measurements         Cell array of Measurement structs.  Each measurement's
+%                        .msmt_model field is used; if empty, the explicit
+%                        msmt_model argument is used as a fallback.
+%   curr_time            Current scan timestamp [s] (used when measurements is empty)
+%   motion_model         Motion model struct from makeMotionModel
+%   msmt_model           Measurement model struct (fallback when msmt.msmt_model is empty)
+%   gate_probability     Chi-square acceptance gate probability (e.g., 0.99)
+%   assoc_type           'nn'  – Nearest Neighbour
+%                        'gnn' – Global Nearest Neighbour (Munkres/Hungarian)
+%                        'pda' – Probabilistic Data Association
+%                        Default: 'gnn'
+%   detection_probability  Pd, probability the target generates a measurement.
+%                          Used only by PDA. Default: 1.0
 %
 % OUTPUTS
-%   assigned_track_idx  (K x 1) integer index into tracks for each assignment
-%   assigned_msmt_idx   (K x 1) integer index into measurements for each assignment
-%                       0 means the track received a coast (missed detection)
-%   unassigned_msmt_idx (M-K x 1) indices of measurements not assigned to any track
+%   assigned_track_idx  (K x 1) index into tracks for each assignment
+%   assigned_msmt_idx   (K x 1) index into measurements (0 = coast / PDA-handled)
+%   unassigned_msmt_idx Indices of measurements consumed by no track (available
+%                       to the initiator)
+%   pda_states          (NN/GNN) empty cell {}.
+%                       (PDA)    Cell array, one fused State struct per track.
+%                                Callers should apply these directly rather than
+%                                calling ekfUpdate.
 %
 % Nicholas O'Donoughue
 % June 2025
@@ -28,53 +42,91 @@ function [assigned_track_idx, assigned_msmt_idx, unassigned_msmt_idx] = ...
 if nargin < 7 || isempty(assoc_type)
     assoc_type = 'gnn';
 end
+if nargin < 8 || isempty(detection_probability)
+    detection_probability = 1.0;
+end
+
+pda_states = {};   % empty for NN / GNN
 
 num_tracks = numel(tracks);
 num_msmts  = numel(measurements);
 
-% Pre-compute predicted states and gate sizes
-num_msmt_dims = numel(measurements{1}.zeta);
-gate_size = chi2inv(gate_probability, num_msmt_dims);
+% If no measurements, all tracks coast
+if num_msmts == 0
+    assigned_track_idx  = (1:num_tracks)';
+    assigned_msmt_idx   = zeros(num_tracks, 1);
+    unassigned_msmt_idx = zeros(0, 1);
+    return;
+end
 
-% Build distance matrix (num_tracks x num_msmts)
-dist_mat = inf(num_tracks, num_msmts);
-for ii = 1:num_tracks
-    s = tracker.currState(tracks{ii});
-    s_pred = tracker.predictState(s, curr_time, motion_model);
-    for jj = 1:num_msmts
-        d = tracker.computeDistance(s_pred, measurements{jj}.zeta, msmt_model);
-        if d * num_msmt_dims <= gate_size  % un-normalise to compare with chi2 gate
-            dist_mat(ii, jj) = d;
-        end
+% Attach msmt_model fallback to any measurement that lacks one
+for jj = 1:num_msmts
+    if isempty(measurements{jj}.msmt_model)
+        measurements{jj}.msmt_model = msmt_model;
     end
 end
+
+% Chi-square gate threshold (degrees of freedom = measurement dimension)
+num_msmt_dims = numel(measurements{1}.zeta);
+gate_size     = chi2inv(gate_probability, num_msmt_dims);
 
 % Solve the assignment problem
 switch lower(assoc_type)
     case 'nn'
+        dist_mat = build_dist_mat(tracks, measurements, motion_model, gate_size, ...
+                                  num_tracks, num_msmts);
         [assigned_track_idx, assigned_msmt_idx] = nn_assign(dist_mat);
+        unassigned_msmt_idx = setdiff(1:num_msmts, assigned_msmt_idx(assigned_msmt_idx > 0))';
+
     case 'gnn'
-        [assigned_track_idx, assigned_msmt_idx] = gnn_assign(dist_mat);
+        dist_mat = build_dist_mat(tracks, measurements, motion_model, gate_size, ...
+                                  num_tracks, num_msmts);
+        [assigned_track_idx, assigned_msmt_idx] = gnn_assign(dist_mat, gate_size);
+        unassigned_msmt_idx = setdiff(1:num_msmts, assigned_msmt_idx(assigned_msmt_idx > 0))';
+
+    case 'pda'
+        [pda_states, unassigned_msmt_idx] = pda_assign( ...
+            tracks, measurements, curr_time, motion_model, ...
+            gate_size, gate_probability, detection_probability);
+        assigned_track_idx  = (1:num_tracks)';
+        % msmt_idx = 0 for all tracks: the caller must use pda_states instead
+        % of running a standard ekfUpdate.
+        assigned_msmt_idx   = zeros(num_tracks, 1);
+
     otherwise
         error('tracker:associateTracks:unknownType', ...
-              'Unknown association type "%s"; use ''nn'' or ''gnn''.', assoc_type);
+              'Unknown association type "%s"; use ''nn'', ''gnn'', or ''pda''.', assoc_type);
 end
-
-% Tracks with no finite assignment get coast (index 0)
-all_assigned_msmt = assigned_msmt_idx(assigned_msmt_idx > 0);
-unassigned_msmt_idx = setdiff(1:num_msmts, all_assigned_msmt)';
 
 end
 
 
-%% ---- Local helpers -------------------------------------------------------
+%% ---- Shared distance-matrix builder (NN and GNN) -------------------------
+
+function dist_mat = build_dist_mat(tracks, measurements, motion_model, gate_size, ...
+                                   num_tracks, num_msmts)
+% Build (num_tracks x num_msmts) distance matrix.
+% Entries outside the chi-square gate are set to Inf.
+dist_mat = inf(num_tracks, num_msmts);
+for ii = 1:num_tracks
+    for jj = 1:num_msmts
+        h = tracker.makeHypothesis(tracks{ii}, measurements{jj}, motion_model);
+        if h.distance <= gate_size
+            dist_mat(ii, jj) = h.distance;
+        end
+    end
+end
+end
+
+
+%% ---- NN assignment --------------------------------------------------------
 
 function [trk_idx, msmt_idx] = nn_assign(dist_mat)
 % Sequential nearest-neighbour assignment.
 num_tracks = size(dist_mat, 1);
 trk_idx  = (1:num_tracks)';
-msmt_idx = zeros(num_tracks, 1);  % 0 = no assignment (coast)
-used = false(1, size(dist_mat, 2));
+msmt_idx = zeros(num_tracks, 1);
+used     = false(1, size(dist_mat, 2));
 
 for ii = 1:num_tracks
     row = dist_mat(ii, :);
@@ -88,50 +140,159 @@ end
 end
 
 
-function [trk_idx, msmt_idx] = gnn_assign(dist_mat)
+%% ---- GNN assignment -------------------------------------------------------
+
+function [trk_idx, msmt_idx] = gnn_assign(dist_mat, null_cost)
 % Global nearest-neighbour assignment via the Hungarian (Munkres) algorithm.
-% Augment cost matrix so unassigned tracks do not block each other.
+% Augment cost matrix with one null column per track at cost null_cost
+% (= chi2inv gate threshold), so a track prefers a null column over any
+% out-of-gate measurement (cost = big >> null_cost).
 num_tracks = size(dist_mat, 1);
 num_msmts  = size(dist_mat, 2);
 
-% Replace inf with a large cost; add dummy columns for missed detections
-big = 1e9;
+% Replace inf (out-of-gate) with a cost much larger than null_cost.
+big  = null_cost * 1e6;
 cost = dist_mat;
 cost(~isfinite(cost)) = big;
 
-% Pad with dummy measurement columns so every track can be assigned
-cost_aug = [cost, big * ones(num_tracks, num_tracks)];
+% Pad with null columns (one per track) at the gate threshold cost.
+cost_aug = [cost, null_cost * ones(num_tracks, num_tracks)];
 
-% Run Hungarian algorithm (MATLAB built-in assignmentoptimal or munkres)
-% Use MATLAB's built-in assignDetectionsToTracks if the Automated Driving
-% Toolbox is available; otherwise fall back to a simple implementation.
 if exist('assignDetectionsToTracks', 'file') == 2
-    % Automated Driving Toolbox available
-    [assignments, unassigned_trk, ~] = assignDetectionsToTracks(cost_aug, big - 1);
+    % Automated Driving Toolbox: non-assignment cost threshold = null_cost.
+    [assignments, ~, ~] = assignDetectionsToTracks(cost, null_cost);
     trk_idx  = (1:num_tracks)';
     msmt_idx = zeros(num_tracks, 1);
     for k = 1:size(assignments, 1)
-        t = assignments(k, 1);
-        m = assignments(k, 2);
-        if m <= num_msmts
-            msmt_idx(t) = m;
-        end
-        % dummy column → coast (msmt_idx stays 0)
+        msmt_idx(assignments(k, 1)) = assignments(k, 2);
     end
 else
-    % Fallback: linear_assignment (munkres) local implementation
+    % Fallback: munkres with augmented null columns.
     [row_assign, ~] = munkres(cost_aug);
     trk_idx  = (1:num_tracks)';
     msmt_idx = zeros(num_tracks, 1);
     for ii = 1:num_tracks
         jj = row_assign(ii);
-        if jj <= num_msmts && cost_aug(ii, jj) < big - 1
-            msmt_idx(ii) = jj;
+        if jj <= num_msmts
+            msmt_idx(ii) = jj;   % real in-gate measurement
         end
+        % jj > num_msmts → null column → coast (msmt_idx stays 0)
     end
 end
 end
 
+
+%% ---- PDA assignment -------------------------------------------------------
+
+function [pda_states, ungated_msmt_idx] = pda_assign( ...
+        tracks, measurements, curr_time, motion_model, ...
+        gate_size, gate_probability, detection_probability)
+% Probabilistic Data Association update.
+%
+% For each track, all gated measurements contribute to the EKF update via
+% normalised Gaussian-likelihood weights.  A null hypothesis (no detection)
+% is always included with weight p_miss = 1 - Pd * Pg.  The returned state
+% is the Gaussian mixture mean with mixture covariance (including the
+% spread-of-means term).
+%
+% This is equivalent to Python's PDAAssociator.associate() followed by
+% GMMHypothesis.update_track() on every track.
+%
+% INPUTS
+%   tracks             Cell array of Track structs
+%   measurements       Cell array of Measurement structs (all same scan time)
+%   curr_time          Timestamp to predict to [s]
+%   motion_model       Motion model struct
+%   gate_size          Chi-square gate threshold (chi2inv(gate_probability, n_msmt_dim))
+%   gate_probability   Pg — used to compute p_miss = 1 - Pd * Pg
+%   detection_probability  Pd (default 1.0)
+%
+% OUTPUTS
+%   pda_states        Cell array, one fused State struct per track
+%   ungated_msmt_idx  Row vector of measurement indices not gated by any track
+
+num_tracks    = numel(tracks);
+num_msmts     = numel(measurements);
+n_msmt_dim    = numel(measurements{1}.zeta);
+p_miss        = 1 - detection_probability * gate_probability;
+
+pda_states   = cell(num_tracks, 1);
+gated_by_any = false(1, num_msmts);
+
+for ii = 1:num_tracks
+    % Measurement model (shared across all measurements in the scan)
+    mm = measurements{1}.msmt_model;
+
+    % Predict track to current scan time
+    s      = tracker.currState(tracks{ii});
+    s_pred = tracker.predictState(s, curr_time, motion_model);
+
+    % Linearize at the predicted state — shared for all measurements
+    z_hat = mm.z_fun(s_pred);
+    H     = mm.h_fun(s_pred);
+    if ndims(H) == 3
+        H = H(:, :, 1)';    % squeeze (n_st x n_m x 1) → (n_m x n_st)
+    end
+    P = s_pred.covar;
+    R = mm.R;
+    S = H * P * H' + R;
+    K = P * H' / S;
+    n_st = numel(s_pred.state);
+
+    % Gate measurements and collect Gaussian likelihoods
+    gated_idx  = [];
+    gated_like = [];
+    for jj = 1:num_msmts
+        nu = measurements{jj}.zeta(:) - z_hat(:);
+        d2 = nu' / S * nu;
+        if d2 <= gate_size
+            % N(nu ; 0, S) evaluated analytically (no Statistics Toolbox needed)
+            L_j = exp(-0.5 * d2) / sqrt((2*pi)^n_msmt_dim * det(S));
+            gated_idx(end+1)  = jj;   %#ok<AGROW>
+            gated_like(end+1) = L_j;  %#ok<AGROW>
+            gated_by_any(jj) = true;
+        end
+    end
+
+    % Normalised weights: [L_1 ... L_M  p_miss] / total
+    all_weights = [gated_like, p_miss];
+    all_weights = all_weights / sum(all_weights);
+
+    % Per-hypothesis state updates
+    n_gated = numel(gated_idx);
+    n_hyp   = n_gated + 1;
+    all_states = zeros(n_st, n_hyp);
+    all_covars = zeros(n_st, n_st, n_hyp);
+
+    I_nst = eye(n_st);
+    for kk = 1:n_gated
+        nu_j = measurements{gated_idx(kk)}.zeta(:) - z_hat(:);
+        all_states(:, kk)    = s_pred.state + K * nu_j;
+        all_covars(:, :, kk) = (I_nst - K * H) * P;
+    end
+    % Null hypothesis: coast (no measurement update)
+    all_states(:, end)    = s_pred.state;
+    all_covars(:, :, end) = P;
+
+    % Fused mean
+    x_fused = all_states * all_weights(:);
+
+    % Fused covariance: weighted sum of (per-hypothesis covar + spread-of-means)
+    P_fused = zeros(n_st);
+    for kk = 1:n_hyp
+        delta   = all_states(:, kk) - x_fused;
+        P_fused = P_fused + all_weights(kk) * (all_covars(:, :, kk) + delta * delta');
+    end
+
+    pda_states{ii} = tracker.makeState(s_pred.state_space, s_pred.time, x_fused, P_fused);
+end
+
+% Measurements not gated by any track are available to the initiator
+ungated_msmt_idx = find(~gated_by_any)';
+end
+
+
+%% ---- Munkres (Hungarian) algorithm ---------------------------------------
 
 function [row_ind, col_ind] = munkres(costMatrix)
 % Munkres (Hungarian) algorithm.
@@ -177,21 +338,11 @@ while true
 
     %% Steps 3 / 5 / 6 inner loop (covers persist across Step 6)
     while true
-        %% Step 3: find an uncovered, unstarred zero
-        found_zero = false;
-        z_row = 0;  z_col = 0;
-        for i = 1:n
-            if covered_rows(i), continue; end
-            for j = 1:m
-                if covered_cols(j), continue; end
-                if C(i,j) == 0 && ~star(i,j)
-                    z_row = i;  z_col = j;
-                    found_zero = true;
-                    break;
-                end
-            end
-            if found_zero, break; end
-        end
+        %% Step 3: find an uncovered, unstarred zero (vectorised)
+        zero_mask = (C == 0) & ~star & ~covered_rows & ~covered_cols;
+        [z_row, z_col] = find(zero_mask, 1, 'first');
+        found_zero = ~isempty(z_row);
+        if ~found_zero, z_row = 0; z_col = 0; end
 
         if ~found_zero
             %% Step 6: cost adjustment — stay in inner loop
@@ -213,9 +364,6 @@ while true
         end
 
         %% Step 5: augmenting path from (z_row, z_col)
-        % Collect the full path before flipping any stars; modifying stars
-        % during traversal would cause find(star(:,col)) to re-discover
-        % nodes just starred, looping forever.
         curr_col = z_col;
         path_r   = z_row;
         path_c   = z_col;
@@ -223,11 +371,10 @@ while true
             si = find(star(:, curr_col), 1);
             if isempty(si), break; end
             pj2      = find(prime(si, :), 1);
-            path_r(end+1) = si;   path_c(end+1) = curr_col;  % starred zero
-            path_r(end+1) = si;   path_c(end+1) = pj2;       % primed zero
+            path_r(end+1) = si;   path_c(end+1) = curr_col;  %#ok<AGROW>
+            path_r(end+1) = si;   path_c(end+1) = pj2;       %#ok<AGROW>
             curr_col = pj2;
         end
-        % Flip: star primed zeros (odd indices), unstar starred zeros (even)
         for k = 1:2:numel(path_r)
             star(path_r(k), path_c(k)) = true;
         end

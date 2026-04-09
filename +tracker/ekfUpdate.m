@@ -1,19 +1,130 @@
-function [xk, Pk] = ekfUpdate(x_prev, P_prev, zeta, C, z, H)
-% 
+function [out1, out2] = ekfUpdate(arg1, arg2, arg3, arg4, arg5, arg6)
+% ekfUpdate  One-step Extended Kalman Filter measurement update.
+%
+% Shorthand form — Measurement struct carries the model (C, z_fun, h_fun inferred):
+%   est_state          = ekfUpdate(s_pred, msmt)
+%   [x_est, P_est]     = ekfUpdate(x_pred, P_pred, msmt)
+%
+% State-struct form — update a predicted State struct:
+%   est_state = ekfUpdate(s_pred, zeta_or_msmt, C, z_fun, h_fun)
+%
+% Explicit form — operate directly on a state vector and covariance:
+%   [x_est, P_est] = ekfUpdate(x_pred, P_pred, zeta_or_msmt, C, z_fun, h_fun)
+%
+% INPUTS (shorthand forms)
+%   msmt          Measurement struct from makeMeasurement whose .msmt_model
+%                 field is non-empty.  C, z_fun/h_fun (struct form) or
+%                 z_fun_raw/h_fun_raw (explicit form) are extracted automatically.
+%
+% INPUTS (state-struct form)
+%   s_pred        Predicted State struct from predictState / ekfPredict
+%   zeta_or_msmt  Measurement vector (num_msmt x 1), or a Measurement struct
+%                 from makeMeasurement (zeta is extracted from .zeta)
+%   C             Measurement noise covariance (num_msmt x num_msmt)
+%   z_fun         Measurement function handle: z_hat = z_fun(s_pred)
+%                 where s_pred is the full State struct
+%   h_fun         Jacobian function handle: H = h_fun(s_pred), shape (num_msmt x n)
+%
+% INPUTS (explicit form)
+%   x_pred        Predicted state vector (n x 1)
+%   P_pred        Predicted state error covariance (n x n)
+%   zeta_or_msmt  Measurement vector (num_msmt x 1), or a Measurement struct
+%   C             Measurement noise covariance (num_msmt x num_msmt)
+%   z_fun         Measurement function handle: z_hat = z_fun(x_pred)
+%                 where x_pred is the raw state vector (n x 1)
+%   h_fun         Jacobian function handle: H = h_fun(x_pred), shape (num_msmt x n)
+%
+% OUTPUTS (state-struct / shorthand-struct forms)
+%   est_state   Updated State struct (same state_space and time as s_pred)
+%
+% OUTPUTS (explicit / shorthand-explicit forms)
+%   x_est       Updated state vector (n x 1)
+%   P_est       Updated state error covariance (n x n)
+%
+% Note: in the state-struct form z_fun and h_fun receive the full State struct;
+% in the explicit form they receive the raw state vector (n x 1).  Use
+% msmt_model.z_fun / msmt_model.h_fun (State-struct-aware) with the struct
+% form, and msmt_model.z_fun_raw / msmt_model.h_fun_raw with the explicit form.
+%
+% Nicholas O'Donoughue
+% June 2025
 
-%% Evaluate the Measurement and Jacobian at x_prev
-this_z = z(x_prev);
-this_H = H(x_prev);
+if isstruct(arg1)
+    % State-struct branch: first arg is a State struct
+    s_pred     = arg1;
+    P_pred     = s_pred.covar;
+    use_struct = true;
 
-%% Compute the Innovation (or Residual)
-yk = zeta - this_z;
+    if nargin == 2 && isstruct(arg2) && isfield(arg2, 'msmt_model')
+        % Shorthand: (s_pred, msmt) — infer C, z_fun, h_fun from msmt.msmt_model
+        zeta  = arg2.zeta;
+        C     = arg2.msmt_model.R;
+        z_fun = arg2.msmt_model.z_fun;
+        h_fun = arg2.msmt_model.h_fun;
+    else
+        % Full state-struct form: (s_pred, zeta_or_msmt, C, z_fun, h_fun)
+        zeta_or_msmt = arg2;
+        C     = arg3;
+        z_fun = arg4;
+        h_fun = arg5;
+        if isstruct(zeta_or_msmt)
+            zeta = zeta_or_msmt.zeta;
+        else
+            zeta = zeta_or_msmt(:);
+        end
+    end
+else
+    % Explicit branch: first arg is a raw state vector
+    x_pred     = arg1;
+    P_pred     = arg2;
+    use_struct = false;
 
-%% Compute the Innovation Covariance
-Sk = this_H * P_prev * this_H' + C;
+    if nargin == 3 && isstruct(arg3) && isfield(arg3, 'msmt_model')
+        % Shorthand: (x_pred, P_pred, msmt) — infer C, z_fun, h_fun from msmt.msmt_model
+        zeta  = arg3.zeta;
+        C     = arg3.msmt_model.R;
+        z_fun = arg3.msmt_model.z_fun_raw;
+        h_fun = arg3.msmt_model.h_fun_raw;
+    else
+        % Full explicit form: (x_pred, P_pred, zeta_or_msmt, C, z_fun, h_fun)
+        zeta_or_msmt = arg3;
+        C     = arg4;
+        z_fun = arg5;
+        h_fun = arg6;
+        if isstruct(zeta_or_msmt)
+            zeta = zeta_or_msmt.zeta;
+        else
+            zeta = zeta_or_msmt(:);
+        end
+    end
+end
 
-%% Compute the Kalman Gain
-Kk = P_prev*this_H'/Sk;
+% EKF update — linearise at the predicted state
+if use_struct
+    z_hat  = z_fun(s_pred);
+    H      = h_fun(s_pred);
+    x_pred = s_pred.state;
+else
+    z_hat = z_fun(x_pred);
+    H     = h_fun(x_pred);
+end
 
-%% Update the Estimate
-xk = x_prev + Kk*yk;
-Pk = (eye(size(P_prev))-Kk*this_H)*P_prev;
+% h_fun may return a 3-D array (num_states x num_msmt x 1) for single-source
+% measurement models; squeeze and transpose to (num_msmt x num_states).
+if ndims(H) == 3
+    H = H(:, :, 1)';
+end
+
+y     = zeta(:) - z_hat(:);
+S     = H * P_pred * H' + C;
+K     = P_pred * H' / S;
+x_est = x_pred + K * y;
+P_est = (eye(size(P_pred)) - K * H) * P_pred;
+
+if use_struct
+    out1 = tracker.makeState(s_pred.state_space, s_pred.time, x_est, P_est);
+    out2 = [];
+else
+    out1 = x_est;
+    out2 = P_est;
+end

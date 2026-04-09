@@ -34,7 +34,7 @@ for kk = 1:numel(trk_idx)
     s      = tracker.currState(tracks{ti});
     s_pred = tracker.predictState(s, t_msmt, mm);
     if mi > 0
-        s_upd = tracker.ekfUpdateState(s_pred, msmts{mi}.zeta, msmt_model);
+        s_upd = tracker.ekfUpdate(s_pred, msmts{mi});
         tracks{ti} = tracker.appendTrack(tracks{ti}, s_upd, false);
     else
         tracks{ti} = tracker.appendTrack(tracks{ti}, s_pred, true);
@@ -110,7 +110,7 @@ zeta_vals = {[1.811; 1.652], ...
 
 msmts = cell(4, 1);
 for jj = 1:4
-    msmts{jj} = tracker.makeMeasurement(5, zeta_vals{jj});
+    msmts{jj} = tracker.makeMeasurement(5, zeta_vals{jj}, msmt_model);
 end
 end
 
@@ -129,7 +129,7 @@ end
 function format_axes(ax, title_str)
 xlabel(ax, 'x [km]');
 ylabel(ax, 'y [km]');
-title(ax, title_str);
+% title(ax, title_str);
 legend(ax, 'Location', 'best');
 xlim(ax, [-0.5, 2.0]);
 ylim(ax, [-0.5, 3.0]);
