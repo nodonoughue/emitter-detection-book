@@ -32,7 +32,7 @@ if motion_model.is_linear
     s_pred = tracker.kfPredict(s, new_time, Q, F, u);
 else
     % Nonlinear EKF predict (e.g. Constant Turn)
-    f = @(x) motion_model.ct_fun(x, dt);
+    f = @(x) motion_model.f_fun_ekf(x, dt);
     g = @(x) motion_model.jacobian_fun(x, dt);
     s_pred = tracker.ekfPredict(s, new_time, Q, f, g);
 end

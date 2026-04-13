@@ -29,6 +29,7 @@ function figs = book2_ex9_4()
 % June 2025
 
 fprintf('Example 9.4...\n');
+verbose_steps = 10;
 
 %% Scenario parameters -------------------------------------------------------
 t_inc    = 10;                 % s between track updates
@@ -62,7 +63,12 @@ num_msmt  = size(R, 1);
 % Least-squares solver for the TwoPointInitiator
 % Restrict the LS solver to 25 steps; we don't need exact positions, just
 % coarse ones for initializing tracks.
-ls_fun   = @(zeta, x0) tdoa.lsSoln(x_tdoa, zeta, C_roa, x0, [], 25, [], [], ref_idx);
+max_steps = 25;
+min_alt = 1000; % it's flying
+max_alt = 40000; % it's not in space
+bnd = utils.constraints.boundedAlt(min_alt, max_alt,'flat');
+ls_fun   = @(zeta, x0) tdoa.lsSolnBounded(x_tdoa, zeta, C_roa, x0, bnd, ...
+    [], max_steps, [], [], ref_idx);
 % CRLB function: C_roa is already in range units (m^2), so variance_is_toa=false
 crlb_fun = @(x) tdoa.computeCRLB(x_tdoa, x, C_roa, ref_idx, false);
 
@@ -79,15 +85,22 @@ msmt_ca = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_ca.st
 target_max_vel   = 300;   % m/s  — conservative upper bound for subsonic aircraft
 target_max_accel = 10;    % m/s² — generous bound for a maneuvering aircraft
 
+% gate_probability: Python uses 0.95 for CV and 0.999 for CA.
+% At 100+ km range the TDOA Jacobian magnitude is ~0.07, so a 2 km EKF
+% position error maps to ~140 m TDOA prediction mismatch → d²≈30.
+% CA needs a wide gate to avoid coasting through those steps; CV is tighter
+% because its process noise (q_a=3) keeps P from growing as large.
 ts_cv = tracker.makeTrackerState(mm_cv, msmt_cv, ...
-    'gate_probability', 0.9, 'num_hits', 3, 'num_chances', 5, ...
+    'gate_probability', 0.95, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
-    'target_max_velocity', target_max_vel);
+    'target_max_velocity', target_max_vel,...
+    'verbose',true);
 ts_ca = tracker.makeTrackerState(mm_ca, msmt_ca, ...
-    'gate_probability', 0.9999, 'num_hits', 3, 'num_chances', 5, ...
+    'gate_probability', 0.999, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
     'target_max_velocity', target_max_vel, ...
-    'target_max_acceleration', target_max_accel);
+    'target_max_acceleration', target_max_accel,...
+    'verbose',true);
 
 %% Figure 1 setup: 2x2 panel -------------------------------------------------
 scale  = 1e3;                  % plot in km
@@ -136,13 +149,15 @@ for idx = 1:num_time
     t = t_vec(idx);
 
     % Truth measurements
-    msmts = cell(1, num_tgts + num_fa);
+    msmts_ca = cell(1, num_tgts + num_fa);
+    msmts_cv = cell(1, num_tgts + num_fa);
     for ti = 1:num_tgts
         zeta = tdoa.measurement(x_tdoa, x_tgts{ti}(:, idx), ref_idx) + L * randn(num_msmt, 1);
         truth_fill = truth_fill + 1;
         scatter_truth_t(truth_fill)      = t;
         scatter_truth_z(:, truth_fill)   = zeta;
-        msmts{ti} = tracker.makeMeasurement(t, zeta, msmt_cv);
+        msmts_ca{ti} = tracker.makeMeasurement(t, zeta, msmt_ca);
+        msmts_cv{ti} = tracker.makeMeasurement(t, zeta, msmt_cv);
     end
 
     % False alarm measurements (uniform random in each RDOA channel)
@@ -152,23 +167,36 @@ for idx = 1:num_time
     scatter_fa_z(:, fa_cols) = fa_zeta;
     fa_fill = fa_fill + num_fa;
     for fa_i = 1:num_fa
-        msmts{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i));
+        msmts_ca{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i), msmt_ca);
+        msmts_cv{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i), msmt_cv);
     end
 
     % Shuffle — same permuted list handed to both trackers
-    msmts = msmts(randperm(numel(msmts)));
+    msmts_ca = msmts_ca(randperm(numel(msmts_ca)));
+    msmts_cv = msmts_cv(randperm(numel(msmts_cv)));
 
-    % Update both trackers
-    ts_cv = tracker.runTrackerStep(ts_cv, msmts, t);
-    ts_ca = tracker.runTrackerStep(ts_ca, msmts, t);
+    % Update both trackers (each with its own measurement set / model)
+    ts_cv = tracker.runTrackerStep(ts_cv, msmts_cv, t);
+    ts_ca = tracker.runTrackerStep(ts_ca, msmts_ca, t);
 
-    % fprintf(' t=%ds | CV firm=%d tent=%d | CA firm=%d tent=%d\n', ...
-    %     round(t), numel(ts_cv.firm_tracks), numel(ts_cv.tentative_tracks), ...
-    %     numel(ts_ca.firm_tracks), numel(ts_ca.tentative_tracks));
+    fprintf(' t=%ds | CV firm=%d tent=%d | CA firm=%d tent=%d\n', ...
+        round(t), numel(ts_cv.firm_tracks), numel(ts_cv.tentative_tracks), ...
+        numel(ts_ca.firm_tracks), numel(ts_ca.tentative_tracks));
 end
 
 fprintf('done.\n');
-
+% After the main loop, before collecting all_cv / all_ca
+fprintf('\n--- Final CV firm track positions [km] ---\n');
+for ii = 1:numel(ts_cv.firm_tracks)
+    s = tracker.currState(ts_cv.firm_tracks{ii});
+    p = s.state(mm_cv.state_space.pos_idx);
+    fprintf('  Track %d: [%.1f, %.1f, %.1f] km\n', ii, p(1)/1e3, p(2)/1e3, p(3)/1e3);
+end
+fprintf('Truth positions at t=900s [km]:\n');
+for ti = 1:num_tgts
+    p = x_tgts{ti}(:,end);
+    fprintf('  Target %d: [%.1f, %.1f, %.1f] km\n', ti, p(1)/1e3, p(2)/1e3, p(3)/1e3);
+end
 % Collect all confirmed tracks (ever-promoted tracks: deleted after confirmation + still active).
 % failed_tracks holds tentative tracks that never reached the promotion threshold.
 all_cv = [ts_cv.deleted_tracks, ts_cv.firm_tracks];

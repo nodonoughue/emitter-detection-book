@@ -50,8 +50,25 @@ switch lower(model_type)
                        'is_linear',      false, ...
                        'q_fun',          q_fun, ...
                        'f_fun',          [], ...
-                       'f_fun_ekf',         f_ct, ...
+                       'f_fun_ekf',      f_ct, ...
                        'jacobian_fun',   g_ct);
+
+    case {'ctra', 'constant_turn_rate_acceleration', 'constant turn rate acceleration'}
+        % CTRA: nonlinear model with explicit acceleration states
+        if ~isempty(varargin)
+            process_covar_omega = varargin{1};
+        else
+            process_covar_omega = 1.0;
+        end
+
+        [f_ctra, g_ctra, q_fun, ss] = make_ctra_model(num_dims, process_covar, process_covar_omega);
+
+        model = struct('state_space',    ss, ...
+                       'is_linear',      false, ...
+                       'q_fun',          q_fun, ...
+                       'f_fun',          [], ...
+                       'f_fun_ekf',      f_ctra, ...
+                       'jacobian_fun',   g_ctra);
 
     otherwise
         % CV, CA, CJ, Ballistic: linear (or gravity-bias linear) model
@@ -294,3 +311,155 @@ G(6,6) = 1;
 G(7,7) = 1;
 
 end % ct_jacobian
+
+
+%% -------------------------------------------------------------------------
+function [f_fun, g_fun, q_fun, state_space] = make_ctra_model(num_dims, process_covar, process_covar_omega)
+% make_ctra_model  Build function handles for the Constant-Turn-Rate-and-
+%                  Acceleration (CTRA) model.
+%
+% State layout:
+%   2D: [px, py, vx, vy, ax, ay, omega]              — 7 states
+%   3D: [px, py, pz, vx, vy, vz, ax, ay, az, omega]  — 10 states
+%
+% The turn rate omega (rad/s) and world-frame acceleration (ax, ay[, az])
+% are tracked states.  Velocity rotates in the x-y plane at rate omega;
+% the acceleration vector acts as an additive forcing term on position and
+% velocity.  In 3D the z-axis propagates as constant-acceleration (CA).
+
+if nargin < 1 || isempty(num_dims)
+    num_dims = 3;
+end
+if num_dims ~= 2 && num_dims ~= 3
+    error('make_ctra_model: num_dims must be 2 or 3.');
+end
+if nargin < 2 || isempty(process_covar)
+    process_covar = eye(num_dims);
+elseif isscalar(process_covar)
+    process_covar = process_covar * eye(num_dims);
+end
+if nargin < 3 || isempty(process_covar_omega)
+    process_covar_omega = 1.0;
+end
+
+num_states = 3*num_dims + 1;
+state_space = struct('num_dims',   num_dims, ...
+                     'num_states', num_states, ...
+                     'has_pos',    true, ...
+                     'has_vel',    true, ...
+                     'is_linear',  false, ...
+                     'pos_idx',    1:num_dims, ...
+                     'vel_idx',    num_dims   + (1:num_dims), ...
+                     'accel_idx',  2*num_dims + (1:num_dims), ...
+                     'omega_idx',  num_states);
+
+f_fun = @(x, dt) ctra_transition(x, dt, num_dims);
+g_fun = @(x, dt) ctra_jacobian(x, dt, num_dims);
+
+q_kin = @(t) [.25*t^4*process_covar, .5*t^3*process_covar, .5*t^2*process_covar;
+               .5*t^3*process_covar,    t^2*process_covar,      t*process_covar;
+               .5*t^2*process_covar,      t*process_covar,        process_covar];
+q_fun = @(t) blkdiag(q_kin(t), process_covar_omega * t);
+
+end % make_ctra_model
+
+
+%% -------------------------------------------------------------------------
+function x_next = ctra_transition(x, dt, n)
+% Exact discrete-time CTRA transition.
+% State: [pos(n) | vel(n) | accel(n) | omega]
+
+omega = x(end);
+odt   = omega * dt;
+
+if abs(odt) < 1e-6
+    sow = dt;
+    com = 0.5 * odt * dt;   % (1-cos(odt))/omega ≈ omega*dt²/2
+    c   = 1 - 0.5*odt^2;
+    s   = odt;
+else
+    sow = sin(odt) / omega;
+    com = (1 - cos(odt)) / omega;
+    c   = cos(odt);
+    s   = sin(odt);
+end
+
+vx = x(n+1);   vy = x(n+2);
+ax = x(2*n+1); ay = x(2*n+2);
+
+x_next = x;   % accel and omega are unchanged
+
+x_next(1) = x(1) + sow*vx - com*vy + 0.5*dt^2*ax;   % px'
+x_next(2) = x(2) + com*vx + sow*vy + 0.5*dt^2*ay;   % py'
+x_next(n+1) =  c*vx - s*vy + dt*ax;                  % vx'
+x_next(n+2) =  s*vx + c*vy + dt*ay;                  % vy'
+
+if n == 3
+    vz = x(n+3);
+    az = x(2*n+3);
+    x_next(3)   = x(3) + dt*vz + 0.5*dt^2*az;        % pz'
+    x_next(n+3) = vz + dt*az;                         % vz'
+end
+
+end % ctra_transition
+
+
+%% -------------------------------------------------------------------------
+function G = ctra_jacobian(x, dt, n)
+% Analytical Jacobian of ctra_transition w.r.t. the state vector.
+
+ns    = 3*n + 1;
+vx    = x(n+1);  vy = x(n+2);
+omega = x(end);
+odt   = omega * dt;
+
+if abs(odt) < 1e-6
+    sow      = dt;
+    com      = 0.0;
+    c        = 1;
+    s        = 0;
+    d_sow_do = 0;           % lim_{omega->0} d(sin(odt)/omega)/d(omega) = 0
+    d_com_do = 0.5 * dt^2;  % lim_{omega->0} d((1-cos(odt))/omega)/d(omega) = dt²/2
+else
+    sow      = sin(odt) / omega;
+    com      = (1 - cos(odt)) / omega;
+    c        = cos(odt);
+    s        = sin(odt);
+    d_sow_do = dt*c/omega - s/omega^2;
+    d_com_do = dt*s/omega - (1-c)/omega^2;
+end
+
+G = eye(ns);
+
+% px row
+G(1, n+1)   = sow;
+G(1, n+2)   = -com;
+G(1, 2*n+1) = 0.5*dt^2;
+G(1, end)   = d_sow_do*vx - d_com_do*vy;
+
+% py row
+G(2, n+1)   = com;
+G(2, n+2)   = sow;
+G(2, 2*n+2) = 0.5*dt^2;
+G(2, end)   = d_com_do*vx + d_sow_do*vy;
+
+% vx row
+G(n+1, n+1)   = c;
+G(n+1, n+2)   = -s;
+G(n+1, 2*n+1) = dt;
+G(n+1, end)   = -dt*s*vx - dt*c*vy;
+
+% vy row
+G(n+2, n+1)   = s;
+G(n+2, n+2)   = c;
+G(n+2, 2*n+2) = dt;
+G(n+2, end)   = dt*c*vx - dt*s*vy;
+
+% 3D: z sub-system (pz', vz' rows)
+if n == 3
+    G(3,   n+3)   = dt;
+    G(3,   2*n+3) = 0.5*dt^2;
+    G(n+3, 2*n+3) = dt;
+end
+
+end % ctra_jacobian

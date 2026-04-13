@@ -173,10 +173,10 @@ else
     msmt_idx = zeros(num_tracks, 1);
     for ii = 1:num_tracks
         jj = row_assign(ii);
-        if jj <= num_msmts
+        if jj <= num_msmts && isfinite(dist_mat(ii, jj))
             msmt_idx(ii) = jj;   % real in-gate measurement
         end
-        % jj > num_msmts → null column → coast (msmt_idx stays 0)
+        % jj > num_msmts, or originally Inf (out-of-gate) → coast
     end
 end
 end
@@ -266,9 +266,14 @@ for ii = 1:num_tracks
 
     I_nst = eye(n_st);
     for kk = 1:n_gated
-        nu_j = measurements{gated_idx(kk)}.zeta(:) - z_hat(:);
-        all_states(:, kk)    = s_pred.state + K * nu_j;
-        all_covars(:, :, kk) = (I_nst - K * H) * P;
+        nu_j       = measurements{gated_idx(kk)}.zeta(:) - z_hat(:);
+        all_states(:, kk) = s_pred.state + K * nu_j;
+        P_upd = (I_nst - K * H) * P;
+        % Enforce symmetry and PSD (matches Python CovarianceMatrix.ensure_positive_definite)
+        P_upd = (P_upd + P_upd') / 2;
+        [V_u, D_u] = eig(P_upd);
+        P_upd = V_u * diag(max(diag(D_u), 1e-10)) * V_u';
+        all_covars(:, :, kk) = (P_upd + P_upd') / 2;
     end
     % Null hypothesis: coast (no measurement update)
     all_states(:, end)    = s_pred.state;

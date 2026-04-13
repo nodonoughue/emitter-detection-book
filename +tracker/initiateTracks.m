@@ -1,7 +1,7 @@
 function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
     initiateTracks(measurements, curr_time, motion_model, msmt_model, ...
                    gate_probability, next_track_id, buffer_msmts, buffer_tracks, ...
-                   target_max_velocity, target_max_acceleration)
+                   target_max_velocity, target_max_acceleration, verbose)
 % initiateTracks  Two-Point Initiator: seed new tentative tracks from
 %                 measurements that were not associated with any existing track.
 %
@@ -11,7 +11,7 @@ function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
 %
 % Each unassociated measurement is first buffered as a tentative single-point
 % observation.  On subsequent calls, new measurements are paired with buffered
-% single-point tracks via NN association.  Successfully paired measurements yield
+% single-point tracks via GNN association.  Successfully paired measurements yield
 % a new tentative two-point Track (with a direct velocity estimate).  Unmatched
 % new measurements replace the buffer for the next scan.
 %
@@ -46,22 +46,47 @@ function [new_tracks, next_track_id, new_buffer, buffer_tracks] = ...
 
 if nargin < 9,  target_max_velocity     = []; end
 if nargin < 10, target_max_acceleration = []; end
+if nargin < 11, verbose                 = false; end
+verbose = false;  % verbose printing moved to runTrackerStep for divergence diagnostics
 
 new_tracks = {};
+
+% Track which old buffer entries should be removed after this scan.
+% Mirrors Python TwoPointInitiator semantics exactly:
+%   norm(s1.position) < 1.0  → zero-pos track STAYS as permanent FA sink
+%   norm(s1.position) >= 1.0 → consumed after one round regardless of
+%                               whether a match was found or accepted
+% Initialised here so it is valid in both branches of the if below.
+remove_buf_mask = false(numel(buffer_tracks), 1);
 
 % --- 1. Try to pair new measurements with buffered single-point tracks ------
 if ~isempty(buffer_tracks) && ~isempty(measurements)
     [trk_idx, msmt_idx, unmatched_msmt_idx] = ...
         tracker.associateTracks(buffer_tracks, measurements, curr_time, ...
-                                motion_model, msmt_model, gate_probability, 'nn');
+                                motion_model, msmt_model, gate_probability, 'gnn');
 
-    matched_new_msmt_mask = false(numel(measurements), 1);
+    if verbose
+        n_pairs = sum(msmt_idx > 0);
+        fprintf('  [INIT] t=%.1fs  %d buffer tracks, %d new msmts, %d GNN pairs\n', ...
+            curr_time, numel(buffer_tracks), numel(measurements), n_pairs);
+    end
 
     for kk = 1:numel(trk_idx)
         ti = trk_idx(kk);
         mi = msmt_idx(kk);
         if mi == 0
-            continue;  % no match for this buffered track
+            % No measurement matched this buffer track — remove it unconditionally.
+            % One-shot buffer semantics: no permanent FA sinks.  Matches Python
+            % TwoPointInitiator which always removes unmatched buffer entries so
+            % zero-position tracks cannot accumulate and drain future measurements.
+            remove_buf_mask(ti) = true;
+            if verbose
+                s1_tmp = tracker.currState(buffer_tracks{ti});
+                p1 = s1_tmp.state(s1_tmp.state_space.pos_idx);
+                fprintf('    buf[%d] -> no match  buf_pos=[%.1f, %.1f, %.1f] km\n', ...
+                    ti, p1(1)/1e3, p1(2)/1e3, p1(3)/1e3);
+            end
+            continue;
         end
 
         % Build a two-point State with velocity estimate
@@ -70,27 +95,81 @@ if ~isempty(buffer_tracks) && ~isempty(measurements)
         dt = m2.time - s1.time;
 
         if dt <= 0 || isempty(msmt_model.least_square_fun)
+            if verbose
+                fprintf('    buf[%d] -> msmt[%d]  REJECT dt=%.1f\n', ti, mi, dt);
+            end
             continue;
         end
 
-        % Use the position already stored in the buffer track.  Buffer tracks
-        % are now initialised via LS (with a try-catch + 500 km sanity check),
-        % so s1.state(pos_idx) is the best available first-point estimate.
-        % Re-running LS from zeros here can diverge (targets are 50-125 km
-        % from the origin; the divergence detector fires before convergence),
-        % producing vel_est = x_pos2/dt — thousands of km/s — and causing
-        % the track to predict wildly off-course after just one step.
-        % This matches Python TwoPointInitiator, which uses s1.position directly.
+        % All matched buffer tracks are consumed (one-shot buffer semantics).
+        remove_buf_mask(ti) = true;
+
         x_pos1 = s1.state(s1.state_space.pos_idx);
         if norm(x_pos1) < 1.0
-            continue;   % buffer LS failed (fell back to zeros); skip this pair
+            % LS failed when this buffer entry was created — skip track formation.
+            if verbose
+                fprintf('    buf[%d] -> msmt[%d]  REJECT x_pos1 near zero (norm=%.2f)\n', ...
+                    ti, mi, norm(x_pos1));
+            end
+            continue;
         end
 
         % Estimate second-point position, seeded from first-point estimate
         [x_pos2, ~] = msmt_model.least_square_fun(m2.zeta, x_pos1);
 
-        % Velocity estimate: finite difference between LS-estimated positions
+        % Skip if the second-point LS failed (NaN, near origin, or diverged beyond 5000 km).
+        % Matches Python state_from_measurement sanity check: norm > 5e6 m -> rejected.
+        if any(isnan(x_pos2(:))) || norm(x_pos2) < 1.0 || norm(x_pos2) > 5e6
+            if verbose
+                fprintf('    buf[%d] -> msmt[%d]  REJECT x_pos2 invalid (norm=%.2f km)\n', ...
+                    ti, mi, norm(x_pos2)/1e3);
+                fprintf('      x_pos1=[%.1f, %.1f, %.1f] km  zeta=[%s]\n', ...
+                    x_pos1(1)/1e3, x_pos1(2)/1e3, x_pos1(3)/1e3, ...
+                    num2str(m2.zeta(:)', '%.1f '));
+            end
+            continue;
+        end
+
+        % Kinematic consistency check: the two LS-estimated positions must be
+        % reachable from each other.  The bound accounts for physical motion
+        % plus 1-sigma position uncertainty at each end (from the CRLB), so
+        % it automatically widens in poor sensor geometry (e.g. near-coplanar
+        % TDOA where σ_z can be 5–20 km) and stays tight in good geometry.
+        %
+        %   max_disp = 10 * (max_vel * dt
+        %                    + sqrt(trace(CRLB(x_pos1)))
+        %                    + sqrt(trace(CRLB(x_pos2))))
+        %
+        % Falls back to 10 * max_vel * dt if crlb_fun is unavailable.
+        if ~isempty(target_max_velocity)
+            kinematic_bound = target_max_velocity * abs(dt);
+            if ~isempty(msmt_model.crlb_fun)
+                crlb1 = msmt_model.crlb_fun(x_pos1);
+                crlb2 = msmt_model.crlb_fun(x_pos2);
+                if ~any(isnan(crlb1(:)))
+                    kinematic_bound = kinematic_bound + sqrt(trace(crlb1));
+                end
+                if ~any(isnan(crlb2(:)))
+                    kinematic_bound = kinematic_bound + sqrt(trace(crlb2));
+                end
+            end
+            max_disp = 10.0 * kinematic_bound;
+            if norm(x_pos2 - x_pos1) > max_disp
+                if verbose
+                    fprintf('    buf[%d] -> msmt[%d]  REJECT kinematic inconsistency (disp=%.1f km > %.1f km)\n', ...
+                        ti, mi, norm(x_pos2-x_pos1)/1e3, max_disp/1e3);
+                end
+                continue;
+            end
+        end
+
+        % Velocity estimate: finite difference between LS-estimated positions.
+        % Clip to target_max_velocity so the first prediction step does not
+        % move the track to an unphysical position before constrainMotion fires.
         vel_est = (x_pos2 - x_pos1) / dt;
+        if ~isempty(target_max_velocity) && norm(vel_est) > target_max_velocity
+            vel_est = vel_est * (target_max_velocity / norm(vel_est));
+        end
 
         % Build initial state vector
         ss = motion_model.state_space;
@@ -113,11 +192,24 @@ if ~isempty(buffer_tracks) && ~isempty(measurements)
         next_track_id = next_track_id + 1;
         new_tracks{end+1} = new_trk;  %#ok<AGROW>
 
-        matched_new_msmt_mask(mi) = true;
+        if verbose
+            fprintf('    buf[%d] -> msmt[%d]  ACCEPT  new track_id=%d\n', ...
+                ti, mi, new_trk.track_id);
+            fprintf('      x_pos1=[%.1f, %.1f, %.1f] km\n', ...
+                x_pos1(1)/1e3, x_pos1(2)/1e3, x_pos1(3)/1e3);
+            fprintf('      x_pos2=[%.1f, %.1f, %.1f] km  dt=%.1fs\n', ...
+                x_pos2(1)/1e3, x_pos2(2)/1e3, x_pos2(3)/1e3, dt);
+            fprintf('      vel_est=[%.1f, %.1f, %.1f] m/s (speed=%.1f)\n', ...
+                vel_est(1), vel_est(2), vel_est(3), norm(vel_est));
+        end
+
     end
 
-    % Measurements that were not used to form two-point tracks become the new buffer
-    unmatched_new = measurements(~matched_new_msmt_mask);
+    % Only truly unmatched measurements (not assigned by GNN at all) become new
+    % buffer entries.  Measurements paired with a rejected buffer track are consumed
+    % without recycling — matching Python TwoPointInitiator behaviour where rejected
+    % buffer tracks stay as permanent FA-measurement sinks.
+    unmatched_new = measurements(unmatched_msmt_idx);
 else
     % No buffered tracks yet — all new measurements go to buffer
     unmatched_new = measurements;
@@ -131,8 +223,11 @@ end
 % producing a completely wrong velocity even after the two-point fix.
 % LS is run with a try-catch; infeasible false-alarm measurements cause the
 % solver to diverge, and we fall back to x=0 / P=1e6*I for those.
-new_buffer    = {};
-buffer_tracks = {};
+% Retain old buffer entries that were NOT consumed: zero-position sinks
+% (norm < 1 m) stay indefinitely; non-zero tracks are removed after one
+% pairing attempt whether or not it produced a confirmed track.
+new_buffer    = buffer_msmts(~remove_buf_mask);
+buffer_tracks = buffer_tracks(~remove_buf_mask);
 
 for jj = 1:numel(unmatched_new)
     m = unmatched_new{jj};
@@ -145,6 +240,9 @@ for jj = 1:numel(unmatched_new)
     if ~isempty(msmt_model.least_square_fun)
         try
             [x_pos_est, ~] = msmt_model.least_square_fun(m.zeta, zeros(n_pos, 1));
+            if any(isnan(x_pos_est(:)))
+                error('tracker:initiateTracks:lsNaN', 'LS returned NaN; falling back to x=0');
+            end
 
             % If 3D and z < 0, retry with the z sign flipped to escape the
             % mirror-image local minimum from near-coplanar sensor arrays.
@@ -211,6 +309,15 @@ for jj = 1:numel(unmatched_new)
     t_buf.max_acceleration = target_max_acceleration;
     new_buffer{end+1}    = m;     %#ok<AGROW>
     buffer_tracks{end+1} = t_buf; %#ok<AGROW>
+
+    if verbose
+        fprintf('  [BUF+] jj=%d  x_buf=[%.1f, %.1f, %.1f] km (norm=%.1f km)  zeta=[%s]\n', ...
+            jj, x_buf(ss.pos_idx(1))/1e3, x_buf(ss.pos_idx(2))/1e3, x_buf(ss.pos_idx(3))/1e3, ...
+            norm(x_buf(ss.pos_idx))/1e3, num2str(m.zeta(:)', '%.1f '));
+        P_pos_diag = diag(P_buf(ss.pos_idx, ss.pos_idx));
+        fprintf('         P_pos_diag=[%.2e, %.2e, %.2e] m^2\n', ...
+            P_pos_diag(1), P_pos_diag(2), P_pos_diag(3));
+    end
 end
 
 

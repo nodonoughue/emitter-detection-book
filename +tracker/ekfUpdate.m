@@ -121,6 +121,15 @@ K     = P_pred * H' / S;
 x_est = x_pred + K * y;
 P_est = (eye(size(P_pred)) - K * H) * P_pred;
 
+% Enforce symmetry and positive semi-definiteness after the EKF update.
+% The non-Joseph form (I-KH)*P can accumulate asymmetry and small negative
+% eigenvalues, especially after large-innovation (false-alarm) updates.
+% This matches Python CovarianceMatrix.ensure_positive_definite(tolerance=1e-10).
+P_est = (P_est + P_est') / 2;
+[V, D] = eig(P_est);
+P_est  = V * diag(max(diag(D), 1e-10)) * V';
+P_est  = (P_est + P_est') / 2;
+
 if use_struct
     out1 = tracker.makeState(s_pred.state_space, s_pred.time, x_est, P_est);
     out2 = [];
