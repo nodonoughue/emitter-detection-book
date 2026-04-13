@@ -100,20 +100,25 @@ while iter < max_num_iterations && (force_full_calc || error >= epsilon)
             
     % Compute delta_x^(i), according to 13.18
     if do_decomp
-        % Check for invertibility
+        % delta_x = (J_i/C_d*J_i')\(J_i/C_d)*y_i;
+        %         = jcj \ jc * y_i
+        % where jc = J_i/C_d
+        % and  jcj = jc*J_i'
         jc = J_i/C_d;
-        jcj = jc*J_i';
-        if cond(jcj) > 10000
-            % Ill-conditioned, apply diagonal loading
-            diag_ldng = 1e-10*eye(size(J_i,1));
-            jcj = jcj + diag_ldng;
-        end
-        delta_x = jcj\jc*y_i;
     else
+        % delta_x = (J_i*C_inv*J_i')\(J_i*C_inv)*y_i
+        %         = jcj \ jc * y_i
+        % where jc = J_i*C_inv
+        % and  jcj = jc*J_i'
         jc = J_i*C_inv;
-        jcj = jc*J_i';
-        delta_x = jcj\jc*y_i;
     end
+    jcj = jc*J_i';
+    if cond(jcj) > 10000
+        % Ill-conditioned, apply diagonal loading
+        diag_ldng = 1e-10*eye(size(J_i,1));
+        jcj = jcj + diag_ldng;
+    end
+    delta_x = jcj\jc*y_i;
     
     % Update predicted location
     x_full(:,iter) = x_prev + delta_x;
