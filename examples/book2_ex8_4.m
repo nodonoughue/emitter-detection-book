@@ -73,7 +73,7 @@ F_cv = motion_cv.f_fun(t_inc);
 Q_cv = motion_cv.q_fun(t_inc);
 ss_cv = motion_cv.state_space;
 
-msmt_cv = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
+msmt_cv = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, []);
 
 pos_idx_cv = ss_cv.pos_idx;
 vel_idx_cv = ss_cv.vel_idx;
@@ -91,7 +91,7 @@ f_ct = @(x) motion_ct.f_fun_ekf(x, t_inc);
 j_ct = @(x) motion_ct.jacobian_fun(x, t_inc);
 
 ss_ct = motion_ct.state_space;
-msmt_ct = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_ct);
+msmt_ct = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, []);
 
 pos_idx_ct = ss_ct.pos_idx;
 vel_idx_ct = ss_ct.vel_idx;

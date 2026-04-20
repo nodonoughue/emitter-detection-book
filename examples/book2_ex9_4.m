@@ -29,7 +29,6 @@ function figs = book2_ex9_4()
 % June 2025
 
 fprintf('Example 9.4...\n');
-verbose_steps = 10;
 
 %% Scenario parameters -------------------------------------------------------
 t_inc    = 10;                 % s between track updates
@@ -64,7 +63,7 @@ num_msmt  = size(R, 1);
 % Restrict the LS solver to 25 steps; we don't need exact positions, just
 % coarse ones for initializing tracks.
 max_steps = 25;
-min_alt = 1000; % it's flying
+min_alt = 300; % it's flying
 max_alt = 40000; % it's not in space
 bnd = utils.constraints.boundedAlt(min_alt, max_alt,'flat');
 ls_fun   = @(zeta, x0) tdoa.lsSolnBounded(x_tdoa, zeta, C_roa, x0, bnd, ...
@@ -78,11 +77,10 @@ q_a_ca = 1;                % m/s^2 process noise for CA tracker
 mm_cv   = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 mm_ca   = tracker.makeMotionModel('ca', 3, q_a_ca^2);
 
-msmt_cv = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_cv.state_space, R, ls_fun, crlb_fun);
-msmt_ca = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], mm_ca.state_space, R, ls_fun, crlb_fun);
+msmt = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], R, ls_fun, crlb_fun);
 
 %% Tracker states (independent CV and CA) ------------------------------------
-target_max_vel   = 300;   % m/s  — conservative upper bound for subsonic aircraft
+target_max_vel   = 350;   % m/s  — conservative upper bound for subsonic aircraft
 target_max_accel = 10;    % m/s² — generous bound for a maneuvering aircraft
 
 % gate_probability: Python uses 0.95 for CV and 0.999 for CA.
@@ -90,17 +88,15 @@ target_max_accel = 10;    % m/s² — generous bound for a maneuvering aircraft
 % position error maps to ~140 m TDOA prediction mismatch → d²≈30.
 % CA needs a wide gate to avoid coasting through those steps; CV is tighter
 % because its process noise (q_a=3) keeps P from growing as large.
-ts_cv = tracker.makeTrackerState(mm_cv, msmt_cv, ...
+ts_cv = tracker.makeTrackerState(mm_cv, msmt, ...
     'gate_probability', 0.95, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
-    'target_max_velocity', target_max_vel,...
-    'verbose',true);
-ts_ca = tracker.makeTrackerState(mm_ca, msmt_ca, ...
+    'target_max_velocity', target_max_vel);
+ts_ca = tracker.makeTrackerState(mm_ca, msmt, ...
     'gate_probability', 0.999, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
     'target_max_velocity', target_max_vel, ...
-    'target_max_acceleration', target_max_accel,...
-    'verbose',true);
+    'target_max_acceleration', target_max_accel);
 
 %% Figure 1 setup: 2x2 panel -------------------------------------------------
 scale  = 1e3;                  % plot in km
@@ -122,6 +118,16 @@ for ti = 1:num_tgts
     plot(ax_geo, x(1,:)/scale, x(2,:)/scale, ...
          'Color', clrs(ti,:), 'DisplayName', sprintf('Target %d', ti));
     hold(ax_geo, 'on');
+    mid    = floor(num_time / 2);
+    tip    = x(1:2, mid+1) / scale;               % arrowhead tip [km]
+    base_c = x(1:2, mid)   / scale;               % arrowhead base centre [km]
+    shaft  = 5 * (tip - base_c);                   % direction vector [km], scaled 5x
+    perp   = [-shaft(2); shaft(1)] / norm(shaft);  % unit perpendicular
+    hw     = 0.6 * norm(shaft);                    % arrowhead half-width [km]
+    patch(ax_geo, ...
+          [base_c(1)+shaft(1), base_c(1)+hw*perp(1), base_c(1)-hw*perp(1)], ...
+          [base_c(2)+shaft(2), base_c(2)+hw*perp(2), base_c(2)-hw*perp(2)], ...
+          clrs(ti,:), 'EdgeColor', 'none', 'HandleVisibility', 'off');
 
     zeta_full = tdoa.measurement(x_tdoa, x, ref_idx);   % num_msmt x num_time
     for p = 1:num_msmt
@@ -131,7 +137,7 @@ for ti = 1:num_tgts
 end
 
 plot(ax_geo, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 'ko', ...
-     'MarkerFaceColor', 'k', 'MarkerSize',6,'DisplayName', 'TDOA Sensors');
+     'MarkerFaceColor', 'k', 'MarkerSize', 4, 'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
 
 % Accumulators for noisy-truth and FA scatter data (pre-allocated)
 scatter_truth_t = zeros(1,        num_time * num_tgts);
@@ -145,19 +151,16 @@ fa_fill    = 0;
 fprintf('Running trackers across %d time steps...\n', num_time);
 
 for idx = 1:num_time
-    fprintf('.');
     t = t_vec(idx);
 
     % Truth measurements
-    msmts_ca = cell(1, num_tgts + num_fa);
-    msmts_cv = cell(1, num_tgts + num_fa);
+    msmts = cell(1, num_tgts + num_fa);
     for ti = 1:num_tgts
         zeta = tdoa.measurement(x_tdoa, x_tgts{ti}(:, idx), ref_idx) + L * randn(num_msmt, 1);
         truth_fill = truth_fill + 1;
         scatter_truth_t(truth_fill)      = t;
         scatter_truth_z(:, truth_fill)   = zeta;
-        msmts_ca{ti} = tracker.makeMeasurement(t, zeta, msmt_ca);
-        msmts_cv{ti} = tracker.makeMeasurement(t, zeta, msmt_cv);
+        msmts{ti} = tracker.makeMeasurement(t, zeta, msmt);
     end
 
     % False alarm measurements (uniform random in each RDOA channel)
@@ -167,17 +170,15 @@ for idx = 1:num_time
     scatter_fa_z(:, fa_cols) = fa_zeta;
     fa_fill = fa_fill + num_fa;
     for fa_i = 1:num_fa
-        msmts_ca{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i), msmt_ca);
-        msmts_cv{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i), msmt_cv);
+        msmts{num_tgts + fa_i} = tracker.makeMeasurement(t, fa_zeta(:, fa_i), msmt);
     end
 
     % Shuffle — same permuted list handed to both trackers
-    msmts_ca = msmts_ca(randperm(numel(msmts_ca)));
-    msmts_cv = msmts_cv(randperm(numel(msmts_cv)));
+    msmts = msmts(randperm(numel(msmts)));
 
     % Update both trackers (each with its own measurement set / model)
-    ts_cv = tracker.runTrackerStep(ts_cv, msmts_cv, t);
-    ts_ca = tracker.runTrackerStep(ts_ca, msmts_ca, t);
+    ts_cv = tracker.runTrackerStep(ts_cv, msmts, t);
+    ts_ca = tracker.runTrackerStep(ts_ca, msmts, t);
 
     fprintf(' t=%ds | CV firm=%d tent=%d | CA firm=%d tent=%d\n', ...
         round(t), numel(ts_cv.firm_tracks), numel(ts_cv.tentative_tracks), ...
@@ -216,7 +217,7 @@ scatter_fa_z    = scatter_fa_z(:, 1:fa_fill);
 
 % Scatter the accumulated noisy-truth and FA points on the TDOA panels
 msmt_titles  = {'TDOA for Sensors 0,1', 'TDOA for Sensors 0,2', 'TDOA for Sensors 0,3'};
-msmt_ylabels = {'\tau_{0,1} [km]', '\tau_{0,2} [km]', '\tau_{0,3} [km]'};
+msmt_ylabels = {'$R_{0,1}$ [km]', '$R_{0,2}$ [km]', '$R_{0,3}$ [km]'};
 
 for p = 1:num_msmt
     scatter(ax_msmts(p), scatter_truth_t, scatter_truth_z(p,:)/scale, ...
@@ -236,7 +237,7 @@ xlabel(ax_geo, 'East [km]',           'FontSize', 8);
 ylabel(ax_geo, 'North [km]',          'FontSize', 8);
 xlim(ax_geo, [-75, 125]);
 ylim(ax_geo, [-50, 200]);
-legend(ax_geo, 'FontSize', 8);
+legend(ax_geo, 'FontSize', 8,'Location','northwest');
 grid(ax_geo, 'on');
 ax_geo.FontSize = 8;
 
@@ -277,8 +278,8 @@ for trk = all_ca
     first_trk = false;
 end
 
-scatter(ax2, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 60, 'ks', 'filled', ...
-        'DisplayName', 'TDOA Sensors');
+scatter(ax2, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 60, 'k', 'filled', ...
+        'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
 xlim(ax2, [-75, 125]);
 ylim(ax2, [-50, 200]);
 xlabel(ax2, 'East [km]');

@@ -104,7 +104,7 @@ for idx=1:num_time
     this_x_aoa = x_aoa_full(1:num_dims,idx);
     this_x_tgt = x_tgt_full(1:num_dims,idx);
 
-    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],state_space);
+    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[]);
 
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred

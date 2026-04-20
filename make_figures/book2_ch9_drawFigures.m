@@ -63,7 +63,7 @@ ref_f2    = 1;
 C_roa_f2  = 100 * eye(3);         % range variance [m^2]
 R_f2      = utils.resampleCovMtx(C_roa_f2, ref_f2);    % 2x2
 
-msmt_f2 = tracker.makeMeasurementModel([], x_tdoa_f2, [], [], ref_f2, [], ss_f2, R_f2);
+msmt_f2 = tracker.makeMeasurementModel([], x_tdoa_f2, [], [], ref_f2, [], R_f2);
 
 % Predicted measurement and innovation covariance
 z_pred_f2 = msmt_f2.z_fun(s_pred_f2);
@@ -92,12 +92,16 @@ hold on; grid on;
 % Track history
 all_pos_f2 = sv_f2(ss_f2.pos_idx, :);
 plot(all_pos_f2(1,:)/1e3, all_pos_f2(2,:)/1e3, 'o-', 'Color', colors(1,:), ...
-     'DisplayName', 'Track History');
+     'MarkerSize', 6, 'MarkerFaceColor', colors(1,:), 'DisplayName', 'Track History');
 % Predicted state + gate ellipse
 xp_f2 = s_pred_f2.state(ss_f2.pos_idx);
 Pp_f2 = P_pred_f2(ss_f2.pos_idx, ss_f2.pos_idx);
 plot(xp_f2(1)/1e3, xp_f2(2)/1e3, 's', 'Color', colors(1,:), ...
-     'MarkerSize', 10, 'LineWidth', 1.5, 'DisplayName', 'Predicted State');
+     'MarkerSize', 6, 'MarkerFaceColor', colors(1,:), 'LineWidth', 1.5, 'DisplayName', 'Predicted State');
+% Dashed line from last track state to predicted state
+h_pred_line = plot([all_pos_f2(1,end), xp_f2(1)]/1e3, [all_pos_f2(2,end), xp_f2(2)]/1e3, ...
+                   '--', 'Color', colors(1,:), 'LineWidth', 1.5);
+utils.excludeFromLegend(h_pred_line);
 theta_ell = linspace(0, 2*pi, 101);
 [V_f2, D_f2] = eig(Pp_f2);
 semi_f2 = sqrt(gate_thresh_f2 * max(diag(D_f2), 0)) / 1e3;
@@ -106,18 +110,18 @@ h_ell = plot(xp_f2(1)/1e3 + xy_ell(1,:), xp_f2(2)/1e3 + xy_ell(2,:), '--', ...
              'Color', colors(1,:), 'DisplayName', 'Acceptance Gate');
 utils.excludeFromLegend(h_ell);
 % Sensors
-plot(x_tdoa_f2(1,:)/1e3, x_tdoa_f2(2,:)/1e3, '+k', 'MarkerSize', 10, ...
-     'DisplayName', 'TDOA Sensors');
+plot(x_tdoa_f2(1,:)/1e3, x_tdoa_f2(2,:)/1e3, 'ko', 'MarkerSize', 6, ...
+     'MarkerFaceColor', 'k', 'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
 % Random measurement source positions
 valid_pos_f2 = x_rand_f2(ss_f2.pos_idx, is_valid_f2);
 inval_pos_f2 = x_rand_f2(ss_f2.pos_idx, ~is_valid_f2);
 if any(is_valid_f2)
     plot(valid_pos_f2(1,:)/1e3, valid_pos_f2(2,:)/1e3, 'v', 'Color', colors(3,:), ...
-         'MarkerSize', 8, 'DisplayName', 'Valid Measurements');
+         'MarkerSize', 6, 'MarkerFaceColor', colors(3,:), 'DisplayName', 'Valid Measurements');
 end
 if any(~is_valid_f2)
     plot(inval_pos_f2(1,:)/1e3, inval_pos_f2(2,:)/1e3, '^', 'Color', colors(4,:), ...
-         'MarkerSize', 8, 'DisplayName', 'Invalid Measurements');
+         'MarkerSize', 6, 'MarkerFaceColor', colors(4,:), 'DisplayName', 'Invalid Measurements');
 end
 xlabel('x [km]'); ylabel('y [km]');
 % title('Track, Prediction, and Measurements');
@@ -134,16 +138,16 @@ xy_ell_z = V_S_f2 * diag(semi_S_f2) * [cos(theta_ell); sin(theta_ell)];
 plot(z_pred_f2(1) + xy_ell_z(1,:), z_pred_f2(2) + xy_ell_z(2,:), '-', ...
      'Color', colors(1,:), 'DisplayName', 'Acceptance Gate');
 plot(z_pred_f2(1), z_pred_f2(2), 'o', 'Color', colors(1,:), ...
-     'MarkerSize', 10, 'LineWidth', 1.5, 'DisplayName', 'Prediction');
+     'MarkerSize', 6, 'MarkerFaceColor', colors(1,:), 'LineWidth', 1.5, 'DisplayName', 'Prediction');
 valid_z_f2 = z_rand_f2(:,  is_valid_f2);
 inval_z_f2 = z_rand_f2(:, ~is_valid_f2);
 if any(is_valid_f2)
     plot(valid_z_f2(1,:), valid_z_f2(2,:), 'v', 'Color', colors(3,:), ...
-         'MarkerSize', 8, 'DisplayName', 'Valid Measurements');
+         'MarkerSize', 6, 'MarkerFaceColor', colors(3,:), 'DisplayName', 'Valid Measurements');
 end
 if any(~is_valid_f2)
     plot(inval_z_f2(1,:), inval_z_f2(2,:), '^', 'Color', colors(4,:), ...
-         'MarkerSize', 8, 'DisplayName', 'Invalid Measurements');
+         'MarkerSize', 6, 'MarkerFaceColor', colors(4,:), 'DisplayName', 'Invalid Measurements');
 end
 xlabel('$\tau_{0,1}$ [m]'); ylabel('$\tau_{0,2}$ [m]');
 % title('Prediction and Measurements in Zeta-Space');
@@ -171,7 +175,7 @@ x_aoa_f3   = [750, 300;   % sensor x
               200, 800];  % sensor y
 sigma_psi_f3 = 3 * pi/180;
 R_f3    = sigma_psi_f3^2 * eye(2);
-msmt_f3 = tracker.makeMeasurementModel(x_aoa_f3, [], [], [], [], [], ss_f3, R_f3);
+msmt_f3 = tracker.makeMeasurementModel(x_aoa_f3, [], [], [], [], [], R_f3);
 
 t_msmt_f3 = 5;     % [s]
 gate_prob_f3 = 0.75;
@@ -258,7 +262,7 @@ for kk = 1:3
     xp = s_pred_f3{kk}.state(ss_f3.pos_idx);
     Pp = s_pred_f3{kk}.covar(ss_f3.pos_idx, ss_f3.pos_idx);
     plot([x0(1), xp(1)]/scale_f3, [x0(2), xp(2)]/scale_f3, 'o-', 'Color', c, ...
-         'DisplayName', sprintf('Track %d (pred.)', kk));
+         'DisplayName', sprintf('Track %d (pred.)', kk),'MarkerSize',6,'MarkerFaceColor',c);
     % Covariance ellipse at prediction
     [V_k, D_k] = eig(Pp);
     semi_k = sqrt(chi2inv(gate_prob_f3, 2) * max(diag(D_k), 0)) / scale_f3;
@@ -269,11 +273,12 @@ end
 % All measurement source positions
 all_rand_pos_f3 = cell2mat(cellfun(@(s) s.state(ss_f3.pos_idx), rand_states_f3, ...
                                    'UniformOutput', false));
-plot(all_rand_pos_f3(1,:)/scale_f3, all_rand_pos_f3(2,:)/scale_f3, 'vk', ...
-     'MarkerSize', 6, 'DisplayName', 'Measurements');
+h_msmt_f3a = plot(all_rand_pos_f3(1,:)/scale_f3, all_rand_pos_f3(2,:)/scale_f3, 'v', ...
+     'Color', [0.5 0.5 0.5], 'MarkerSize', 6, 'MarkerFaceColor', [0.5 0.5 0.5], 'DisplayName', 'Measurements');
+uistack(h_msmt_f3a, 'bottom');
 % Sensors
-plot(x_aoa_f3(1,:)/scale_f3, x_aoa_f3(2,:)/scale_f3, 'ks', ...
-     'MarkerSize', 10, 'MarkerFaceColor', 'k', 'DisplayName', 'DF Sensors');
+plot(x_aoa_f3(1,:)/scale_f3, x_aoa_f3(2,:)/scale_f3, 'ko', ...
+     'MarkerSize', 6, 'MarkerFaceColor', 'k', 'Clipping', 'off', 'DisplayName', 'DF Sensors');
 xlabel('x [km]'); ylabel('y [km]');
 % title('Predicted Track States with New Measurements');
 legend('Location','best');
@@ -283,8 +288,10 @@ utils.setPlotStyle(gca, {'widescreen'});
 % --- Figure 9.3b: azimuth measurement (zeta) space ---
 fig_f3b = figure;
 hold on; grid on;
-% All measurements as black triangles (background)
-plot(z_all_f3(1,:), z_all_f3(2,:), 'vk', 'MarkerSize', 6, 'DisplayName', 'Measurements');
+% All measurements as dark-gray triangles (background)
+h_msmt_f3b = plot(z_all_f3(1,:), z_all_f3(2,:), 'v', 'Color', [0.5 0.5 0.5], ...
+     'MarkerSize', 6, 'MarkerFaceColor', [0.5 0.5 0.5], 'DisplayName', 'Measurements');
+uistack(h_msmt_f3b, 'bottom');
 % For each track: predicted measurement, acceptance gate, association line, selected measurement
 gate_thresh_f3 = chi2inv(gate_prob_f3, 2);
 for kk = 1:3
@@ -298,7 +305,7 @@ for kk = 1:3
     plot(zp(1) + xy_Sk(1,:), zp(2) + xy_Sk(2,:), '--', 'Color', c, ...
          'DisplayName', sprintf('Track %d gate', kk));
     % Predicted measurement
-    plot(zp(1), zp(2), 'o', 'Color', c, 'MarkerSize', 10, 'LineWidth', 1.5, ...
+    plot(zp(1), zp(2), 'o', 'Color', c, 'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
          'DisplayName', sprintf('Track %d pred.', kk));
     % Association line + selected measurement
     mi_k = msmt_idx_f3(trk_idx_f3 == kk);
@@ -306,7 +313,7 @@ for kk = 1:3
         za_k = msmts_f3{mi_k}.zeta;
         h_line = plot([zp(1), za_k(1)], [zp(2), za_k(2)], '-', 'Color', c);
         utils.excludeFromLegend(h_line);
-        plot(za_k(1), za_k(2), 'v', 'Color', c, 'MarkerSize', 10, ...
+        plot(za_k(1), za_k(2), 'v', 'Color', c, 'MarkerSize', 6, 'MarkerFaceColor', c, ...
              'DisplayName', sprintf('Track %d assoc.', kk));
     end
 end
@@ -324,7 +331,7 @@ fprintf('Generating Figures 9.4 and 9.5 (Example 9.1)...\n');
 
 figs = book2_ex9_1;
 
-utils.exportPlot(figs(1), [prefix '4a']);
+utils.exportPlot(figs(1), [prefix '4']);
 utils.exportPlot(figs(2), [prefix '5a']);
 utils.exportPlot(figs(3), [prefix '5b']);
 
@@ -374,12 +381,14 @@ hold on; grid on;
 % Plot initial track history
 all_pos_f8 = sv_f8(ss_f8.pos_idx, :);
 plot(all_pos_f8(1,:)/1e3, all_pos_f8(2,:)/1e3, 'o-', 'Color', colors(1,:), ...
+     'MarkerSize',6,'MarkerFaceColor',colors(1,:),...
      'LineWidth', 1.5, 'DisplayName', 'Initial Track');
-% Covariance ellipse at final initial state (1-sigma)
+% Covariance ellipse at final initial state (75% confidence, matching Python default)
+cov_scale_f8 = sqrt(chi2inv(0.75, 2));
 xc_f8 = sv_f8(ss_f8.pos_idx, end);
 Pc_f8 = P_last_f8(ss_f8.pos_idx, ss_f8.pos_idx);
 [V_f8, D_f8] = eig(Pc_f8);
-semi_f8 = sqrt(max(diag(D_f8), 0)) / 1e3;
+semi_f8 = cov_scale_f8 * sqrt(max(diag(D_f8), 0)) / 1e3;
 xy_ell_f8 = V_f8 * diag(semi_f8) * [cos(theta_ell); sin(theta_ell)];
 h_cov = plot(xc_f8(1)/1e3 + xy_ell_f8(1,:), xc_f8(2)/1e3 + xy_ell_f8(2,:), ...
              '--', 'Color', colors(1,:), 'DisplayName', 'State Error Covariance');
@@ -402,14 +411,14 @@ for mm_idx = 1:num_missed_f8
     utils.excludeFromLegend(h_line);
 
     % Coasted state marker
-    plot(xp_new(1)/1e3, xp_new(2)/1e3, 's', 'Color', c_miss, 'MarkerSize', 10, ...
-         'LineWidth', 1.5, 'DisplayName', sprintf('%d Missed Detection%s', mm_idx, ...
+    plot(xp_new(1)/1e3, xp_new(2)/1e3, 's', 'Color', c_miss, 'MarkerSize', 6, 'MarkerFaceColor', c_miss, ...
+         'LineWidth', 1, 'DisplayName', sprintf('%d Missed Detection%s', mm_idx, ...
          char('s' * (mm_idx > 1))));
 
-    % Growing covariance ellipse (1-sigma)
+    % Growing covariance ellipse (75% confidence, matching Python default)
     Pc_miss = s_coast.covar(ss_f8.pos_idx, ss_f8.pos_idx);
     [V_m, D_m] = eig(Pc_miss);
-    semi_m = sqrt(max(diag(D_m), 0)) / 1e3;
+    semi_m = cov_scale_f8 * sqrt(max(diag(D_m), 0)) / 1e3;
     xy_m   = V_m * diag(semi_m) * [cos(theta_ell); sin(theta_ell)];
     h_ell_m = plot(xp_new(1)/1e3 + xy_m(1,:), xp_new(2)/1e3 + xy_m(2,:), ...
                    '--', 'Color', c_miss);

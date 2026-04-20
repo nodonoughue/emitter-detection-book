@@ -55,31 +55,78 @@ hold(ax1, 'on');  grid(ax1, 'on');
 
 for kk = 1:num_tracks
     c  = colors(kk, :);
+    xc = tracker.currState(tracks{kk}).state(ss.pos_idx);
     xp = s_pred{kk}.state(ss.pos_idx);
     Pp = s_pred{kk}.covar(ss.pos_idx, ss.pos_idx);
-    plot(ax1, xp(1)/scale, xp(2)/scale, '+', 'Color', c, ...
-         'MarkerSize', 10, 'LineWidth', 1.5, ...
+    plot(ax1, xc(1)/scale, xc(2)/scale, 'v', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'DisplayName', sprintf('Track %d (curr.)', kk));
+    h_dp = plot(ax1, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h_dp);
+    plot(ax1, xp(1)/scale, xp(2)/scale, 'o', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
          'DisplayName', sprintf('Track %d (pred.)', kk));
-    h = plot_ellipse(ax1, xp, Pp, 1, scale);
+    h = plot_ellipse(ax1, xp, Pp, sqrt(chi2inv(gate_prob, 2)), scale);
     h.Color = c;  h.LineStyle = '--';
     utils.excludeFromLegend(h);
 end
 
+gray = [0.5 0.5 0.5];
 for jj = 1:num_msmts
-    plot(ax1, x_ls(1,jj)/scale, x_ls(2,jj)/scale, '^k', ...
-         'MarkerSize', 8, 'DisplayName', sprintf('Msmt %d (LS)', jj));
-    h = plot_ellipse(ax1, x_ls(:,jj), P_ls(:,:,jj), 1, scale);
-    h.Color = [0 0 0];  h.LineStyle = ':';
+    hdl = plot(ax1, x_ls(1,jj)/scale, x_ls(2,jj)/scale, '^', ...
+            'Color', gray, 'MarkerSize', 6, 'MarkerFaceColor', gray, 'DisplayName', 'Msmts');
+    if jj>1, utils.excludeFromLegend(hdl); end
+    h = plot_ellipse(ax1, x_ls(:,jj), P_ls(:,:,jj), sqrt(chi2inv(gate_prob, 2)), scale);
+    h.Color = gray;  h.LineStyle = ':';
     utils.excludeFromLegend(h);
 end
 
-plot(ax1, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ks', 'MarkerSize', 10, ...
-     'MarkerFaceColor', 'k', 'DisplayName', 'DF Sensors');
+plot(ax1, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ko', 'MarkerSize', 6, ...
+     'MarkerFaceColor', 'k', 'Clipping', 'off', 'DisplayName', 'DF Sensors');
 format_axes(ax1, 'Predicted Track States and New Measurements (Before Association)');
 
 %% ---- NN Association -------------------------------------------------------
 [trk_idx, msmt_idx, ~] = tracker.associateTracks(tracks, msmts, t_msmt, ...
                               mm, msmt_model, gate_prob, 'nn');
+
+%% ---- Print NN distance table ----------------------------------------------
+n_meas_dim = numel(msmts{1}.zeta);
+num_msmts  = numel(msmts);
+D = zeros(num_tracks, num_msmts);
+for ti = 1:num_tracks
+    for mj = 1:num_msmts
+        d = tracker.computeDistance(s_pred{ti}, msmts{mj}.zeta, msmt_model);
+        D(ti, mj) = d / n_meas_dim;
+    end
+end
+sel = zeros(num_tracks, 1);
+for kk = 1:numel(trk_idx)
+    sel(trk_idx(kk)) = msmt_idx(kk);
+end
+total_cost = 0;
+for kk = 1:numel(trk_idx)
+    if msmt_idx(kk) > 0
+        total_cost = total_cost + D(trk_idx(kk), msmt_idx(kk));
+    end
+end
+col_w = 9;
+sep   = ['+-------+', repmat([repmat('-',1,col_w),'+'], 1, num_msmts)];
+fprintf('\nNN Association Distances (normalised Mahal.^2, * = selected):\n');
+fprintf('%s\n', sep);
+fprintf('| Track |');
+for mj = 1:num_msmts
+    fprintf(' %-*s|', col_w-1, sprintf('Msmt %c', 'A'+mj-1));
+end
+fprintf('\n%s\n', sep);
+for ti = 1:num_tracks
+    fprintf('| %-5d |', ti);
+    for mj = 1:num_msmts
+        star = '';  if sel(ti) == mj; star = '*'; end
+        fprintf(' %-*s|', col_w-1, sprintf('%.2f%s', D(ti,mj), star));
+    end
+    fprintf('\n');
+end
+fprintf('%s\n', sep);
+fprintf('  Total assignment cost: %.2f\n\n', total_cost);
 
 s_upd = s_pred;   % start from predicted; overwrite assigned ones
 for kk = 1:numel(trk_idx)
@@ -98,31 +145,38 @@ hold(ax2, 'on');  grid(ax2, 'on');
 
 for kk = 1:num_tracks
     c  = colors(kk, :);
+    xc = tracks{kk}.states{end-1}.state(ss.pos_idx);
     xp = s_pred{kk}.state(ss.pos_idx);
     xu = s_upd{kk}.state(ss.pos_idx);
+    Pp = s_pred{kk}.covar(ss.pos_idx, ss.pos_idx);
+    Pu = s_upd{kk}.covar(ss.pos_idx, ss.pos_idx);
+    plot(ax2, xc(1)/scale, xc(2)/scale, 'v', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'DisplayName', sprintf('Track %d', kk));
+    h = plot(ax2, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h);
     plot(ax2, xp(1)/scale, xp(2)/scale, 'o', 'Color', c, ...
-         'MarkerSize', 8, 'LineWidth', 1.5, ...
-         'DisplayName', sprintf('Track %d (pred.)', kk));
-    plot(ax2, xu(1)/scale, xu(2)/scale, '+', 'Color', c, ...
-         'MarkerSize', 10, 'LineWidth', 2.0, ...
-         'DisplayName', sprintf('Track %d (upd.)', kk));
-end
-
-for kk = 1:numel(trk_idx)
-    ti = trk_idx(kk);
-    mi = msmt_idx(kk);
-    if mi > 0
-        xp = s_pred{ti}.state(ss.pos_idx);
-        xm = x_ls(:, mi);
-        h  = plot(ax2, [xp(1), xm(1)]/scale, [xp(2), xm(2)]/scale, '--', ...
-                  'Color', colors(ti, :));
-        utils.excludeFromLegend(h);
-    end
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
+         'DisplayName', 'Predicted State');
+    h = plot_ellipse(ax2, xp, Pp, sqrt(chi2inv(gate_prob, 2)), scale);
+    h.Color = c;  h.LineStyle = '--';
+    utils.excludeFromLegend(h);
+    h = plot(ax2, [xc(1), xu(1)]/scale, [xc(2), xu(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h);
+    plot(ax2, xu(1)/scale, xu(2)/scale, 'v', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 2.0, ...
+         'DisplayName', 'Updated State');
+    h = plot_ellipse(ax2, xu, Pu, sqrt(chi2inv(gate_prob, 2)), scale);
+    h.Color = c;  h.LineStyle = '-';
+    utils.excludeFromLegend(h);
 end
 
 for jj = 1:num_msmts
-    plot(ax2, x_ls(1,jj)/scale, x_ls(2,jj)/scale, '^k', ...
-         'MarkerSize', 8, 'DisplayName', sprintf('Msmt %d (LS)', jj));
+    hdl = plot(ax2, x_ls(1,jj)/scale, x_ls(2,jj)/scale, '^', ...
+          'Color', gray, 'MarkerSize', 6, 'MarkerFaceColor', gray, 'DisplayName', 'Msmts');
+    uistack(hdl, 'bottom');
+    if jj>1
+        utils.excludeFromLegend(hdl);
+    end
 end
 
 format_axes(ax2, 'NN Association: Predicted and Updated Track States');
@@ -137,16 +191,22 @@ for kk = 1:num_tracks
     s  = tracker.currState(tracks{kk});
     xp = s.state(ss.pos_idx);
     Pp = s.covar(ss.pos_idx, ss.pos_idx);
+    xc = tracks{kk}.states{end-1}.state(ss.pos_idx);
+    h = plot(ax3, xc(1)/scale, xc(2)/scale, 'v', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'DisplayName', sprintf('Track %d', kk));
+    utils.excludeFromLegend(h);
+    h = plot(ax3, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '-', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h);
     plot(ax3, xp(1)/scale, xp(2)/scale, 'v', 'Color', c, ...
-         'MarkerSize', 10, 'LineWidth', 1.5, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
          'DisplayName', sprintf('Track %d', kk));
-    h = plot_ellipse(ax3, xp, Pp, 1, scale);
-    h.Color = c;
+    h = plot_ellipse(ax3, xp, Pp, sqrt(chi2inv(gate_prob, 2)), scale);
+    h.Color = c;  h.LineStyle = '-';
     utils.excludeFromLegend(h);
 end
 
-plot(ax3, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ks', 'MarkerSize', 10, ...
-     'MarkerFaceColor', 'k', 'DisplayName', 'DF Sensors');
+plot(ax3, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ko', 'MarkerSize', 6, ...
+     'MarkerFaceColor', 'k', 'Clipping', 'off', 'DisplayName', 'DF Sensors');
 format_axes(ax3, 'Updated Trackers after NN Association');
 
 figs = [fig1, fig2, fig3];
@@ -167,7 +227,7 @@ mm = tracker.makeMotionModel('cv', 2, diag([25, 25]));
 ss = mm.state_space;
 
 % Measurement model: pure AOA (azimuth only, 2 sensors -> 2-D zeta)
-msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss, R);
+msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], R);
 
 % Pre-initialised track states at t = 0  [px; py; vx; vy]  (m, m/s)
 state_vecs = {[0;    2e3;  0;   100], ...
@@ -225,4 +285,5 @@ ylabel(ax, 'y [km]');
 legend(ax, 'Location', 'best');
 xlim(ax, [-0.5, 2.0]);
 ylim(ax, [-0.5, 3.0]);
+utils.setPlotStyle(gca,{'widescreen'});
 end

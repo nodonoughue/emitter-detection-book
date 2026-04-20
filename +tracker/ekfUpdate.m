@@ -2,8 +2,7 @@ function [out1, out2] = ekfUpdate(arg1, arg2, arg3, arg4, arg5, arg6)
 % ekfUpdate  One-step Extended Kalman Filter measurement update.
 %
 % Shorthand form — Measurement struct carries the model (C, z_fun, h_fun inferred):
-%   est_state          = ekfUpdate(s_pred, msmt)
-%   [x_est, P_est]     = ekfUpdate(x_pred, P_pred, msmt)
+%   est_state = ekfUpdate(s_pred, msmt)
 %
 % State-struct form — update a predicted State struct:
 %   est_state = ekfUpdate(s_pred, zeta_or_msmt, C, z_fun, h_fun)
@@ -11,10 +10,10 @@ function [out1, out2] = ekfUpdate(arg1, arg2, arg3, arg4, arg5, arg6)
 % Explicit form — operate directly on a state vector and covariance:
 %   [x_est, P_est] = ekfUpdate(x_pred, P_pred, zeta_or_msmt, C, z_fun, h_fun)
 %
-% INPUTS (shorthand forms)
+% INPUTS (shorthand form)
 %   msmt          Measurement struct from makeMeasurement whose .msmt_model
-%                 field is non-empty.  C, z_fun/h_fun (struct form) or
-%                 z_fun_raw/h_fun_raw (explicit form) are extracted automatically.
+%                 field is non-empty.  C, z_fun, and h_fun are extracted
+%                 automatically from msmt.msmt_model.
 %
 % INPUTS (state-struct form)
 %   s_pred        Predicted State struct from predictState / ekfPredict
@@ -42,9 +41,7 @@ function [out1, out2] = ekfUpdate(arg1, arg2, arg3, arg4, arg5, arg6)
 %   P_est       Updated state error covariance (n x n)
 %
 % Note: in the state-struct form z_fun and h_fun receive the full State struct;
-% in the explicit form they receive the raw state vector (n x 1).  Use
-% msmt_model.z_fun / msmt_model.h_fun (State-struct-aware) with the struct
-% form, and msmt_model.z_fun_raw / msmt_model.h_fun_raw with the explicit form.
+% in the explicit form they receive the raw state vector (n x 1).
 %
 % Nicholas O'Donoughue
 % June 2025
@@ -79,13 +76,6 @@ else
     P_pred     = arg2;
     use_struct = false;
 
-    if nargin == 3 && isstruct(arg3) && isfield(arg3, 'msmt_model')
-        % Shorthand: (x_pred, P_pred, msmt) — infer C, z_fun, h_fun from msmt.msmt_model
-        zeta  = arg3.zeta;
-        C     = arg3.msmt_model.R;
-        z_fun = arg3.msmt_model.z_fun_raw;
-        h_fun = arg3.msmt_model.h_fun_raw;
-    else
         % Full explicit form: (x_pred, P_pred, zeta_or_msmt, C, z_fun, h_fun)
         zeta_or_msmt = arg3;
         C     = arg4;
@@ -96,7 +86,6 @@ else
         else
             zeta = zeta_or_msmt(:);
         end
-    end
 end
 
 % EKF update — linearise at the predicted state

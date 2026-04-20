@@ -88,7 +88,7 @@ vel_idx = motion.state_space.vel_idx;
 F = motion.f_fun(t_inc); % generate state transition matrix
 Q = motion.q_fun(t_inc); % generate process noise covariance matrix
 
-msmt = tracker.makeMeasurementModel([],x_tdoa,[],v_tdoa,ref_idx,[],motion.state_space);
+msmt = tracker.makeMeasurementModel([],x_tdoa,[],v_tdoa,ref_idx,[]);
  % msmt function and linearized msmt function
 
 %% Initialize Track State

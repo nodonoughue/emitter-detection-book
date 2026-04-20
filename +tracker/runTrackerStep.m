@@ -52,41 +52,21 @@ leftover_for_init = unassoc_msmts_2;
 
 verbose = isfield(cfg, 'verbose') && cfg.verbose;
 [new_tracks, tracker_state.next_track_id, ...
- tracker_state.buffer_msmts, tracker_state.buffer_tracks] = ...
+ tracker_state.buffer_msmts, tracker_state.buffer_tracks, ...
+ tracker_state.stage2_msmts, tracker_state.stage2_tracks] = ...
     tracker.initiateTracks(leftover_for_init, curr_time, ...
                            cfg.motion_model, cfg.msmt_model, ...
                            cfg.gate_probability, tracker_state.next_track_id, ...
                            tracker_state.buffer_msmts, tracker_state.buffer_tracks, ...
-                           cfg.target_max_velocity, cfg.target_max_acceleration, verbose);
+                           cfg.target_max_velocity, cfg.target_max_acceleration, verbose, ...
+                           cfg.init_type, ...
+                           tracker_state.stage2_msmts, tracker_state.stage2_tracks);
 
 tracker_state.tentative_tracks = [tracker_state.tentative_tracks, new_tracks];
 
 %% --- 4. Delete firm and tentative tracks with too many missed detections --
-if verbose
-    fprintf('[t=%.1fs] Deletion check — %d firm track(s):\n', curr_time, numel(tracker_state.firm_tracks));
-    for ii = 1:numel(tracker_state.firm_tracks)
-        s = tracker.currState(tracker_state.firm_tracks{ii});
-        pos = s.state(s.state_space.pos_idx);
-        vel = s.state(s.state_space.vel_idx);
-        fprintf('  trk=%d  pos=[%.1f %.1f %.1f] km (r=%.1f km)  spd=%.1f m/s  missed=%d/%d\n', ...
-            tracker_state.firm_tracks{ii}.track_id, ...
-            pos(1)/1e3, pos(2)/1e3, pos(3)/1e3, norm(pos)/1e3, norm(vel), ...
-            tracker_state.firm_tracks{ii}.num_missed_detections, cfg.max_missed);
-    end
-end
-
 [tracker_state.firm_tracks, del_firm] = ...
     tracker.deleteTracks(tracker_state.firm_tracks, cfg.max_missed);
-
-if verbose && ~isempty(del_firm)
-    for ii = 1:numel(del_firm)
-        s = tracker.currState(del_firm{ii});
-        pos = s.state(s.state_space.pos_idx);
-        fprintf('  [DELETED firm] trk=%d  pos=[%.1f %.1f %.1f] km  missed=%d\n', ...
-            del_firm{ii}.track_id, pos(1)/1e3, pos(2)/1e3, pos(3)/1e3, ...
-            del_firm{ii}.num_missed_detections);
-    end
-end
 
 [tracker_state.tentative_tracks, del_tent] = ...
     tracker.deleteTracks(tracker_state.tentative_tracks, cfg.max_missed);
@@ -123,7 +103,6 @@ end
                             cfg.assoc_type, cfg.detection_probability);
 
 % Update assigned tracks
-verbose = isfield(cfg, 'verbose') && cfg.verbose;
 for kk = 1:numel(trk_idx)
     ti = trk_idx(kk);
     mi = msmt_idx(kk);
@@ -136,39 +115,14 @@ for kk = 1:numel(trk_idx)
         s_upd = pda_states{ti};
         s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
         tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
-        if verbose
-            ss = s_upd.state_space; pos = s_upd.state(ss.pos_idx); vel = s_upd.state(ss.vel_idx);
-            fprintf('  [FIRM PDA  ] trk=%d  pos=[%.1f %.1f %.1f] km (r=%.1f)  spd=%.1f m/s\n', ...
-                trk.track_id, pos(1)/1e3, pos(2)/1e3, pos(3)/1e3, norm(pos)/1e3, norm(vel));
-        end
     elseif mi > 0
         s_upd = tracker.ekfUpdate(s_pred, measurements{mi});
         s_upd = tracker.constrainMotion(s_upd, trk.max_velocity, trk.max_acceleration);
         tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_upd, false);
-        if verbose
-            ss = s_upd.state_space; pos = s_upd.state(ss.pos_idx); vel = s_upd.state(ss.vel_idx);
-            pos_pred = s_pred.state(ss.pos_idx);
-            z_hat = cfg.msmt_model.z_fun(s_pred);
-            innov = measurements{mi}.zeta(:) - z_hat(:);
-            H = cfg.msmt_model.h_fun(s_pred);
-            if ndims(H) == 3, H = H(:,:,1)'; end
-            S = H * s_pred.covar * H' + cfg.msmt_model.R;
-            d2 = innov' / S * innov;
-            gate_thr = chi2inv(cfg.gate_probability, numel(innov));
-            fprintf('  [FIRM UPD  ] trk=%d  pred=[%.1f %.1f %.1f] km  pos=[%.1f %.1f %.1f] km (r=%.1f)  spd=%.1f m/s  innov=%.1f m  d2=%.2f/%.2f\n', ...
-                trk.track_id, pos_pred(1)/1e3, pos_pred(2)/1e3, pos_pred(3)/1e3, ...
-                pos(1)/1e3, pos(2)/1e3, pos(3)/1e3, norm(pos)/1e3, norm(vel), norm(innov), d2, gate_thr);
-        end
     else
         % Missed detection: coast — constrain to prevent unbounded velocity drift
         s_pred = tracker.constrainMotion(s_pred, trk.max_velocity, trk.max_acceleration);
         tracker_state.firm_tracks{ti} = tracker.appendTrack(trk, s_pred, true);
-        if verbose
-            ss = s_pred.state_space; pos = s_pred.state(ss.pos_idx); vel = s_pred.state(ss.vel_idx);
-            fprintf('  [FIRM COAST] trk=%d  pos=[%.1f %.1f %.1f] km (r=%.1f)  spd=%.1f m/s  missed=%d\n', ...
-                trk.track_id, pos(1)/1e3, pos(2)/1e3, pos(3)/1e3, norm(pos)/1e3, norm(vel), ...
-                tracker_state.firm_tracks{ti}.num_missed_detections);
-        end
     end
 end
 

@@ -135,7 +135,7 @@ for idx=1:num_time
     % Update msmt function
     this_x_aoa = x_aoa_full(1:num_dims,idx);
 
-    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[],ss);
+    msmt = tracker.makeMeasurementModel(this_x_aoa,[],[],[],[],[]);
 
     % Update Position Estimate
     % Previous prediction stored in x_pred, P_pred

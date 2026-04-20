@@ -28,6 +28,54 @@ colors    = get(0, 'DefaultAxesColorOrder');
 [trk_idx, msmt_idx, ~] = tracker.associateTracks(tracks, msmts, t_msmt, ...
                               mm, msmt_model, gate_prob, 'gnn');
 
+%% ---- Print GNN distance table ---------------------------------------------
+n_meas_dim  = numel(msmts{1}.zeta);
+num_msmts   = numel(msmts);
+num_tracks  = numel(tracks);
+gate_thresh = chi2inv(gate_prob, n_meas_dim);
+D = zeros(num_tracks, num_msmts);
+for ti = 1:num_tracks
+    s_ti      = tracker.currState(tracks{ti});
+    s_pred_ti = tracker.predictState(s_ti, t_msmt, mm);
+    for mj = 1:num_msmts
+        d = tracker.computeDistance(s_pred_ti, msmts{mj}.zeta, msmt_model);
+        D(ti, mj) = d / n_meas_dim;
+    end
+end
+sel = zeros(num_tracks, 1);
+for kk = 1:numel(trk_idx)
+    sel(trk_idx(kk)) = msmt_idx(kk);
+end
+total_cost = 0;
+for kk = 1:numel(trk_idx)
+    if msmt_idx(kk) > 0
+        total_cost = total_cost + D(trk_idx(kk), msmt_idx(kk));
+    end
+end
+col_w = 9;
+sep   = ['+-------+', repmat([repmat('-',1,col_w),'+'], 1, num_msmts)];
+fprintf('\nGNN Association Distances (inf = outside gate, * = selected):\n');
+fprintf('%s\n', sep);
+fprintf('| Track |');
+for mj = 1:num_msmts
+    fprintf(' %-*s|', col_w-1, sprintf('Msmt %c', 'A'+mj-1));
+end
+fprintf('\n%s\n', sep);
+for ti = 1:num_tracks
+    fprintf('| %-5d |', ti);
+    for mj = 1:num_msmts
+        star = '';  if sel(ti) == mj; star = '*'; end
+        if D(ti,mj) * n_meas_dim > gate_thresh
+            fprintf(' %-*s|', col_w-1, sprintf('inf%s', star));
+        else
+            fprintf(' %-*s|', col_w-1, sprintf('%.2f%s', D(ti,mj), star));
+        end
+    end
+    fprintf('\n');
+end
+fprintf('%s\n', sep);
+fprintf('  Total assignment cost: %.2f\n\n', total_cost);
+
 for kk = 1:numel(trk_idx)
     ti = trk_idx(kk);
     mi = msmt_idx(kk);
@@ -51,16 +99,22 @@ for kk = 1:numel(tracks)
     s  = tracker.currState(tracks{kk});
     xp = s.state(ss.pos_idx);
     Pp = s.covar(ss.pos_idx, ss.pos_idx);
+    xc = tracks{kk}.states{end-1}.state(ss.pos_idx);
+    h = plot(ax, xc(1)/scale, xc(2)/scale, 'v', 'Color', c, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'DisplayName', sprintf('Track %d (prev.)', kk));
+    utils.excludeFromLegend(h);
+    h = plot(ax, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '-', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h);
     plot(ax, xp(1)/scale, xp(2)/scale, 'v', 'Color', c, ...
-         'MarkerSize', 10, 'LineWidth', 1.5, ...
+         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
          'DisplayName', sprintf('Track %d', kk));
-    h = plot_ellipse(ax, xp, Pp, 1, scale);
-    h.Color = c;
+    h = plot_ellipse(ax, xp, Pp, sqrt(chi2inv(gate_prob, 2)), scale);
+    h.Color = c;  h.LineStyle = '-';
     utils.excludeFromLegend(h);
 end
 
-plot(ax, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ks', 'MarkerSize', 10, ...
-     'MarkerFaceColor', 'k', 'DisplayName', 'DF Sensors');
+plot(ax, x_aoa(1,:)/scale, x_aoa(2,:)/scale, 'ko', 'MarkerSize', 6, ...
+     'MarkerFaceColor', 'k', 'Clipping', 'off', 'DisplayName', 'DF Sensors');
 format_axes(ax, 'Updated Trackers after GNN Association');
 
 figs = fig1;
@@ -78,7 +132,7 @@ R         = sigma_psi^2 * eye(2);
 mm = tracker.makeMotionModel('cv', 2, diag([25, 25]));
 ss = mm.state_space;
 
-msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], ss, R);
+msmt_model = tracker.makeMeasurementModel(x_aoa, [], [], [], [], [], R);
 
 state_vecs = {[0;    2e3;  0;   100], ...
               [1e3;  2e3;  80;  -10], ...
@@ -133,4 +187,5 @@ ylabel(ax, 'y [km]');
 legend(ax, 'Location', 'best');
 xlim(ax, [-0.5, 2.0]);
 ylim(ax, [-0.5, 3.0]);
+utils.setPlotStyle(gca,{'widescreen'});
 end

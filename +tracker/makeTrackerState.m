@@ -20,6 +20,8 @@ function tracker_state = makeTrackerState(motion_model, msmt_model, varargin)
 %     'target_max_acceleration' Max target acceleration [m/s²] for covariance caps and
 %                               state clipping.  Only effective for CA/CJ state spaces.
 %                               [] = unconstrained (default: [])
+%     'init_type'            Track initiation strategy: 'one_point', 'two_point'
+%                            (default), or 'three_point'
 %
 % OUTPUTS
 %   tracker_state  Struct with fields:
@@ -27,8 +29,10 @@ function tracker_state = makeTrackerState(motion_model, msmt_model, varargin)
 %                    firm_tracks      – {} (initially empty)
 %                    tentative_tracks – {} (initially empty)
 %                    deleted_tracks   – {} (initially empty)
-%                    buffer_msmts     – {} (initiator measurement buffer)
-%                    buffer_tracks    – {} (initiator track buffer)
+%                    buffer_msmts     – {} (stage-1 initiator measurement buffer)
+%                    buffer_tracks    – {} (stage-1 initiator track buffer)
+%                    stage2_msmts     – {} (stage-2 measurement buffer, three_point only)
+%                    stage2_tracks    – {} (stage-2 track buffer, three_point only)
 %                    next_track_id    – 1
 %
 % Nicholas O'Donoughue
@@ -46,6 +50,7 @@ addParameter(p, 'keep_all_tracks',       true);
 addParameter(p, 'target_max_velocity',     []);
 addParameter(p, 'target_max_acceleration', []);
 addParameter(p, 'verbose',                 false);
+addParameter(p, 'init_type',               'two_point');
 parse(p, varargin{:});
 opt = p.Results;
 
@@ -60,7 +65,8 @@ config = struct('motion_model',            motion_model, ...
                 'keep_all_tracks',         opt.keep_all_tracks, ...
                 'target_max_velocity',     opt.target_max_velocity, ...
                 'target_max_acceleration', opt.target_max_acceleration, ...
-                'verbose',                 opt.verbose);
+                'verbose',                 opt.verbose, ...
+                'init_type',               opt.init_type);
 
 tracker_state = struct('config',           config, ...
                        'firm_tracks',      {{}}, ...
@@ -69,4 +75,6 @@ tracker_state = struct('config',           config, ...
                        'failed_tracks',    {{}}, ...
                        'buffer_msmts',     {{}}, ...
                        'buffer_tracks',    {{}}, ...
+                       'stage2_msmts',     {{}}, ...
+                       'stage2_tracks',    {{}}, ...
                        'next_track_id',    1);

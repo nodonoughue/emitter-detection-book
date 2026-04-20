@@ -74,7 +74,7 @@ b_bal = motion_bal.b_fun(t_inc);
 ss_cv = motion_cv.state_space;
 
 % Both share the same TDOA measurement model (same state-space layout)
-msmt = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], ss_cv);
+msmt = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, []);
 
 pos_idx = ss_cv.pos_idx;
 vel_idx = ss_cv.vel_idx;
