@@ -158,10 +158,10 @@ switch lower(model_type)
                   zeros(num_dims,2*num_dims), eye(num_dims),    t*eye(num_dims);
                   zeros(num_dims,3*num_dims), eye(num_dims)];
 
-        Q = @(t) [t^7/252*process_covar, t^6/72*process_covar, t^5/30*process_covar, t^4/24*process_covar;
-                  t^6/72*process_covar,  t^5/20*process_covar, t^4/8*process_covar,  t^3/6*process_covar;
-                  t^5/30*process_covar,  t^4/8*process_covar,  t^3/3*process_covar,  t^2/2*process_covar;
-                  t^4/24*process_covar,  t^3/6*process_covar,  t^2/2*process_covar,      t*process_covar];
+        Q = @(t) [t^6/36*process_covar,  t^5/12*process_covar, t^4/6*process_covar,  t^3/6*process_covar;
+                  t^5/12*process_covar,  t^4/4 *process_covar, t^3/2*process_covar,  t^2/2*process_covar;
+                  t^4/6 *process_covar,  t^3/2 *process_covar, t^2  *process_covar,  t    *process_covar;
+                  t^3/6 *process_covar,  t^2/2 *process_covar, t    *process_covar,  process_covar     ];
 
     case {'ballistic'}
         % Same linear CV dynamics as 'cv'.  Gravity enters as a deterministic

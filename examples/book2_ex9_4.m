@@ -73,7 +73,7 @@ crlb_fun = @(x) tdoa.computeCRLB(x_tdoa, x, C_roa, ref_idx, false);
 
 %% Motion models and measurement models --------------------------------------
 q_a_cv = 3;                % m/s^2 process noise for CV tracker
-q_a_ca = 1;                % m/s^2 process noise for CA tracker
+q_a_ca = 0.1;              % m/s^2 process noise for CA tracker
 mm_cv   = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 mm_ca   = tracker.makeMotionModel('ca', 3, q_a_ca^2);
 
@@ -83,7 +83,7 @@ msmt = tracker.makeMeasurementModel([], x_tdoa, [], [], ref_idx, [], R, ls_fun, 
 target_max_vel   = 350;   % m/s  — conservative upper bound for subsonic aircraft
 target_max_accel = 10;    % m/s² — generous bound for a maneuvering aircraft
 
-% gate_probability: Python uses 0.95 for CV and 0.999 for CA.
+% gate_probability: Python uses 0.95 for CV and CA.
 % At 100+ km range the TDOA Jacobian magnitude is ~0.07, so a 2 km EKF
 % position error maps to ~140 m TDOA prediction mismatch → d²≈30.
 % CA needs a wide gate to avoid coasting through those steps; CV is tighter
@@ -93,7 +93,7 @@ ts_cv = tracker.makeTrackerState(mm_cv, msmt, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
     'target_max_velocity', target_max_vel);
 ts_ca = tracker.makeTrackerState(mm_ca, msmt, ...
-    'gate_probability', 0.999, 'num_hits', 3, 'num_chances', 5, ...
+    'gate_probability', 0.95, 'num_hits', 3, 'num_chances', 5, ...
     'max_missed', 3, 'keep_all_tracks', true, ...
     'target_max_velocity', target_max_vel, ...
     'target_max_acceleration', target_max_accel);
@@ -101,7 +101,7 @@ ts_ca = tracker.makeTrackerState(mm_ca, msmt, ...
 %% Figure 1 setup: 2x2 panel -------------------------------------------------
 scale  = 1e3;                  % plot in km
 clrs   = lines(num_tgts);
-num_fa = 10;                   % false alarms per scan
+num_fa = 20;                   % false alarms per scan
 max_val = 30e3;                % false-alarm extent per RDOA channel [m]
 
 fig1   = figure;
