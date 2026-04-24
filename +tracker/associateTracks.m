@@ -109,8 +109,12 @@ function dist_mat = build_dist_mat(tracks, measurements, motion_model, gate_size
 % Entries outside the chi-square gate are set to Inf.
 dist_mat = inf(num_tracks, num_msmts);
 for ii = 1:num_tracks
+    trk = tracks{ii};
+    if isempty(trk.motion_model)
+        trk.motion_model = motion_model;
+    end
     for jj = 1:num_msmts
-        h = tracker.makeHypothesis(tracks{ii}, measurements{jj}, motion_model);
+        h = tracker.makeHypothesis(trk, measurements{jj});
         if h.distance <= gate_size
             dist_mat(ii, jj) = h.distance;
         end
@@ -223,9 +227,15 @@ for ii = 1:num_tracks
     % Measurement model (shared across all measurements in the scan)
     mm = measurements{1}.msmt_model;
 
+    % Resolve motion model: prefer track-carried model, fall back to argument
+    trk_mm = tracks{ii}.motion_model;
+    if isempty(trk_mm)
+        trk_mm = motion_model;
+    end
+
     % Predict track to current scan time
     s      = tracker.currState(tracks{ii});
-    s_pred = tracker.predictState(s, curr_time, motion_model);
+    s_pred = tracker.predictState(s, curr_time, trk_mm);
 
     % Linearize at the predicted state — shared for all measurements
     z_hat = mm.z_fun(s_pred);

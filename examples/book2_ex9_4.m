@@ -46,13 +46,13 @@ num_tgts = 3;
 num_time = numel(t_vec);
 
 %% TDOA sensor array ---------------------------------------------------------
-x_tdoa  = [15e3,  0,    0, -15e3;
-              0, 15e3,  0,     0;
-             30,   60,  30,   60];
+x_tdoa  = [ 0,  10.6e3,    0, -10.6e3;
+            0, -10.6e3, 15e3, -10.6e3;
+           60,      30,   30,      30];
 n_tdoa  = size(x_tdoa, 2);
 ref_idx = 1;                   % first sensor as reference
 
-sigma_toa = 1e-7;              % 100 ns timing uncertainty
+sigma_toa = 5e-8;              % 50 ns timing uncertainty
 C_toa     = sigma_toa^2 * eye(n_tdoa);
 C_roa     = utils.constants.c^2 * C_toa;
 R         = utils.resampleCovMtx(C_roa, ref_idx);
@@ -72,8 +72,8 @@ ls_fun   = @(zeta, x0) tdoa.lsSolnBounded(x_tdoa, zeta, C_roa, x0, bnd, ...
 crlb_fun = @(x) tdoa.computeCRLB(x_tdoa, x, C_roa, ref_idx, false);
 
 %% Motion models and measurement models --------------------------------------
-q_a_cv = 3;                % m/s^2 process noise for CV tracker
-q_a_ca = 0.1;              % m/s^2 process noise for CA tracker
+q_a_cv = 6;              % m/s^2 process noise for CV tracker
+q_a_ca = .3;              % m/s^2 process noise for CA tracker
 mm_cv   = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 mm_ca   = tracker.makeMotionModel('ca', 3, q_a_ca^2);
 
@@ -101,8 +101,8 @@ ts_ca = tracker.makeTrackerState(mm_ca, msmt, ...
 %% Figure 1 setup: 2x2 panel -------------------------------------------------
 scale  = 1e3;                  % plot in km
 clrs   = lines(num_tgts);
-num_fa = 20;                   % false alarms per scan
-max_val = 30e3;                % false-alarm extent per RDOA channel [m]
+num_fa = 10;                   % false alarms per scan
+max_val = 15e3;                % false-alarm extent per RDOA channel [m]
 
 fig1   = figure;
 tlo    = tiledlayout(fig1, 2, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -115,8 +115,9 @@ ax_msmts = [ax_t01, ax_t02, ax_t03];
 % Noiseless truth trajectories (geometry panel) and TDOA curves
 for ti = 1:num_tgts
     x = x_tgts{ti};
-    plot(ax_geo, x(1,:)/scale, x(2,:)/scale, ...
-         'Color', clrs(ti,:), 'DisplayName', sprintf('Target %d', ti));
+    hdl=plot(ax_geo, x(1,:)/scale, x(2,:)/scale, ...
+             'Color', clrs(ti,:), 'DisplayName', 'Targets');
+    if ti > 1, utils.excludeFromLegend(hdl); end
     hold(ax_geo, 'on');
     mid    = floor(num_time / 2);
     tip    = x(1:2, mid+1) / scale;               % arrowhead tip [km]
@@ -131,13 +132,14 @@ for ti = 1:num_tgts
 
     zeta_full = tdoa.measurement(x_tdoa, x, ref_idx);   % num_msmt x num_time
     for p = 1:num_msmt
-        plot(ax_msmts(p), t_vec, zeta_full(p,:)/scale, 'Color', clrs(ti,:),'DisplayName',sprintf('Target %d', ti));
+        hdl = plot(ax_msmts(p), t_vec, zeta_full(p,:)/scale, 'Color', clrs(ti,:),'DisplayName','Targets');
+        if ti > 1, utils.excludeFromLegend(hdl); end
         hold(ax_msmts(p), 'on');
     end
 end
 
 plot(ax_geo, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 'ko', ...
-     'MarkerFaceColor', 'k', 'MarkerSize', 4, 'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
+     'MarkerFaceColor', 'k', 'MarkerSize', 3, 'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
 
 % Accumulators for noisy-truth and FA scatter data (pre-allocated)
 scatter_truth_t = zeros(1,        num_time * num_tgts);
@@ -224,22 +226,22 @@ for p = 1:num_msmt
             3, [0 0 1], 'filled', 'DisplayName', 'Truth Msmts');
     scatter(ax_msmts(p), scatter_fa_t, scatter_fa_z(p,:)/scale, ...
             3, [0.7 0.7 0.7], 'filled', 'DisplayName', 'False Alarms');
-    title(ax_msmts(p),  msmt_titles{p},  'FontSize', 10);
-    xlabel(ax_msmts(p), 'Time [s]',      'FontSize', 8);
-    ylabel(ax_msmts(p), msmt_ylabels{p}, 'FontSize', 8);
-    legend(ax_msmts(p), 'FontSize', 8,'Location','SouthEast');
+    title(ax_msmts(p),  msmt_titles{p},  'FontSize', 8);
+    xlabel(ax_msmts(p), 'Time [s]',      'FontSize', 6);
+    ylabel(ax_msmts(p), msmt_ylabels{p}, 'FontSize', 6);
+    legend(ax_msmts(p), 'FontSize', 6,'Location','SouthEast');
     grid(ax_msmts(p), 'on');
-    ax_msmts(p).FontSize = 8;
+    ax_msmts(p).FontSize = 6;
 end
 
-title(ax_geo,  'Target Trajectories', 'FontSize', 10);
-xlabel(ax_geo, 'East [km]',           'FontSize', 8);
-ylabel(ax_geo, 'North [km]',          'FontSize', 8);
+title(ax_geo,  'Target Trajectories', 'FontSize', 8);
+xlabel(ax_geo, 'East [km]',           'FontSize', 6);
+ylabel(ax_geo, 'North [km]',          'FontSize', 6);
 xlim(ax_geo, [-75, 125]);
 ylim(ax_geo, [-50, 200]);
-legend(ax_geo, 'FontSize', 8,'Location','northwest');
+legend(ax_geo, 'FontSize', 6,'Location','northwest');
 grid(ax_geo, 'on');
-ax_geo.FontSize = 8;
+ax_geo.FontSize = 6;
 
 %% Figure 2: truth trajectories + confirmed tracks ---------------------------
 fig2 = figure;
@@ -289,29 +291,7 @@ legend(ax2, 'FontSize', 8);
 grid(ax2, 'on');
 utils.setPlotStyle(ax2, {'widescreen'});
 
-%% Figure 3: position error vs time -----------------------------------------
-fig3 = figure;
-ax3  = axes('Parent', fig3);
-hold(ax3, 'on');
-
-for ti = 1:num_tgts
-    cv_err = compute_position_error(all_cv, t_vec, x_tgts{ti}, mm_cv.state_space.pos_idx);
-    ca_err = compute_position_error(all_ca, t_vec, x_tgts{ti}, mm_ca.state_space.pos_idx);
-    plot(ax3, t_vec, cv_err/scale, '--', 'Color', clrs(ti,:), ...
-         'DisplayName', sprintf('Target %d CV', ti));
-    plot(ax3, t_vec, ca_err/scale, '-.',  'Color', clrs(ti,:), ...
-         'DisplayName', sprintf('Target %d CA', ti));
-end
-
-% title(ax3,  'Example 9.4: Horizontal Position Error vs Time (CV dashed, CA dash-dot)', 'FontSize', 10);
-xlabel(ax3, 'Time [s]',  'FontSize', 8);
-ylabel(ax3, 'Horizontal Error [km]','FontSize', 8);
-legend(ax3, 'FontSize', 8);
-grid(ax3, 'on');
-ax3.FontSize = 8;
-utils.setPlotStyle(ax3, {'widescreen'});
-
-figs = [fig1, fig2, fig3];
+figs = [fig1, fig2];
 
 end  % book2_ex9_4
 
@@ -397,47 +377,3 @@ t_vec = (0 : t_inc : max_time)';
 x_tgt = x0 + [vel*n; -vel*n; 0] * t_vec';
 end
 
-
-%% ==========================================================================
-function err = compute_position_error(all_tracks, t_vec, x_truth, pos_idx)
-% For each element of t_vec, return the minimum horizontal (x-y) distance
-% from x_truth(1:2, idx) to the x-y position stored in any confirmed track
-% at that time.  Z is excluded because the sensor array is nearly coplanar
-% (z~30-60 m) while targets fly at ~6096 m, making altitude nearly
-% unobservable via TDOA alone (CRLB_z >> CRLB_xy for this geometry).
-% Returns NaN where no track has a state at that timestamp.
-
-num_time = numel(t_vec);
-err      = nan(1, num_time);
-
-if isempty(all_tracks)
-    return;
-end
-
-% Pre-extract all (time, x, y) pairs from every track into flat arrays.
-% This moves the inner two loops outside the time loop, cutting the total
-% work from O(T * K * S) to O(K*S) extraction + O(T) vectorised queries.
-total_states = sum(cellfun(@(tr) numel(tr.states), all_tracks));
-all_t  = zeros(1, total_states);
-all_xy = zeros(2, total_states);
-fill   = 0;
-for trk_j = 1:numel(all_tracks)
-    states = all_tracks{trk_j}.states;
-    for s_k = 1:numel(states)
-        fill = fill + 1;
-        all_t(fill)      = states{s_k}.time;
-        all_xy(:, fill)  = states{s_k}.state(pos_idx(1:2));
-    end
-end
-all_t  = all_t(1:fill);
-all_xy = all_xy(:, 1:fill);
-
-for t_idx = 1:num_time
-    mask = abs(all_t - t_vec(t_idx)) < 0.5;
-    if ~any(mask)
-        continue;
-    end
-    dx = all_xy(:, mask) - x_truth(1:2, t_idx);
-    err(t_idx) = min(sqrt(sum(dx.^2, 1)));
-end
-end

@@ -446,8 +446,6 @@ figs = book2_ex9_4;
 
 utils.exportPlot(figs(1), [prefix '9a']);
 utils.exportPlot(figs(2), [prefix '9b']);
-utils.exportPlot(figs(3), [prefix '9c']);
-
 
 %% Cleanup
 

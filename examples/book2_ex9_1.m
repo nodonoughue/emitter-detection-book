@@ -144,30 +144,31 @@ ax2  = axes(fig2);
 hold(ax2, 'on');  grid(ax2, 'on');
 
 for kk = 1:num_tracks
-    c  = colors(kk, :);
-    xc = tracks{kk}.states{end-1}.state(ss.pos_idx);
-    xp = s_pred{kk}.state(ss.pos_idx);
-    xu = s_upd{kk}.state(ss.pos_idx);
-    Pp = s_pred{kk}.covar(ss.pos_idx, ss.pos_idx);
-    Pu = s_upd{kk}.covar(ss.pos_idx, ss.pos_idx);
+    c  = colors(kk, :);  % color
+    xc = tracks{kk}.states{end-1}.state(ss.pos_idx); % current
+    xp = s_pred{kk}.state(ss.pos_idx);               % predicted
+    xu = s_upd{kk}.state(ss.pos_idx);                % updated
+    mi = msmt_idx(kk);
+    xa = x_ls(:,mi);                                 % state est. from the assigned msmt
+    Pp = s_pred{kk}.covar(ss.pos_idx, ss.pos_idx);   % predicted err
+    Pu = s_upd{kk}.covar(ss.pos_idx, ss.pos_idx);    % updated err
+
+    % Plot current track state and solid line to predicted state
     plot(ax2, xc(1)/scale, xc(2)/scale, 'v', 'Color', c, ...
          'MarkerSize', 6, 'MarkerFaceColor', c, 'DisplayName', sprintf('Track %d', kk));
-    h = plot(ax2, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
+    h = plot(ax2, [xc(1), xp(1)]/scale, [xc(2), xp(2)]/scale, '-', 'Color', c, 'LineWidth', 1.5);
     utils.excludeFromLegend(h);
+    % Plot predicted state with error ellipse
     plot(ax2, xp(1)/scale, xp(2)/scale, 'o', 'Color', c, ...
          'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 1.5, ...
          'DisplayName', 'Predicted State');
     h = plot_ellipse(ax2, xp, Pp, sqrt(chi2inv(gate_prob, 2)), scale);
     h.Color = c;  h.LineStyle = '--';
     utils.excludeFromLegend(h);
-    h = plot(ax2, [xc(1), xu(1)]/scale, [xc(2), xu(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
-    utils.excludeFromLegend(h);
-    plot(ax2, xu(1)/scale, xu(2)/scale, 'v', 'Color', c, ...
-         'MarkerSize', 6, 'MarkerFaceColor', c, 'LineWidth', 2.0, ...
-         'DisplayName', 'Updated State');
-    h = plot_ellipse(ax2, xu, Pu, sqrt(chi2inv(gate_prob, 2)), scale);
-    h.Color = c;  h.LineStyle = '-';
-    utils.excludeFromLegend(h);
+    % Dashed line from predicted state to associated msmt (no marker; it's
+    % added later)
+    h = plot(ax2, [xp(1), xa(1)]/scale, [xp(2), xa(2)]/scale, '--', 'Color', c, 'LineWidth', 1.5);
+    utils.excludeFromLegend(h);    
 end
 
 for jj = 1:num_msmts

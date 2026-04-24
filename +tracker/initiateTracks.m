@@ -219,7 +219,7 @@ if ~isempty(buf1_tracks) && ~isempty(measurements)
                                                     msmt_model, target_max_velocity, ...
                                                     target_max_acceleration);
         s_init  = tracker.makeState(ss, m2.time, x_init, P_init);
-        new_trk = tracker.makeTrack(s_init, next_track_id);
+        new_trk = tracker.makeTrack(s_init, next_track_id, motion_model);
         new_trk.max_velocity     = target_max_velocity;
         new_trk.max_acceleration = target_max_acceleration;
         next_track_id = next_track_id + 1;
@@ -336,7 +336,7 @@ if ~isempty(buf2_tracks) && ~isempty(measurements)
                                                        msmt_model, target_max_velocity, ...
                                                        target_max_acceleration);
         s_init  = tracker.makeState(ss, m3.time, x_init, P_init);
-        new_trk = tracker.makeTrack(s_init, trk2.track_id);  % inherit track ID
+        new_trk = tracker.makeTrack(s_init, trk2.track_id, motion_model);  % inherit track ID
         new_trk.max_velocity     = target_max_velocity;
         new_trk.max_acceleration = target_max_acceleration;
         new_tracks{end+1} = new_trk;  %#ok<AGROW>
@@ -484,7 +484,7 @@ if ~isempty(msmt_model.least_square_fun)
 end
 
 s_buf = tracker.makeState(ss, m.time, x_buf, P_buf);
-t_buf = tracker.makeTrack(s_buf, track_id);
+t_buf = tracker.makeTrack(s_buf, track_id, motion_model);
 t_buf.max_velocity     = target_max_velocity;
 t_buf.max_acceleration = target_max_acceleration;
 
