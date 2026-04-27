@@ -24,7 +24,7 @@ function cov_out = ensureInvertible(cov, epsilon)
 
 % Check for epsilon input
 if nargin < 2 || isempty(epsilon)
-    epsilon = 1e-20;
+    epsilon = 1e-10;
 end
 
 % Check input dimensions
@@ -40,6 +40,11 @@ end
 
 cov_out = zeros(size(cov));
 for idx_matrix = 1:n_matrices
+   % Symmetrize to counteract floating-point asymmetry (e.g. from non-Joseph EKF updates).
+   % eig() and chol() disagree on slightly non-symmetric matrices: eig sees positive
+   % eigenvalues while chol() can still fail on the un-symmetrized matrix.
+   cov(:,:,idx_matrix) = (cov(:,:,idx_matrix) + cov(:,:,idx_matrix)') / 2;
+
    % Check min eigenvalue
    if min(eig(cov(:,:,idx_matrix))) < epsilon
       % We need to add a diagonal loading term, determine appropriate size
