@@ -72,8 +72,8 @@ ls_fun   = @(zeta, x0) tdoa.lsSolnBounded(x_tdoa, zeta, C_roa, x0, bnd, ...
 crlb_fun = @(x) tdoa.computeCRLB(x_tdoa, x, C_roa, ref_idx, false);
 
 %% Motion models and measurement models --------------------------------------
-q_a_cv = 6;              % m/s^2 process noise for CV tracker
-q_a_ca = .3;              % m/s^2 process noise for CA tracker
+q_a_cv = 3;              % m/s^2 process noise for CV tracker
+q_a_ca = .1;              % m/s^2 process noise for CA tracker
 mm_cv   = tracker.makeMotionModel('cv', 3, q_a_cv^2);
 mm_ca   = tracker.makeMotionModel('ca', 3, q_a_ca^2);
 
@@ -280,7 +280,7 @@ for trk = all_ca
     first_trk = false;
 end
 
-scatter(ax2, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 60, 'k', 'filled', ...
+scatter(ax2, x_tdoa(1,:)/scale, x_tdoa(2,:)/scale, 20, 'k', 'filled', ...
         'Clipping', 'off', 'DisplayName', 'TDOA Sensors');
 xlim(ax2, [-75, 125]);
 ylim(ax2, [-50, 200]);
