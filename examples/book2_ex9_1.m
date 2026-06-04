@@ -75,6 +75,8 @@ for jj = 1:num_msmts
     hdl = plot(ax1, x_ls(1,jj)/scale, x_ls(2,jj)/scale, '^', ...
             'Color', gray, 'MarkerSize', 6, 'MarkerFaceColor', gray, 'DisplayName', 'Msmts');
     if jj>1, utils.excludeFromLegend(hdl); end
+    text(ax1, x_ls(1,jj)/scale, x_ls(2,jj)/scale, ['   ' char('A'+jj-1)], ...
+         'Color', gray, 'FontSize', 10, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
     h = plot_ellipse(ax1, x_ls(:,jj), P_ls(:,:,jj), sqrt(chi2inv(gate_prob, 2)), scale);
     h.Color = gray;  h.LineStyle = ':';
     utils.excludeFromLegend(h);
@@ -178,6 +180,8 @@ for jj = 1:num_msmts
     if jj>1
         utils.excludeFromLegend(hdl);
     end
+    text(ax2, x_ls(1,jj)/scale, x_ls(2,jj)/scale, ['   ' char('A'+jj-1)], ...
+         'Color', gray, 'FontSize', 10, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
 end
 
 format_axes(ax2, 'NN Association: Predicted and Updated Track States');
